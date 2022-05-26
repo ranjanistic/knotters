@@ -17,7 +17,7 @@ def participantInviteAlert(profile: Profile, host: Profile, submission: Submissi
     """
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.PART_INVITE_ALERT).exists():
         user_device_notify(profile.user, "Participation Invite", 
-        f"Participation invitation sent to - {profile.getFName} - on {PUBNAME}. Now it is visible to everyone at the following link.")
+        f"Participation invitation sent to - {profile.getFName()} - on {PUBNAME}. Now it is visible to everyone at the following link.")
     if EmailNotificationSubscriber.objects.filter(user=profile.user,email_notification__notification__code=NotificationCode.PART_INVITE_ALERT).exists():
             sendActionEmail(
             to=profile.get_email, username=profile.getFName(), subject='Invitation to Participate Together',
@@ -84,14 +84,16 @@ def submissionConfirmedAlert(submission: Submission) -> list:
     """
     Email alert to all participants of a submission indicating their submission has been submitted successfully.
     """
-    if EmailNotificationSubscriber.objects.filter(user=submission.members,email_notification__notification__code=NotificationCode.SUBM_CONFIRM_ALERT).exists():
-            list(map(
+    print("TEST")
+    return  list(map(
             lambda profile: sendAlertEmail(
-            to=profile.get_email(), username=profile.getFName(), subject=f"Submission Submitted Successfully",
+            to=profile.get_email, 
+            username=profile.getFName(), 
+            subject=f"Submission Submitted Successfully",
             header=f"This is to inform you that your submission for '{submission.competition.title}' competition was successfully submitted at {submission.submitOn}.{' Your submission was late, and hence is vulnerable to rejection.' if submission.late else ''} Submission ID: {submission.getID()}",
             footer=f"Your submission has been safely kept for review, and the results will be declared for all the submissions we have received, altogether, soon. Till then, chill out. We're lenient.",
             conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
-        ), submission.getMembers()))
+        )if EmailNotificationSubscriber.objects.filter(user=profile.user,email_notification__notification__code=NotificationCode.SUBM_CONFIRM_ALERT).exists() else None, submission.getMembers()))
             
         
 
@@ -102,10 +104,9 @@ def submissionsModeratedAlert(competition: Competition) -> list:
     """
     if (not competition.moderated()) or competition.resultDeclared:
         return False
-        
     return list(map(
-        lambda judge:sendActionEmail(
-            to=competition.judges.get_email(),
+            lambda judge:sendActionEmail(
+            to=competition.judge.get_email(),
             subject=f"Submissions Judgement Ready: {competition.title}",
             greeting=f"Respected judge",
             username=judge.get_name,
@@ -116,7 +117,9 @@ def submissionsModeratedAlert(competition: Competition) -> list:
             }],
             footer=f"Your assigned points will be the decisive factor for final rankings of submissions, therefore please judge carefully.",
             conclusion=f"You received this email because you are a judge for the mentioned competition. If this is an error, then please report to us."
-        ), competition.getJudges()
+        )
+    if EmailNotificationSubscriber.objects.filter(user=competition.judge.user,email_notification__notification__code=NotificationCode.SUBM_MOD_ALERT).exists() else None    
+    , competition.getJudges()
     ))
 
 
@@ -126,7 +129,7 @@ def submissionsJudgedAlert(competition: Competition, judge: Profile) -> str:
     """
     if (not competition.moderated()) or competition.resultDeclared or (not competition.allSubmissionsMarkedByJudge(judge)):
         return False
-    if EmailNotificationSubscriber.objects.filter(user=competition.creator.user,email_notification__notification__code=NotificationCode.PART_WITHDRAWN_ALERT).exists():
+    if EmailNotificationSubscriber.objects.filter(user=competition.creator.user,email_notification__notification__code=NotificationCode.SUB_JUDGE_ALERT).exists():
         sendActionEmail(
         to=competition.creator.get_email(),
         subject=f"Submissions Judged: {competition.title}",
@@ -147,7 +150,7 @@ def resultsDeclaredAlert(competition: Competition) -> list:
     """
     if not competition.resultDeclared:
         return False
-    return [
+    if EmailNotificationSubscriber.objects.filter(user=competition.creator.user,email_notification__notification__code=NotificationCode.RES_DEC_ALERT).exists():
         sendActionEmail(
             to=competition.creator.get_email,
             subject=f"Results Declared: {competition.title}",
@@ -159,11 +162,10 @@ def resultsDeclaredAlert(competition: Competition) -> list:
             }],
             footer=f"Do generate the certificates as soon as possible, as every participant is waiting for their certificate.",
             conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
-        ),
-        resultsDeclaredModeratorAlert(competition),
-        resultsDeclaredJudgeAlert(competition),
-        resultsDeclaredParticipantAlert(competition)
-    ]
+        )
+    resultsDeclaredModeratorAlert(competition),
+    resultsDeclaredJudgeAlert(competition),
+    resultsDeclaredParticipantAlert(competition)
 
 
 def certsAllotedAlert(competition: Competition) -> list:
@@ -172,7 +174,7 @@ def certsAllotedAlert(competition: Competition) -> list:
     """
     if not competition.resultDeclared:
         return False
-    return [
+    if EmailNotificationSubscriber.objects.filter(user=competition.creator.user,email_notification__notification__code=NotificationCode.CERT_ALLOT_ALERT).exists():
         sendActionEmail(
             to=competition.creator.get_email,
             subject=f"Certificates Alloted: {competition.title}",
@@ -198,7 +200,7 @@ def certsAllotedAlert(competition: Competition) -> list:
                 }],
                 footer=f"Your can download your certificate, or just share it from the page itself. Any delay in allotment is deeply regretted. Thank you.",
                 conclusion=f"You received this email because you contributed in the mentioned competition. If this is an error, then please report to us."
-            ), AppreciationCertificate.objects.filter(competition=competition)
+            )if EmailNotificationSubscriber.objects.filter(user=apprcert.appreciatee.user,email_notification__notification__code=NotificationCode.CERT_ALLOT_ALERT).exists() else None, AppreciationCertificate.objects.filter(competition=competition)
         )),
         list(map(
             lambda partcert: sendActionEmail(
@@ -211,10 +213,8 @@ def certsAllotedAlert(competition: Competition) -> list:
                 }],
                 footer=f"Your can download your certificate, or just share it from the page itself. Any delay in allotment is deeply regretted. Keep participating!",
                 conclusion=f"You received this email because you participated the mentioned competition. If this is an error, then please report to us."
-            ), ParticipantCertificate.objects.filter(result__competition=competition)
+            )if EmailNotificationSubscriber.objects.filter(user=partcert.profile.user,email_notification__notification__code=NotificationCode.CERT_ALLOT_ALERT).exists() else None, ParticipantCertificate.objects.filter(result__competition=competition)
         ))
-    ]
-
 
 def resultsDeclaredParticipantAlert(competition: Competition) -> list:
     """
@@ -233,7 +233,7 @@ def resultsDeclaredParticipantAlert(competition: Competition) -> list:
             }],
             footer=f"The results were based on aggregated markings by independent judgement panel. This marks the successfull end of this competition. Thank you for participating, see you again in upcoming competitions!",
             conclusion=f"You received this email because you participated the mentioned competition. If this is an error, then please report to us."
-        ), competition.getValidSubmissions()
+        )if EmailNotificationSubscriber.objects.filter(user=sub.getMembersEmail().user,email_notification__notification__code=NotificationCode.RES_DEC_PART_ALERT).exists() else None, competition.getValidSubmissions()
     ))
 
 
@@ -256,7 +256,7 @@ def resultsDeclaredJudgeAlert(competition: Competition) -> list:
             }],
             footer=f"The results were based on aggregated markings by independent judgement panel, including you. It was an honour to have you as judge for this competition.",
             conclusion=f"You received this email because you judged the mentioned competition. If this is an error, then please report to us."
-        ), competition.getJudges()
+        )if EmailNotificationSubscriber.objects.filter(user=Competition.judge.user,email_notification__notification__code=NotificationCode.RES_DEC_JUDGE_ALERT).exists() else None, competition.getJudges()
     ))
 
 
@@ -267,7 +267,8 @@ def resultsDeclaredModeratorAlert(competition: Competition) -> str:
     if not competition.resultDeclared:
         return False
     mod = competition.getModerator()
-    return sendActionEmail(
+    if EmailNotificationSubscriber.objects.filter(user=mod.user,email_notification__notification__code=NotificationCode.PART_WITHDRAWN_ALERT).exists():
+        sendActionEmail(
         to=mod.get_email,
         username=mod.get_name,
         subject=f"Results Declared: {competition.title}",

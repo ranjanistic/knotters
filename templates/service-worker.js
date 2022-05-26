@@ -360,3 +360,8 @@ self.addEventListener(EVENTS.PUSH, (event) => {
     {% if DEBUG %}debug_log(title);{% endif %}
     event.waitUntil(self.registration.showNotification(title, options));
 });
+self.addEventListener('notificationclick', function(event) {
+    console.log('On notification click: ', event.notification);
+    // clients.openWindow(event.action);
+    event.notification.close();
+  });
