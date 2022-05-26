@@ -24,7 +24,8 @@ def freeProjectCreated(project: FreeProject) -> str:
     if DeviceNotificationSubscriber.objects.filter(user=project.creator.user, device_notification__notification__code=NotificationCode.FREE_PROJ_CREATED).exists():
         user_device_notify(project.creator.user, "Project created",
                            f"Yay! You have successfully created a quick new project - {project.name} - on {PUBNAME}. Now it is visible to everyone at the following link.",
-                           url=project.getLink())
+                           actions=[{'action': project.getLink(),
+                                     'title': "Title"}])
 
     if EmailNotificationSubscriber.objects.filter(user=project.creator.user, email_notification__notification__code=NotificationCode.FREE_PROJ_CREATED).exists():
         sendActionEmail(

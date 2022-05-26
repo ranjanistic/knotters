@@ -99,11 +99,16 @@ The global renderer methods for other sections/modules are also exported from [m
 
 The request entry point for this module starts from `/`.
 > The SEO based requests & dynamic scripts request for every html template are also being handled here, for instance
+>
 > [`/robots.txt`](https://knotters.org/robots.txt) Serves the robots.txt for search engines
+>
 > [`/manifest.json`](https://knotters.org/manifest.json) Serves the web-application manifest for installation configuration
+>
 > [`/service-worker.js`](https://knotters.org/service-worker.js) Serves the [**service worker**](https://web.dev/service-worker-mindset/)
+>
 > [`/scripts/strings.js`](https://knotters.org/scripts/strings.js) Serves STRING global object for all client scripts, mainly to fulfil in-script client translated messages requirements (equivalent to [strings.py](main/strings.py) of backend)
-> `/scripts/projects/0.js?id=projectID` The dynamic script for a Quick project's profile. Needs an actual project ID to work.
+>
+> `/scripts/projects/0.js?id=projectID` A dynamic script for a Quick project's profile. Needs an actual project ID to work, as the script changes for every project.
 
 All future logic & requests independent of any module are expected to be contained in this directory only.
 
@@ -113,8 +118,11 @@ Although the application itself uses django's account management system with `pa
 
 The request entry point for this module starts from `/auth`.
 > The same entry point here is being used for the `allauth` & `allauth_2fa` packages as well, to maintain consistency in urls related to account management. For instance
+>
 > [`/auth/login`](https://knotters.org/auth/login) is handled by `package:allauth`
-> [`/auth/two-factor-authenticate`](https://knotters.org/auth/two-factor-authenticate) is handled by `package:allauth`
+>
+> [`/auth/two-factor-authenticate`](https://knotters.org/auth/two-factor-authenticate) is handled by `package:allauth_2fa`
+>
 > [`/auth/`](https://knotters.org/auth/) (accounts homepage) is handled by our `auth2` module itself.
 
 Any account related logic is contained and expected to be contained in this module only.

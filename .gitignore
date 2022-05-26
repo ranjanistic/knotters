@@ -53,7 +53,12 @@ compilemessages
 knottrans/
 locale/
 prod/
+first_pro/
 shubham/
 log.*
+<<<<<<< HEAD
 knotters_env/
 knotts_env/
+=======
+
+>>>>>>> b1abddaea7789a9d280bde1d084d7f0c17c9690b
