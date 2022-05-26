@@ -317,7 +317,7 @@ self.addEventListener(EVENTS.MESSAGE, (event) => {
 
 // For web push messages
 self.addEventListener(EVENTS.PUSH, (event) => {
-    const payload = event.data
+    console.log(event.data)
         ? event.data.text()
         : JSON.stringify({ title: "{{APPNAME}}" });
     const defaultOps = {
