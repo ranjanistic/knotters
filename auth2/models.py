@@ -120,6 +120,8 @@ class Notification(models.Model):
         primary_key=True, default=uuid4, editable=False)
     name: str = models.CharField(max_length=80)
     """name (str): The name of the notification channel"""
+    code: int = models.IntegerField(default=0)
+    """code (int) : Code for notification type"""
     description: str = models.CharField(max_length=200, null=True, blank=True)
     """description (str): The description of the notification channel"""
     disabled: bool = models.BooleanField(default=False)

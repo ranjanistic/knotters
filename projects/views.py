@@ -53,6 +53,8 @@ from .models import (AppRepository, Asset, BaseProject,
                      ProjectTag, ProjectTopic, ProjectTransferInvitation,
                      Snapshot, Tag, VerProjectDeletionRequest)
 from .receivers import *
+from main.constants import NotificationCode
+from auth2.models import EmailNotificationSubscriber
 
 
 @require_GET
@@ -680,6 +682,7 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
         errorLog(e)
         raise Http404(e)
 
+
 @require_GET
 def at_nickname(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
     try:
@@ -689,6 +692,7 @@ def at_nickname(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @require_GET
 def profileBase(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
@@ -1252,7 +1256,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 addtags = addtags.strip(',').split(",")
             if (currentcount + len(addtags)) <= 5:
                 for tag in map(lambda addtag: addTagToDatabase(
-                    addtag, request.user.profile), addtags):
+                        addtag, request.user.profile), addtags):
                     project.tags.add(tag)
                     for topic in project.getTopics():
                         topic.tags.add(tag)

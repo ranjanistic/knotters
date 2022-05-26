@@ -1,5 +1,8 @@
+from auth2.models import DeviceNotificationSubscriber, EmailNotificationSubscriber, Notification
+from main.constants import NotificationCode
 from main.env import PUBNAME
 from main.mailers import sendActionEmail, sendAlertEmail, sendCCActionEmail
+from main.methods import user_device_notify
 from main.strings import URL, url
 from people.models import Profile
 
@@ -12,21 +15,26 @@ def participantInviteAlert(profile: Profile, host: Profile, submission: Submissi
     """
     Email invitation to a user for participation with a submission in a competition.
     """
-    return sendActionEmail(
-        to=profile.get_email, username=profile.getFName(), subject='Invitation to Participate Together',
-        header=f"{host.get_name} ({host.get_email}) has invited you to participate with them in our upcoming competition \'{submission.competition.title}\'.",
-        actions=[{'text': "See invitation",
-                  'url': f"{url.getRoot(APPNAME)}{URL.compete.invitation(submission.get_id,profile.getUserID())}"}],
-        footer=f"You may accept or deny this invitation. If you won't respond, then this invitation will automatically become invalid at the end of competition, or, upon final submission, or, cancellation of your invitation by {host.get_name}, whichever occurrs earlier.",
-        conclusion=f"You can ignore this email if you're not interested. If you're being spammed by this invitation or this is an error, please report to us."
-    )
+    if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.PART_INVITE_ALERT).exists():
+        user_device_notify(profile.user, "Participation Invite", 
+        f"Participation invitation sent to - {profile.getFName} - on {PUBNAME}. Now it is visible to everyone at the following link.")
+    if EmailNotificationSubscriber.objects.filter(user=profile.user,email_notification__notification__code=NotificationCode.PART_INVITE_ALERT).exists():
+            sendActionEmail(
+            to=profile.get_email, username=profile.getFName(), subject='Invitation to Participate Together',
+            header=f"{host.get_name} ({host.get_email}) has invited you to participate with them in our upcoming competition \'{submission.competition.title}\'.",
+            actions=[{'text': "See invitation",
+                      'url': f"{url.getRoot(APPNAME)}{URL.compete.invitation(submission.get_id,profile.getUserID())}"}],
+            footer=f"You may accept or deny this invitation. If you won't respond, then this invitation will automatically become invalid at the end of competition, or, upon final submission, or, cancellation of your invitation by {host.get_name}, whichever occurrs earlier.",
+            conclusion=f"You can ignore this email if you're not interested. If you're being spammed by this invitation or this is an error, please report to us."
+        )
 
 
 def participantWelcomeAlert(profile: Profile, submission: Submission) -> str:
     """
     Email alert to a participant of a submission notifying their participation confirmation
     """
-    done = sendActionEmail(
+    if EmailNotificationSubscriber.objects.filter(user=profile.user,email_notification__notification__code=NotificationCode.PART_WELCOME_ALERT).exists():
+        done = sendActionEmail(
         to=profile.get_email, username=profile.getFName(), subject=f"Your Participation Confirmed",
         header=f"This is to inform you that you've participated in our '{submission.competition.title}' competition. Great! With a lots of goodluck from {PUBNAME} Community, make sure you put your 100% efforts in this.",
         actions=[{'text': "View competition",
@@ -45,7 +53,8 @@ def participantJoinedAlert(profile: Profile, submission: Submission) -> str:
     emails = submission.getMembersEmail()
     if len(emails) < 2:
         return True
-    return sendCCActionEmail(
+    if EmailNotificationSubscriber.objects.filter(user=profile.user,email_notification__notification__code=NotificationCode.PART_JOINED_ALERT).exists():
+        sendCCActionEmail(
         to=list(filter(lambda e: e != profile.get_email, emails)),
         subject=f"Teammate Joined Submission",
         header=f"This is to inform you that '{profile.getName()}' has joined your team in '{submission.competition.title}' competition.",
@@ -60,7 +69,8 @@ def participationWithdrawnAlert(profile: Profile, submission: Submission) -> str
     """
     Email alert to a participant of a submission notifying their participation cancellation
     """
-    return sendActionEmail(
+    if EmailNotificationSubscriber.objects.filter(user=profile.user,email_notification__notification__code=NotificationCode.PART_WITHDRAWN_ALERT).exists():
+        sendActionEmail(
         to=profile.get_email, username=profile.getFName(), subject=f"Your Participation Cancelled",
         header=f"This is to inform you that your existing participation in our '{submission.competition.title}' competition has been cancelled. Either someone has removed you from your team, or you have withdrawn yourself.",
         actions=[{'text': "View competition",
@@ -74,14 +84,16 @@ def submissionConfirmedAlert(submission: Submission) -> list:
     """
     Email alert to all participants of a submission indicating their submission has been submitted successfully.
     """
-    return list(map(
-        lambda profile: sendAlertEmail(
-            to=profile.get_email, username=profile.getFName(), subject=f"Submission Submitted Successfully",
+    if EmailNotificationSubscriber.objects.filter(user=submission.members,email_notification__notification__code=NotificationCode.SUBM_CONFIRM_ALERT).exists():
+            list(map(
+            lambda profile: sendAlertEmail(
+            to=profile.get_email(), username=profile.getFName(), subject=f"Submission Submitted Successfully",
             header=f"This is to inform you that your submission for '{submission.competition.title}' competition was successfully submitted at {submission.submitOn}.{' Your submission was late, and hence is vulnerable to rejection.' if submission.late else ''} Submission ID: {submission.getID()}",
             footer=f"Your submission has been safely kept for review, and the results will be declared for all the submissions we have received, altogether, soon. Till then, chill out. We're lenient.",
             conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
-        ), submission.getMembers()
-    ))
+        ), submission.getMembers()))
+            
+        
 
 
 def submissionsModeratedAlert(competition: Competition) -> list:
@@ -90,9 +102,10 @@ def submissionsModeratedAlert(competition: Competition) -> list:
     """
     if (not competition.moderated()) or competition.resultDeclared:
         return False
+        
     return list(map(
-        lambda judge: sendActionEmail(
-            to=judge.get_email,
+        lambda judge:sendActionEmail(
+            to=competition.judges.get_email(),
             subject=f"Submissions Judgement Ready: {competition.title}",
             greeting=f"Respected judge",
             username=judge.get_name,
@@ -113,8 +126,9 @@ def submissionsJudgedAlert(competition: Competition, judge: Profile) -> str:
     """
     if (not competition.moderated()) or competition.resultDeclared or (not competition.allSubmissionsMarkedByJudge(judge)):
         return False
-    return sendActionEmail(
-        to=competition.creator.get_email,
+    if EmailNotificationSubscriber.objects.filter(user=competition.creator.user,email_notification__notification__code=NotificationCode.PART_WITHDRAWN_ALERT).exists():
+        sendActionEmail(
+        to=competition.creator.get_email(),
         subject=f"Submissions Judged: {competition.title}",
         username=competition.creator.get_name,
         header=f"The submissions for '{competition.title}' competition have been judged by the respected judge - {judge.get_name}. You can check the status of judgment.",

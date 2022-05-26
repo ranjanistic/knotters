@@ -54,7 +54,6 @@ def on_user_delete(sender, instance: User, **kwargs):
 def user_password_changed(request, user: User, **kwargs):
     passordChangeAlert(user)
 
-
 @receiver(password_reset)
 def user_password_reset(request, user: User, **kwargs):
     passordChangeAlert(user)
