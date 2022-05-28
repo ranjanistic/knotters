@@ -27,7 +27,6 @@ from main.strings import MANAGEMENT, PROJECTS, Code, classAttrsToDict, url
 from management.models import (GhMarketPlan, Invitation, Management,
                                ReportCategory)
 
-# from people.mailers import Increase_Xp_Alert,Decrease_Xp_Alert,Increase_Bulk_Topic_XP_Alert
 from .apps import APPNAME
 
 
@@ -1261,9 +1260,8 @@ class Profile(models.Model):
         self.xp = self.xp + by
         self.save()
         if notify:
-            #Increase_Xp_Alert(user = self.user, increment = by, profile_link = self.get_abs_link)
-            user_device_notify(self.user, "Profile XP Increased!",
-                               f"You have gained +{by} XP!", self.get_abs_link)
+            from .mailers import Increase_Xp_Alert
+            Increase_Xp_Alert(self, by)
         ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
@@ -1292,9 +1290,8 @@ class Profile(models.Model):
         self.xp = int(diff)
         self.save()
         if notify:
-            # Decrease_Xp_Alert(user = self.user, decrement = by, profile_link = self.get_abs_link)
-            user_device_notify(self.user, "Profile XP Decreased",
-                               f"You have lost -{by} XP.", self.get_abs_link)
+            from .mailers import Decrease_Xp_Alert
+            Decrease_Xp_Alert(self, by)
         ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
@@ -1352,10 +1349,8 @@ class Profile(models.Model):
             xp=by, reason=reason)
         profbulktoprecord.profile_topics.set(proftops)
         if notify:
-           # Increase_Bulk_Topic_XP_Alert(
-            #    user=self.user, IncrementBulk=by, profile_link=self.get_abs_link)
-            user_device_notify(self.user, "Bulk Topics XP Increased!",
-                               f"You have gained +{by} XP in multiple topics at once!", self.get_abs_link)
+            from .mailers import Increase_Bulk_Topic_XP_Alert
+            Increase_Bulk_Topic_XP_Alert(self, by)
         return profbulktoprecord
 
     def decreaseTopicPoints(self, topic, by: int = 0, notify=True, reason='') -> int:
