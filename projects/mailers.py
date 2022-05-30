@@ -23,9 +23,7 @@ def freeProjectCreated(project: FreeProject) -> str:
     """
     if DeviceNotificationSubscriber.objects.filter(user=project.creator.user, device_notification__notification__code=NotificationCode.FREE_PROJ_CREATED).exists():
         user_device_notify(project.creator.user, "Project created",
-                           f"Yay! You have successfully created a quick new project - {project.name} - on {PUBNAME}. Now it is visible to everyone at the following link.",
-                           actions=[{'action': project.getLink(),
-                                     'title': "Title"}])
+                           f"Yay! You have successfully created a quick new project - {project.name} - on {PUBNAME}. Now it is visible to everyone at the following link.")
 
     if EmailNotificationSubscriber.objects.filter(user=project.creator.user, email_notification__notification__code=NotificationCode.FREE_PROJ_CREATED).exists():
         sendActionEmail(
@@ -232,8 +230,8 @@ def projectTransferInvitation(invite: ProjectTransferInvitation) -> str:
         return False
 
     if DeviceNotificationSubscriber.objects.filter(user=invite.receiver.user, device_notification__notification__code=NotificationCode.PROJ_TRANSFER_INVITE).exists():
-        user_device_notify(invite.receiver.user, "Project Transfer Invitation", 
-        f"You've been invited to accept ownership of project {invite.baseproject.name} by its creator, {invite.sender.getName()} ({invite.sender.getEmail()}).")
+        user_device_notify(invite.receiver.user, "Project Transfer Invitation",
+                           f"You've been invited to accept ownership of project {invite.baseproject.name} by its creator, {invite.sender.getName()} ({invite.sender.getEmail()}).")
 
     if EmailNotificationSubscriber.objects.filter(user=invite.receiver.user, email_notification__notification__code=NotificationCode.PROJ_TRANSFER_INVITE).exists():
         sendActionEmail(
@@ -382,7 +380,7 @@ def projectModTransferInvitation(invite: ProjectModerationTransferInvitation) ->
         user_device_notify(invite.sender.user, "Verified Project Moderation Transfer Initiated",
                            f"You've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept moderatorship of the verified project {invite.project.name}.")
 
-    if EmailNotificationSubscriber.objects.filter(user=invite.sender.user, email_notification__notification__code=NotificationCode.PROJ_MOD_TRANSFER).exists(): 
+    if EmailNotificationSubscriber.objects.filter(user=invite.sender.user, email_notification__notification__code=NotificationCode.PROJ_MOD_TRANSFER).exists():
         sendActionEmail(
             to=invite.sender.getEmail(),
             username=invite.sender.getFName(),
@@ -679,7 +677,7 @@ def verProjectDeletionAcceptedRequest(invite: VerProjectDeletionRequest) -> str:
             footer=f"This action was irreversible, and the project will no longer exist on {PUBNAME}, and all related assets, repositories and teams will be deleted soon.",
             conclusion=f"This email was sent because you had requested deletion of a verified project."
         )
-    
+
     if DeviceNotificationSubscriber.objects.filter(user=invite.receiver.user, device_notification__notification__code=NotificationCode.VERIF_PROJ_DELETION_ACCEPTED).exists():
         user_device_notify(invite.receiver.user, "Verified Project Deletion Accepted",
                            f"You've accepted to delete the verified project {invite.project.name}.")

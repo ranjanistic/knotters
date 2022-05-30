@@ -5,12 +5,12 @@ const _VERSION = "{{VERSION}}",
     X_ALLOWCACHE = "X-KNOT-ALLOW-CACHE",
     X_RETAINCACHE = "X-KNOT-RETAIN-CACHE",
     X_SCRIPTFETCH = "X-KNOT-REQ-SCRIPT",
-    ASSETS = {{assets|safe}},
-    IGNORELIST = {{ignorelist|safe}},
-    RECACHELIST = {{recacheList|safe}},
-    NOOFFLINELIST = {{noOfflineList|safe}},
-    NETFIRSTLIST = {{netFirstList|safe}},
-    PARAMREGEX = "[a-zA-Z0-9./\\-?=&%#:@]",
+    _ASSETS_ = {{assets|safe}},
+    _IGNORELIST_ = {{ignorelist|safe}},
+    _RECACHELIST_ = {{recacheList|safe}},
+    _NOOFFLINELIST_ = {{noOfflineList|safe}},
+    _NETFIRSTLIST_ = {{netFirstList|safe}},
+    _PARAMREGEX = "[a-zA-Z0-9./\\-_?=&%#:@]",
     _STAT_CACHE_NAME = `static-cache-${_VERSION}`,
     _DYN_CACHE_NAME = `dynamic-cache-${_VERSION}`,
     EVENTS = {
@@ -53,17 +53,17 @@ const testAsteriskPathRegex = (asteriskPath, testPath) => {
 };
 
 const isNetFirst = (path) =>
-        NETFIRSTLIST.some((netFirst) =>
+        _NETFIRSTLIST_.some((netFirst) =>
             testAsteriskPathRegex(netFirst, path)
         ),
     isNoOffline = (path) =>
-        NOOFFLINELIST.some((noOffline) =>
+        _NOOFFLINELIST_.some((noOffline) =>
             testAsteriskPathRegex(noOffline, path)
         ),
     isIgnored = (path) =>
-        IGNORELIST.some((ignore) => testAsteriskPathRegex(ignore, path)),
+        _IGNORELIST_.some((ignore) => testAsteriskPathRegex(ignore, path)),
     isRecache = (path) =>
-        RECACHELIST.some((recache) => testAsteriskPathRegex(recache, path)),
+        _RECACHELIST_.some((recache) => testAsteriskPathRegex(recache, path)),
     // will always clear dyn cache if POST method, except if retain cache header is true
     canClearDynCache = (path, event) =>
         isRecache(path) ||
@@ -80,7 +80,7 @@ const isNetFirst = (path) =>
             event.request.headers.get(X_SCRIPTFETCH) == H_TRUE
         );
 
-// To add static ASSETS in static cache DB on service worker installation/update
+// To add static _ASSETS_ in static cache DB on service worker installation/update
 self.addEventListener(EVENTS.ACTIVATE, (event) =>
     event.waitUntil(
         caches
@@ -99,7 +99,7 @@ self.addEventListener(EVENTS.ACTIVATE, (event) =>
                                     .then(
                                         async (cache) =>
                                             await Promise.all(
-                                                ASSETS.map(async (asset) => {
+                                                _ASSETS_.map(async (asset) => {
                                                     const matched =
                                                         await cache.match(
                                                             asset
@@ -146,7 +146,7 @@ const netFetchResponseHandler = async (path, event, FetchRes) => {
             {% if DEBUG %}debug_log(`${path} can clear dyn cache`);{% endif %}
             await caches.delete(_DYN_CACHE_NAME);
         }
-        if (ASSETS.includes(path)) {
+        if (_ASSETS_.includes(path)) {
             {% if DEBUG %}debug_log(`${path} is static asset`);{% endif %}
             try {
                 const cache = await caches.open(_STAT_CACHE_NAME);
@@ -241,7 +241,7 @@ const cacheFetchResponseHandler = async (path, event, CachedRes) => {
         {% if DEBUG %}debug_log(`${path} can clear dyn cache`);{% endif %}
         await caches.delete(_DYN_CACHE_NAME);
     }
-    if (ASSETS.includes(path)) {
+    if (_ASSETS_.includes(path)) {
         {% if DEBUG %}debug_log(`${path} is static asset`);{% endif %}
         try {
             const cache = await caches.open(_STAT_CACHE_NAME);
@@ -320,9 +320,8 @@ self.addEventListener(EVENTS.PUSH, (event) => {
     const payload = event.data
         ? event.data.text()
         : JSON.stringify({ title: "{{APPNAME}}" });
-    console.log(payload)
     const defaultOps = {
-        url: null,
+        url: "/",
         icon: "{{ICON_PNG}}",
         badge: "{{ICON_SHADOW_PNG}}",
         actions: [],
@@ -362,9 +361,9 @@ self.addEventListener(EVENTS.PUSH, (event) => {
     }
     {% if DEBUG %}debug_log(title);{% endif %}
     event.waitUntil(self.registration.showNotification(title, options));
-});
-self.addEventListener('notificationclick', function(event) {
+    self.addEventListener('notificationclick', function(event) {
     console.log('On notification click: ', event.notification);
-    clients.openWindow(event.action);
+    clients.openWindow(data.url);
     event.notification.close();
   });
+});
