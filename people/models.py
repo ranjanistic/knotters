@@ -1,6 +1,8 @@
 from datetime import datetime
+from operator import truediv
 from re import sub as re_sub
 from uuid import UUID, uuid4
+import math
 
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
@@ -445,6 +447,9 @@ class Profile(models.Model):
     nickname: str = models.CharField(
         max_length=30, null=True, default=None, blank=True)
     """nickname (CharField): The nickname of the user.(unique)"""
+    milestone_count: int = models.IntegerField(
+        default=0, help_text='Milestone count')
+    """milestone_count (IntegerField): Number of milestones achieved by the user"""
 
     def __str__(self) -> str:
         return self.getID() if self.is_zombie else self.user.email
@@ -1257,11 +1262,21 @@ class Profile(models.Model):
             return self.xp
         if self.xp == None:
             self.xp = 0
+            self.milestone_count = 0
+        if self.milestone_count == None:
+            if self.xp <= 50:
+                self.milestone_count = 0
+            else:
+                self.milestone_count = int(math.sqrt((self.xp/50)-1))
         self.xp = self.xp + by
+        if self.xp >= 50*(1+pow(self.milestone_count, 2)) and self.xp-by < 50*(1+pow(self.milestone_count, 2)):
+            from .mailers import milestoneNotif
+            milestoneNotif(self)
+            self.milestone_count = self.milestone_count + 1
         self.save()
         if notify:
-            from .mailers import Increase_Xp_Alert
-            Increase_Xp_Alert(self, by)
+            from .mailers import increaseXpAlert
+            increaseXpAlert(self, by)
         ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
@@ -1283,15 +1298,19 @@ class Profile(models.Model):
             self.save()
             return self.xp
         diff = self.xp - by
+
         if diff < 0:
             diff = 0
         if self.xp == diff:
             return self.xp
         self.xp = int(diff)
+        if (self.milestone_count != None):
+            if self.xp+by >= 50*(1+pow((self.milestone_count-1), 2)) and self.xp < 50*(1+pow((self.milestone_count-1), 2)):
+                self.milestone_count = self.milestone_count-1
         self.save()
         if notify:
-            from .mailers import Decrease_Xp_Alert
-            Decrease_Xp_Alert(self, by)
+            from .mailers import decreaseXpAlert
+            decreaseXpAlert(self, by)
         ProfileXPRecord.objects.create(profile=self, xp=by, reason=reason)
         return self.xp
 
@@ -1349,8 +1368,8 @@ class Profile(models.Model):
             xp=by, reason=reason)
         profbulktoprecord.profile_topics.set(proftops)
         if notify:
-            from .mailers import Increase_Bulk_Topic_XP_Alert
-            Increase_Bulk_Topic_XP_Alert(self, by)
+            from .mailers import increaseBulkTopicXPAlert
+            increaseBulkTopicXPAlert(self, by)
         return profbulktoprecord
 
     def decreaseTopicPoints(self, topic, by: int = 0, notify=True, reason='') -> int:
@@ -1740,6 +1759,9 @@ class ProfileTopic(models.Model):
     """trashed (BooleanField): Whether the topic is trashed/invisible or not"""
     points: int = models.IntegerField(default=0)
     """points (IntegerField): The XP of profile in the topic"""
+    milestone_count_topic: int = models.IntegerField(
+        default=0, help_text='Milestone count in a topic')
+    """milestone_count_topic(IntegerField): Number of milestones achieved by the user in a certain topic"""
 
     class Meta:
         unique_together = ('profile', 'topic')
@@ -1766,10 +1788,21 @@ class ProfileTopic(models.Model):
         else:
             points = self.points + by
         self.points = points
+
+        if self.milestone_count_topic == None:
+            if self.points <= 50:
+                self.milestone_count_topic = 0
+            else:
+                self.milestone_count_topic = int(math.sqrt((self.points/50)-1))
+        if self.points >= 50*(1+pow(self.milestone_count_topic, 2)) and self.points-by < 50*(1+pow(self.milestone_count_topic, 2)):
+            from .mailers import milestoneNotifTopic
+            milestoneNotifTopic(self)
+            self.milestone_count_topic = self.milestone_count_topic + 1
         self.save()
         if notify:
-            user_device_notify(self.profile.user, "Topic XP Increased!",
-                               f"You have gained +{by} XP in {self.topic.get_name}! {self.points} is your current XP.{' You may add it to your profile.' if self.trashed else ''}", self.profile.get_abs_link)
+            from .mailers import increaseXPInTopicAlert
+            increaseXPInTopicAlert(
+                self, by, self.topic.get_name, self.points, self.trashed)
         if record:
             ProfileTopicXPRecord.objects.create(
                 profile_topic=self, xp=by, reason=reason)
@@ -1793,10 +1826,14 @@ class ProfileTopic(models.Model):
         else:
             points = self.points - by
         self.points = points
+        if (self.milestone_count_topic != None):
+            if self.points+by >= 50*(1+pow((self.milestone_count_topic-1), 2)) and self.points < 50*(1+pow((self.milestone_count_topic-1), 2)):
+                self.milestone_count_topic = self.milestone_count_topic-1
         self.save()
         if notify:
-            user_device_notify(self.profile.user, "Topic XP decreased.",
-                               f"You have lost -{by} XP in {self.topic.get_name}. {self.points} is your current XP.", self.profile.get_abs_link)
+            from .mailers import decreaseXPInTopicAlert
+            decreaseXPInTopicAlert(
+                self, by, self.topic.get_name, self.points)
         ProfileTopicXPRecord.objects.create(
             profile_topic=self, xp=by, reason=reason)
         return self.points

@@ -7,8 +7,9 @@ from .models import (BaseProjectCoCreatorInvitation,
                      CoreModerationTransferInvitation, CoreProject,
                      CoreProjectDeletionRequest, FreeProject, Project,
                      ProjectModerationTransferInvitation,
-                     ProjectTransferInvitation, VerProjectDeletionRequest)
+                     ProjectTransferInvitation, VerProjectDeletionRequest, BaseProject)
 from main.methods import user_device_notify
+from management.models import ReportCategory
 
 
 def freeProjectCreated(project: FreeProject) -> str:
@@ -971,4 +972,20 @@ def baseProjectCoCreatorDeclinedInvitation(invite: BaseProjectCoCreatorInvitatio
             }],
             footer=f"This is because the invited person has rejected the invitation. You can re-invite them or anyone again.",
             conclusion=f"If this action is unfamiliar, then you may contact us."
+        )
+
+
+def reportedProject(project: BaseProject, category: ReportCategory):
+    if DeviceNotificationSubscriber.objects.filter(user=project.creator.user, device_notification__notification__code=NotificationCode.REPORTED_PROJECT).exists():
+        user_device_notify(project.creator.user, "Report Alert",
+                           f"Your project - {project.name} - has been reported for {category}. The complaint is under review.",
+                           project.getLink())
+    if EmailNotificationSubscriber.objects.filter(user=project.creator.user, email_notification__notification__code=NotificationCode.REPORTED_PROJECT).exists():
+        sendActionEmail(
+            to=project.creator.get_email, username=project.creator.user.first_name, subject='Project Reported for violation of rules',
+            header=f"This is to inform you that your project - {project.name} - has been reported for {category}. The report is under review.",
+            actions=[{'text': "View Project",
+                      'url': project.getLink()}],
+            footer=f"Knotters is a place for creating community and belonging. To avoid future reports against you, make sure you read and understand Knotters terms and conditions.",
+            conclusion=f"If you think this is a mistake, please report to us."
         )

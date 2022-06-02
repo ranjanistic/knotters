@@ -121,10 +121,10 @@ def public_licenses(request: WSGIRequest) -> JsonResponse:
         for l in licenses:
             if content:
                 publices.append(dict(id=l.id, name=l.name, keyword=l.keyword,
-                                description=l.description, content=l.content))
+                                     description=l.description, content=l.content))
             else:
                 publices.append(dict(id=l.id, name=l.name,
-                                keyword=l.keyword, description=l.description,))
+                                     keyword=l.keyword, description=l.description,))
         return respondJson(Code.OK, dict(licenses=publices))
     except Exception as e:
         errorLog(e)
@@ -2170,6 +2170,7 @@ def reportProject(request: WSGIRequest) -> JsonResponse:
         category: ReportCategory = ReportCategory.get_cache_one(id=report)
         if not request.user.profile.reportProject(baseproject, category):
             raise ObjectDoesNotExist(baseproject, category)
+        reportedProject(baseproject, category)
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, KeyError, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
