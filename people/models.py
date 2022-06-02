@@ -1298,6 +1298,7 @@ class Profile(models.Model):
             self.save()
             return self.xp
         diff = self.xp - by
+
         if diff < 0:
             diff = 0
         if self.xp == diff:
@@ -1758,6 +1759,9 @@ class ProfileTopic(models.Model):
     """trashed (BooleanField): Whether the topic is trashed/invisible or not"""
     points: int = models.IntegerField(default=0)
     """points (IntegerField): The XP of profile in the topic"""
+    milestone_count_topic: int = models.IntegerField(
+        default=0, help_text='Milestone count in a topic')
+    """milestone_count_topic(IntegerField): Number of milestones achieved by the user in a certain topic"""
 
     class Meta:
         unique_together = ('profile', 'topic')
@@ -1784,6 +1788,16 @@ class ProfileTopic(models.Model):
         else:
             points = self.points + by
         self.points = points
+
+        if self.milestone_count_topic == None:
+            if self.points <= 50:
+                self.milestone_count_topic = 0
+            else:
+                self.milestone_count_topic = int(math.sqrt((self.points/50)-1))
+        if self.points >= 50*(1+pow(self.milestone_count_topic, 2)) and self.points-by < 50*(1+pow(self.milestone_count_topic, 2)):
+            from .mailers import milestoneNotifTopic
+            milestoneNotifTopic(self)
+            self.milestone_count_topic = self.milestone_count_topic + 1
         self.save()
         if notify:
             from .mailers import increaseXPInTopicAlert
@@ -1812,6 +1826,9 @@ class ProfileTopic(models.Model):
         else:
             points = self.points - by
         self.points = points
+        if (self.milestone_count_topic != None):
+            if self.points+by >= 50*(1+pow((self.milestone_count_topic-1), 2)) and self.points < 50*(1+pow((self.milestone_count_topic-1), 2)):
+                self.milestone_count_topic = self.milestone_count_topic-1
         self.save()
         if notify:
             from .mailers import decreaseXPInTopicAlert
