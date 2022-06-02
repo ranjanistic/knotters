@@ -80,8 +80,9 @@ def on_user_signup(request, user: User, **kwargs):
 
 @receiver(email_confirmed)
 def on_email_confirmation(request, **kwargs):
-    """On email confimation, email notifications are subscribed"""
-    list(map(lambda e: e.subscribers.add(request.user), EmailNotification.objects.all()))
+    """On email confirmation, email notifications are subscribed"""
+    list(map(lambda e: e.subscribers.add(request.user),
+         EmailNotification.objects.all()))
 
 
 @receiver(social_account_removed)
