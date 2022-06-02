@@ -7,6 +7,7 @@ from .models import ProfileTopic, User, Profile
 from main.methods import user_device_notify
 from auth2.models import *
 from main.constants import NotificationCode
+from management.models import ReportCategory
 
 
 def welcomeAlert(user: User) -> str:
@@ -117,4 +118,20 @@ def milestoneNotifTopic(profile: ProfileTopic):
             }],
             footer=f"You can visit your profile and view your XP by clicking this link",
             conclusion=f"This email was sent to you because you have subscibed to milestone notifications on our webiste"
+        )
+
+
+def reportedUser(user: User, category: ReportCategory):
+    if DeviceNotificationSubscriber.objects.filter(user=user, device_notification__notification__code=NotificationCode.REPORTED_USER).exists():
+        user_device_notify(user, "Report Alert",
+                           f"You have been reported for {category}. The complaint is under review.",
+                           user.getLink())
+    if EmailNotificationSubscriber.objects.filter(user=user, email_notification__notification__code=NotificationCode.REPORTED_USER).exists():
+        sendActionEmail(
+            to=user.email, username=user.first_name, subject='Reported for Misconduct',
+            header=f"This is to inform you that you have been reported for {category}. The report is under review.",
+            actions=[{'text': "View Profile",
+                      'url': user.getLink()}],
+            footer=f"Knotters is a place for creating community and belonging. To avoid future reports against you, make sure you read and understand Knotters terms and conditions.",
+            conclusion=f"If you think this is a mistake, please report to us."
         )
