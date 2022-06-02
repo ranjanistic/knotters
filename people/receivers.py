@@ -1,4 +1,4 @@
-from allauth.account.signals import user_logged_in, user_signed_up
+from allauth.account.signals import user_logged_in, user_signed_up, email_confirmed
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.signals import (pre_social_login,
@@ -7,6 +7,7 @@ from allauth.socialaccount.signals import (pre_social_login,
                                            social_account_updated)
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+from auth2.models import EmailNotification
 from main.bots import Sender
 from main.methods import errorLog
 
@@ -75,6 +76,12 @@ def on_user_signup(request, user: User, **kwargs):
             githubID=githubID, picture=picture)
     except:
         pass
+
+
+@receiver(email_confirmed)
+def on_email_confirmation(request, **kwargs):
+    """On email confimation, email notifications are subscribed"""
+    list(map(lambda e: e.subscribers.add(request.user), EmailNotification.objects.all()))
 
 
 @receiver(social_account_removed)
