@@ -25,7 +25,7 @@ from .methods import (addTopicToDatabase, convertToFLname, filterBio,
 from .models import (Profile, ProfileSetting, ProfileSocial, ProfileTag,
                      ProfileTopic, Topic, User)
 from .receivers import *
-from .mailers import reportedUser
+from .mailers import reportedUser, admireAlert
 
 
 @require_GET
@@ -959,6 +959,7 @@ def toggleAdmiration(request: WSGIRequest, userID: UUID) -> JsonResponse:
             user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
         if request.POST['admire'] in ["true", True]:
             profile.admirers.add(request.user.profile)
+            admireAlert(profile, request)
         elif request.POST['admire'] in ["false", False]:
             profile.admirers.remove(request.user.profile)
         if json_body:

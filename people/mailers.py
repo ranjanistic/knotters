@@ -8,6 +8,7 @@ from main.methods import user_device_notify
 from auth2.models import *
 from main.constants import NotificationCode
 from management.models import ReportCategory
+from django.core.handlers.wsgi import WSGIRequest
 
 
 def welcomeAlert(user: User) -> str:
@@ -122,6 +123,9 @@ def milestoneNotifTopic(profile: ProfileTopic):
 
 
 def reportedUser(user: User, category: ReportCategory):
+    """
+    Alert the user that they have been reported.
+    """
     if DeviceNotificationSubscriber.objects.filter(user=user, device_notification__notification__code=NotificationCode.REPORTED_USER).exists():
         user_device_notify(user, "Report Alert",
                            f"You have been reported for {category}. The complaint is under review.",
@@ -134,4 +138,25 @@ def reportedUser(user: User, category: ReportCategory):
                       'url': user.getLink()}],
             footer=f"Knotters is a place for creating community and belonging. To avoid future reports against you, make sure you read and understand Knotters terms and conditions.",
             conclusion=f"If you think this is a mistake, please report to us."
+        )
+
+
+def admireAlert(profile: Profile, request: WSGIRequest):
+    """
+    Alert the user that someone has admired their profile.
+    """
+    if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.ADMIRED_USER).exists():
+            user_device_notify(profile.user, 'Profile admired',
+                               f"{request.user.first_name} has admired your profile",
+                               request.user.getLink())
+    if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.ADMIRED_USER).exists():
+        sendActionEmail(
+            to=profile.get_email, username=profile.getFName(), subject='Profile admired',
+            header=f"{request.user.first_name} ({request.user}) has admired your profile",
+            actions=[{'text': "To view your profile",
+                      'url': profile.getLink()},
+                     {'text': "To view admirers profile",
+                      'url': request.user.getLink()}],
+            footer=f"You can thank {request.user} and reach out to them.",
+            conclusion=f"You can ignore this email if you're not interested. If you're being spammed by this invitation or this is an error, please report to us."
         )

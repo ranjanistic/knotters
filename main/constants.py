@@ -45,3 +45,4 @@ class NotificationCode():
     MILESTONE_NOTIF_TOPIC = 44
     REPORTED_USER = 45
     REPORTED_PROJECT = 46
+    ADMIRED_USER = 47
