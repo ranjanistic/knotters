@@ -1414,6 +1414,7 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID) -> HttpResponse:
             id=projID, trashed=False, is_archived=False, suspended=False)
         if admire in ["true", True]:
             project.admirers.add(request.user.profile)
+            projectAdmireNotification(request, project)
         elif admire in ["false", False]:
             project.admirers.remove(request.user.profile)
         if json_body:
