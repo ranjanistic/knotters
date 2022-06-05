@@ -33,7 +33,7 @@ def welcomeAlert(user: User) -> str:
 
 def increaseXpAlert(profile: Profile, increment: int):
     """
-    Send device notification to user when his Xp is increased
+    Send device notification to user when their Xp is increased
     """
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.INCREASE_XP).exists():
         user_device_notify(profile.user, "Profile XP Increased!",
@@ -42,7 +42,7 @@ def increaseXpAlert(profile: Profile, increment: int):
 
 def decreaseXpAlert(profile: Profile, decrement: int):
     """
-    Send device notification to user when his Xp is decreased
+    Send device notification to user when their Xp is decreased
     """
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.DECREASE_XP).exists():
         user_device_notify(profile.user, "Profile XP Decreased",
@@ -147,16 +147,16 @@ def admireAlert(profile: Profile, request: WSGIRequest):
     """
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.ADMIRED_USER).exists():
             user_device_notify(profile.user, 'Profile admired',
-                               f"{request.user.first_name} has admired your profile",
+                               f"{request.user.first_name} - {request.user} - has admired your profile",
                                request.user.getLink())
     if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.ADMIRED_USER).exists():
         sendActionEmail(
             to=profile.get_email, username=profile.getFName(), subject='Profile admired',
             header=f"{request.user.first_name} ({request.user}) has admired your profile",
-            actions=[{'text': "To view your profile",
+            actions=[{'text': "View your profile",
                       'url': profile.getLink()},
-                     {'text': "To view admirers profile",
+                     {'text': f"View {request.user.first_name}'s profile",
                       'url': request.user.getLink()}],
             footer=f"You can thank {request.user} and reach out to them.",
-            conclusion=f"You can ignore this email if you're not interested. If you're being spammed by this invitation or this is an error, please report to us."
+            conclusion=f"If you're being spammed by this mail or this is an error, please report to us."
         )

@@ -26,7 +26,7 @@ from ratelimit.decorators import ratelimit
 from .apps import APPNAME
 from .mailers import (participantInviteAlert, participantWelcomeAlert,
                       participationWithdrawnAlert, submissionConfirmedAlert,
-                      submissionsJudgedAlert)
+                      submissionsJudgedAlert, competitionAdmireNotification)
 from .methods import (AllotCompetitionCertificates, DeclareResults,
                       competitionProfileData, getCompetitionSectionHTML,
                       getIndexSectionHTML, renderer, rendererstrResponse)
@@ -1250,6 +1250,7 @@ def toggleAdmiration(request: WSGIRequest, compID: UUID) -> JsonResponse:
         admire = request.POST['admire']
         if admire in ["true", True]:
             compete.admirers.add(request.user.profile)
+            competitionAdmireNotification(request.user.profile, compete)
         elif admire in ["false", False]:
             compete.admirers.remove(request.user.profile)
         if json_body:

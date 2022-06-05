@@ -8,7 +8,7 @@ from .models import (BaseProjectCoCreatorInvitation,
                      CoreModerationTransferInvitation, CoreProject,
                      CoreProjectDeletionRequest, FreeProject, Project,
                      ProjectModerationTransferInvitation,
-                     ProjectTransferInvitation, VerProjectDeletionRequest, BaseProject)
+                     ProjectTransferInvitation, Snapshot, VerProjectDeletionRequest, BaseProject)
 from main.methods import user_device_notify
 from management.models import ReportCategory
 
@@ -1030,20 +1030,62 @@ def projectAdmireNotification(request: WSGIRequest, project: BaseProject):
     """
     To notify creator of project that someone has admired their project
     """
-    if DeviceNotificationSubscriber.objects.filter(user=project.creator.user, device_notification__notification__code=NotificationCode.ADMIRED_PROFILE).exists():
+    if DeviceNotificationSubscriber.objects.filter(user=project.creator.user, device_notification__notification__code=NotificationCode.ADMIRED_PROJECT).exists():
         user_device_notify(project.creator.user, "Project Admired",
                            f"Your project - {project.name} - has been admired by - {request.user.first_name} - ({request.user})",
                            project.getLink())
 
-    if EmailNotificationSubscriber.objects.filter(user=project.creator.user, email_notification__notification__code=NotificationCode.ADMIRED_PROFILE).exists():
+    if EmailNotificationSubscriber.objects.filter(user=project.creator.user, email_notification__notification__code=NotificationCode.ADMIRED_PROJECT).exists():
+        if(project.is_free() and project.getProject().is_submission()):
+            sendActionEmail(
+                to=project.creator.getEmail(),
+                username=project.creator.getFName(),
+                subject=f"Project Admired",
+                header=f"This is to inform you that your project - {project.name} - which is a submission of - {project.getProject().submission().competition.title} - competition has been admired by - {request.user.first_name} - ({request.user}).",
+                actions=[{
+                    'text': 'View Project',
+                    'url': project.get_link
+                },
+                {
+                    'text': 'View Competition',
+                    'url': project.getProject().submission().competition.getLink()
+                }],
+                footer=f"You can thank and reach out to {request.user.first_name}.",
+                conclusion=f"If this action is unfamiliar, then you may contact us."
+            )
+        else:
+            sendActionEmail(
+                to=project.creator.getEmail(),
+                username=project.creator.getFName(),
+                subject=f"Project Admired",
+                header=f"This is to inform you that your project - {project.name} - has been admired by - {request.user.first_name} - ({request.user}).",
+                actions=[{
+                    'text': 'View Project',
+                    'url': project.get_link
+                }],
+                footer=f"You can thank and reach out to {request.user.first_name}.",
+                conclusion=f"If this action is unfamiliar, then you may contact us."
+            )
+
+    
+def snapshotAdmireNotification(request: WSGIRequest, snap: Snapshot):
+    """
+    To notify creator of snapshot that someone has admired their snapshot
+    """
+    if DeviceNotificationSubscriber.objects.filter(user=snap.creator.user, device_notification__notification__code=NotificationCode.ADMIRED_SNAPSHOT).exists():
+        user_device_notify(snap.creator.user, "Snapshot Admired",
+                           f"Your snapshot of project - {snap.base_project.name} - has been admired by - {request.user.first_name} - ({request.user})",
+                           snap.getLink())
+
+    if EmailNotificationSubscriber.objects.filter(user=snap.creator.user, email_notification__notification__code=NotificationCode.ADMIRED_SNAPSHOT).exists():
         sendActionEmail(
-            to=project.creator.getEmail(),
-            username=project.creator.getFName,
-            subject=f"Project Admired",
-            header=f"This is to inform you that your project - {project.name} - has been admired by - {request.user.first_name} - ({request.user}).",
+            to=snap.creator.getEmail(),
+            username=snap.creator.getFName(),
+            subject=f"Snapshot Admired",
+            header=f"This is to inform you that your snapshot of project - {snap.base_project.name} - has been admired by - {request.user.first_name} - ({request.user}).",
             actions=[{
-                'text': 'View Project',
-                'url': project.get_link
+                'text': 'View Snapshot',
+                'url': snap.get_link
             }],
             footer=f"You can thank and reach out to {request.user.first_name}.",
             conclusion=f"If this action is unfamiliar, then you may contact us."

@@ -349,3 +349,27 @@ def resultsDeclaredModeratorAlert(competition: Competition) -> str:
             footer=f"The results were based on aggregated markings by independent judgement panel. All participants will be informed shortly. Thank you for ensuring successfull conduction of this competition.",
             conclusion=f"You received this email because you moderated the mentioned competition. If this is an error, then please report to us."
         )
+    
+
+def competitionAdmireNotification(profile: Profile, compete: Competition):
+    """
+    To notify creator of competition that someone has admired their competition
+    """
+    if DeviceNotificationSubscriber.objects.filter(user=compete.creator.user, device_notification__notification__code=NotificationCode.ADMIRED_COMPETITION).exists():
+        user_device_notify(compete.creator.user, "Competition Admired",
+                           f"Your competition - {compete.title} - has been admired by - {profile.getFName()} - ({profile.user})",
+                           compete.getLink())
+
+    if EmailNotificationSubscriber.objects.filter(user=compete.creator.user, email_notification__notification__code=NotificationCode.ADMIRED_COMPETITION).exists():
+        sendActionEmail(
+            to=compete.creator.getEmail(),
+            username=compete.creator.getFName,
+            subject=f"Competition Admired",
+            header=f"This is to inform you that your competition - {compete.title} - has been admired by - {profile.getFName()} - ({profile.user}).",
+            actions=[{
+                'text': 'View Competition',
+                'url': compete.get_link
+            }],
+            footer=f"You can thank and reach out to {profile.getFName()}.",
+            conclusion=f"If this action is unfamiliar, then you may contact us."
+        )

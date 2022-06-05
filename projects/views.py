@@ -1544,6 +1544,7 @@ def toggleSnapAdmiration(request: WSGIRequest, snapID: UUID) -> JsonResponse:
             id=snapID, base_project__trashed=False, base_project__is_archived=False, base_project__suspended=False)
         if admire in ["true", True]:
             snap.admirers.add(request.user.profile)
+            snapshotAdmireNotification(request, snap)
         elif admire in ["false", False]:
             snap.admirers.remove(request.user.profile)
         return respondJson(Code.OK)
