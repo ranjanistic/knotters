@@ -2071,6 +2071,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
                 image=imagefile,
                 video=videofile
             )
+            snapCreation(baseproject, snapshot)
             return redirect(baseproject.getProject().getLink(alert=Message.SNAP_CREATED))
 
         id = request.POST['snapid'][:50]
@@ -2204,6 +2205,7 @@ def reportSnapshot(request: WSGIRequest) -> JsonResponse:
         category: ReportCategory = ReportCategory.get_cache_one(id=report)
         if not request.user.profile.reportSnapshot(snapshot, category):
             raise ObjectDoesNotExist(snapshot, category)
+        reportedSnapshot(snapshot, category)
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, KeyError, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
