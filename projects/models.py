@@ -736,6 +736,12 @@ class BaseProject(models.Model):
             return None
         return self.getProject(True).moderator()
 
+    def get_mentor(self) -> Profile:
+        """Returns the mentor Profile instance of the project (extracting from child project, None for FreeProject)"""
+        if self.is_free():
+            return None
+        return self.getProject(True).mentor
+
     def isAdmirer(self, profile: Profile) -> bool:
         """Returns True if the profile is an admirer of the project"""
         return self.admirers.filter(id=profile.id).exists()

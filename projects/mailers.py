@@ -1026,7 +1026,7 @@ def reportedProject(project: BaseProject, category: ReportCategory):
         )
 
 
-def projectAdmireNotification(request: WSGIRequest, project: BaseProject):
+def projectAdmired(request: WSGIRequest, project: BaseProject):
     """
     To notify creator of project that someone has admired their project
     """
@@ -1068,7 +1068,7 @@ def projectAdmireNotification(request: WSGIRequest, project: BaseProject):
             )
 
     
-def snapshotAdmireNotification(request: WSGIRequest, snap: Snapshot):
+def snapshotAdmired(request: WSGIRequest, snap: Snapshot):
     """
     To notify creator of snapshot that someone has admired their snapshot
     """
@@ -1092,7 +1092,7 @@ def snapshotAdmireNotification(request: WSGIRequest, snap: Snapshot):
         )
 
 
-def snapCreation(project: BaseProject, snap: Snapshot):
+def snapshotCreated(project: BaseProject, snap: Snapshot):
     """
     To notify creator, moderator and mentor when snapshot is posted in their project
     """
@@ -1121,7 +1121,7 @@ def snapCreation(project: BaseProject, snap: Snapshot):
                             f"Snapshot has been created for your project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
                             snap.getLink())
 
-        if EmailNotificationSubscriber.objects.filter(user=snap.creator.user, email_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
+        if EmailNotificationSubscriber.objects.filter(user=project.creator.user, email_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
             sendActionEmail(
                 to=project.creator.getEmail(),
                 username=project.creator.getFName(),
@@ -1142,7 +1142,7 @@ def snapCreation(project: BaseProject, snap: Snapshot):
                             f"Snapshot has been created for your moderated project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
                             snap.getLink())
 
-        if EmailNotificationSubscriber.objects.filter(user=snap.creator.user, email_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
+        if EmailNotificationSubscriber.objects.filter(user=moderator.user, email_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
             sendActionEmail(
                 to=moderator.getEmail(),
                 username=moderator.getFName(),
@@ -1153,6 +1153,27 @@ def snapCreation(project: BaseProject, snap: Snapshot):
                     'url': snap.get_link
                 }],
                 footer=f"You can also create more snapshots for your project. You are receiving this mail because you are moderator of this project. ",
+                conclusion=f"If this action is unfamiliar, then you may contact us."
+            )
+
+    if(project.get_mentor() and project.get_mentor()!=snap.creator):
+        mentor = project.get_mentor()
+        if DeviceNotificationSubscriber.objects.filter(user=mentor.user, device_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
+            user_device_notify(mentor.user, "Snapshot Created",
+                            f"Snapshot has been created for your mentored project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
+                            snap.getLink())
+
+        if EmailNotificationSubscriber.objects.filter(user=mentor.user, email_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
+            sendActionEmail(
+                to=mentor.getEmail(),
+                username=mentor.getFName(),
+                subject=f"Snapshot Created",
+                header=f"This is to inform you that snapshot has been created for your mentored project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
+                actions=[{
+                    'text': 'View Snapshot',
+                    'url': snap.get_link
+                }],
+                footer=f"You can also create more snapshots for your project. You are receiving this mail because you are mentor of this project. ",
                 conclusion=f"If this action is unfamiliar, then you may contact us."
             )
 
@@ -1171,6 +1192,6 @@ def reportedSnapshot(snap: Snapshot, category: ReportCategory):
             header=f"This is to inform you that your snapshot of project - {snap.base_project.name} - has been reported for {category}. The report is under review.",
             actions=[{'text': "View Snapshot",
                       'url': snap.getLink()}],
-            footer=f"Knotters is a place for creating community and belonging. To avoid future reports against you, make sure you read and understand Knotters terms and conditions.",
+            footer=f"Knotters is a place for creating community and belonging. To avoid future reports against your content, make sure you read and understand Knotters terms and conditions.",
             conclusion=f"If you think this is a mistake, please report to us."
         )

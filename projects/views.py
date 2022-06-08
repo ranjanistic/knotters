@@ -1414,7 +1414,8 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID) -> HttpResponse:
             id=projID, trashed=False, is_archived=False, suspended=False)
         if admire in ["true", True]:
             project.admirers.add(request.user.profile)
-            projectAdmireNotification(request, project)
+            if(project.creator.user != request.user):
+                projectAdmired(request, project)
         elif admire in ["false", False]:
             project.admirers.remove(request.user.profile)
         if json_body:
@@ -1544,7 +1545,8 @@ def toggleSnapAdmiration(request: WSGIRequest, snapID: UUID) -> JsonResponse:
             id=snapID, base_project__trashed=False, base_project__is_archived=False, base_project__suspended=False)
         if admire in ["true", True]:
             snap.admirers.add(request.user.profile)
-            snapshotAdmireNotification(request, snap)
+            if(snap.creator.user != request.user):
+                snapshotAdmired(request, snap)
         elif admire in ["false", False]:
             snap.admirers.remove(request.user.profile)
         return respondJson(Code.OK)
@@ -2071,7 +2073,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
                 image=imagefile,
                 video=videofile
             )
-            snapCreation(baseproject, snapshot)
+            snapshotCreated(baseproject, snapshot)
             return redirect(baseproject.getProject().getLink(alert=Message.SNAP_CREATED))
 
         id = request.POST['snapid'][:50]
