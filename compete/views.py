@@ -751,6 +751,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         competition = result.submission.competition
         profile.increaseXP(by=(result.points)//(len(topicpointsIDs)+1),
                            reason=f"Claimed XP from {competition.title}")
+        competitonXpClaimed(profile, competition)
         for topic in topics:
             profiletopic, _ = ProfileTopic.objects.get_or_create(
                 profile=request.user.profile,

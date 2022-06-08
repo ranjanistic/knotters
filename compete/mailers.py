@@ -346,7 +346,7 @@ def resultsDeclaredModeratorAlert(competition: Competition) -> str:
                 'text': 'View results',
                 'url': f"{competition.get_link}?tab=4"
             }],
-            footer=f"The results were based on aggregated markings by independent judgement panel. All participants will be informed shortly. Thank you for ensuring successfull conduction of this competition.",
+            footer=f"The results were based on aggregated markings by independent judgement panel. All participants will be informed shortly. Thank you for ensuring successful conduction of this competition.",
             conclusion=f"You received this email because you moderated the mentioned competition. If this is an error, then please report to us."
         )
     
@@ -371,5 +371,29 @@ def competitionAdmireNotification(profile: Profile, compete: Competition):
                 'url': compete.get_link
             }],
             footer=f"You can thank and reach out to {profile.getFName()}.",
+            conclusion=f"If this action is unfamiliar, then you may contact us."
+        )
+
+
+def competitonXpClaimed(profile: Profile, compete: Competition):
+    """
+    To notify the user that they have claimed their XP from a competition
+    """
+    if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.CLAIM_XP_COMPETITION).exists():
+        user_device_notify(profile.user, "Competition XP Claimed",
+                           f"You have claimed XP from competition - {compete.title}",
+                           compete.getLink())
+
+    if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.CLAIM_XP_COMPETITION).exists():
+        sendActionEmail(
+            to=profile.getEmail(),
+            username=profile.getFName,
+            subject=f"Competition XP Claimed",
+            header=f"This is to inform you that you have claimed XP from competition - {compete.title} -.",
+            actions=[{
+                'text': 'View Competition',
+                'url': compete.get_link
+            }],
+            footer=f"Thank you for participating. We hope that you keep participating in future competitions.",
             conclusion=f"If this action is unfamiliar, then you may contact us."
         )
