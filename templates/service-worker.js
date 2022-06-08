@@ -362,8 +362,18 @@ self.addEventListener(EVENTS.PUSH, (event) => {
     {% if DEBUG %}debug_log(title);{% endif %}
     event.waitUntil(self.registration.showNotification(title, options));
     self.addEventListener('notificationclick', function(event) {
-    console.log('On notification click: ', event.notification);
-    clients.openWindow(data.url);
+    if(event.action.length > 0){
+        let size = data.actions.length
+        for(let i = 0;i<size;i++){
+            if(event.action === data.actions[i].action){
+                clients.openWindow(data.actions[i].url)
+                break
+            }
+        }
+    }
+    else{
+       clients.openWindow(data.url) 
+    }
     event.notification.close();
   });
 });
