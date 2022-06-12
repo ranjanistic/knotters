@@ -1,5 +1,5 @@
 from allauth.account.signals import user_logged_in, user_signed_up, email_confirmed
-from allauth.socialaccount.models import SocialAccount, SocialLogin
+from allauth.socialaccount.models import SocialAccount, SocialLogin, EmailAddress
 from allauth.socialaccount.providers.github.provider import GitHubProvider
 from allauth.socialaccount.signals import (pre_social_login,
                                            social_account_added,
@@ -79,15 +79,16 @@ def on_user_signup(request, user: User, **kwargs):
 
 
 @receiver(email_confirmed)
-def on_email_confirmation(request, **kwargs):
+def on_email_confirmation(request, email_address: EmailAddress, **kwargs):
     """On email confirmation, email notifications are subscribed"""
-    list(map(lambda e: e.subscribers.add(request.user),
-         EmailNotification.objects.all()))
+    if(email_address.primary):
+        list(map(lambda e: e.subscribers.add(request.user),
+            EmailNotification.objects.all()))
 
 
 @receiver(social_account_removed)
 def social_removed(request, socialaccount: SocialAccount, **kwargs):
-    """On social account added, to update relevant things."""
+    """On social account removal, to update relevant things."""
     try:
         profile: Profile = Profile.objects.get(user=socialaccount.user)
         if socialaccount.provider == GitHubProvider.id:
