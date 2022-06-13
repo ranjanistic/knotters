@@ -317,6 +317,7 @@ self.addEventListener(EVENTS.MESSAGE, (event) => {
 
 // For web push messages
 self.addEventListener(EVENTS.PUSH, (event) => {
+    
     const payload = event.data
         ? event.data.text()
         : JSON.stringify({ title: "{{APPNAME}}" });
@@ -361,7 +362,11 @@ self.addEventListener(EVENTS.PUSH, (event) => {
     }
     {% if DEBUG %}debug_log(title);{% endif %}
     event.waitUntil(self.registration.showNotification(title, options));
-    self.addEventListener('notificationclick', function(event) {
+    
+});
+
+// For notification click event
+self.addEventListener('notificationclick', function(event) {
     if(event.action.length > 0){
         let size = data.actions.length
         for(let i = 0;i<size;i++){
@@ -376,4 +381,3 @@ self.addEventListener(EVENTS.PUSH, (event) => {
     }
     event.notification.close();
   });
-});

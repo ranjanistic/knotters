@@ -26,7 +26,7 @@ from ratelimit.decorators import ratelimit
 from .apps import APPNAME
 from .mailers import (participantInviteAlert, participantWelcomeAlert,
                       participationWithdrawnAlert, submissionConfirmedAlert,
-                      submissionsJudgedAlert, competitionAdmireNotification)
+                      submissionsJudgedAlert, competitionAdmireNotification, competitonXpClaimed)
 from .methods import (AllotCompetitionCertificates, DeclareResults,
                       competitionProfileData, getCompetitionSectionHTML,
                       getIndexSectionHTML, renderer, rendererstrResponse)
