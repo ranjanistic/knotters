@@ -783,3 +783,6 @@ button.border-vibrant{
 button.border-negative{
     border: 2px solid var(--negative);
 }
+.no-opacity-change, .no-opacity-change:hover, .no-opacity-change:active{
+    opacity: 1 !important;
+}

@@ -145,3 +145,87 @@
 .text-vibrant {
     color: var(--vibrant-text) !important;
 }
+
+.hover-primary:hover{
+    background-color: var(--primary) !important;
+    color: var(--primary-text) !important;
+}
+
+.hover-primary:active{
+    background-color: var(--primary) !important;
+    color: var(--primary-text) !important;
+}
+
+.hover-secondary:hover{
+    background-color: var(--secondary) !important;
+    color: var(--secondary-text) !important;
+}
+
+.hover-secondary:active{
+    background-color: var(--secondary) !important;
+    color: var(--secondary-text) !important;
+}
+
+.hover-tertiary:hover{
+    background-color: var(--tertiary) !important;
+    color: var(--tertiary-text) !important;
+}
+
+.hover-tertiary:active{
+    background-color: var(--tertiary) !important;
+    color: var(--tertiary-text) !important;
+}
+
+.hover-accent:hover{
+    background-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+}
+
+.hover-accent:active{
+    background-color: var(--accent) !important;
+    color: var(--accent-text) !important;
+}
+
+.hover-active:hover{
+    background-color: var(--active) !important;
+    color: var(--active-text) !important;
+}
+
+.hover-active:active{
+    background-color: var(--active) !important;
+    color: var(--active-text) !important;
+}
+
+.hover-positive:hover{
+    background-color: var(--positive) !important;
+    color: var(--positive-text) !important;
+}
+
+.hover-positive:active{
+    background-color: var(--positive) !important;
+    color: var(--positive-text) !important;
+}
+
+.hover-text-positive:hover,.hover-text-positive:active{
+    color: var(--positive) !important;
+}
+
+.hover-negative:hover{
+    background-color: var(--negative) !important;
+    color: var(--negative-text) !important;
+}
+
+.hover-negative:active{
+    background-color: var(--negative) !important;
+    color: var(--negative-text) !important;
+}
+
+.hover-vibrant:hover{
+    background-color: var(--vibrant) !important;
+    color: var(--vibrant-text) !important;
+}
+
+.hover-vibrant:active{
+    background-color: var(--vibrant) !important;
+    color: var(--vibrant-text) !important;
+}

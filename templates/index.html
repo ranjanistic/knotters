@@ -70,6 +70,7 @@
         <link rel="stylesheet" href="{% static 'styles/index.css' %}">
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
         <link rel="stylesheet" href="{% static 'styles/browser.css' %}">
+        <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
         {% block stylesheets %}{% endblock %}
 
         <link rel="manifest" href="{{MANIFESTURL}}" />
@@ -107,6 +108,44 @@
          </div>
         </noscript>
         {% block nav %}
+        <div class="w3-row secondary w3-padding mobile-nav" id="nav-menu">
+            {% if request.user.is_authenticated %}
+                <a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}" class="no-opacity-change">
+                    <div class="w3-row pallete secondary text-secondary hover-{{request.user.profile.theme}}"><h2 class="w3-left align"><img src="{{request.user.profile.getDP}}" width="40" class="w3-circle" alt="{{request.user.profile.get_nickname}}"/>&nbsp;{{request.user.profile.get_nickname}}</h2></div>
+                </a>
+            {% else %}
+                <a href="{% url 'account_signup' %}?next={{request.path}}" class="no-opacity-change"><div class="w3-row pallete secondary accent-text hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">person_add</i>&nbsp;Join</h2></div>           
+                <a href="{% url 'account_login' %}?next={{request.path}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">login</i>&nbsp;Login</h2></div></a>
+            {% endif %}
+            <div class="w3-row pallete secondary text-secondary hover-positive accordion"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">widgets</i>&nbsp;Projects</h2></div>
+            <div class="pallete secondary text-secondary panel">
+                <ul>
+                    <a href="{{URLS.PROJECTS}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"> Home </li></h3></a>
+                    <a href="{{URLS.ALLLICENSES}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"><i class="w3-large material-icons">article</i> Licenses </li></h3></a>
+                    <a href="{{URLS.CREATE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"><i class="w3-large material-icons">add</i> New Project </li></h3></a>
+                </ul>
+            </div>
+            <div class="w3-row pallete secondary text-secondary accordion hover-active"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">psychology</i>&nbsp;Competitions</h2></div>
+            <div class="pallete secondary text-secondary panel">
+                <ul>
+                    <a href="{{URLS.COMPETE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"> Home </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">stream</i> Active </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=2" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">hourglass_top</i> Upcoming </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=3" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">history</i> History </li></h3></a>
+                    <a href="{{URLS.CERT_INDEX}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">qr_code</i> Certification </li></h3></a>
+                </ul>
+            </div>
+            <div class="w3-row pallete secondary text-secondary hover-accent accordion"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">groups</i>&nbsp;Community</h2></div>
+            <div class="pallete secondary text-secondary panel">
+                <ul>
+                    <a href="{{URLS.PEOPLE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"> Home </li></h3></a>
+                </ul>
+            </div>
+            <div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive contact-request-action"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">perm_phone_msg</i>&nbsp;Contact Us</h2></div>
+            <a href="{{URLS.SEARCH}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">search</i>&nbsp;Search</h2></div></a>
+            <div style="padding-bottom: 200px"></div>
+            <div class="w3-center align text-primary"><button class="menu-close-btn primary"><i class="w3-xxlarge material-icons text-primary">close</i></button></div>
+        </div>  
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
             <div class="w3-row w3-center tertiary pointer beta-alert-view" hidden>This is Knotters Beta, not Knotters. {% trans "Click here to learn more." %}</div>
             {% block nav_title %}
@@ -167,7 +206,7 @@
                         <a href="{{URLS.DONATE}}" hidden><button aria-label="Donate" title="Donate" class="vibrant" data-icon="volunteer_activism"><span class="w3-hide-small w3-hide-medium">{% trans "Donate" %}</span></button></a>
                         {% endif %}
                         {% endblock %}
-                        <button hidden aria-label="Menu" title="Menu" class="primary" data-icon="more_horiz"></button>
+                        <button title="Menu" class="menu-action primary" data-icon="menu" id="nav-menu-btn"></button>
                         {% block nav_auth_extra_links %}{% endblock %}
                     {% endblock %}
                 {% endblock %}
@@ -701,6 +740,7 @@
         <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.CONSTANTS}}?fromApp={{SUBAPPNAME}}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/globalvars.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/index.js' %}"></script>
+        <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/menu.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/request.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/notification.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/theme.js' %}"></script>

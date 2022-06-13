@@ -1,5 +1,6 @@
 from datetime import datetime
 from re import sub as re_sub
+from time import time
 from uuid import UUID, uuid4
 
 from allauth.account.models import EmailAddress
@@ -567,10 +568,15 @@ class Profile(models.Model):
                 nickname = self.githubID
             else:
                 nickname = self.user.email.split('@')[0]
-            nickname = filterNickname(nickname, 50)
+            nickname = filterNickname(nickname, 15)
             if Profile.objects.filter(nickname__iexact=nickname).exclude(id=self.id).exists():
-                nickname = nickname + str(self.get_userid)
-                nickname = filterNickname(nickname, 50)
+                nickname = nickname[:7]
+                currTime = int(time())
+                nickname = nickname + str(currTime)
+                while Profile.objects.filter(nickname__iexact=nickname).exclude(id=self.id).exists():
+                    nickname = nickname[:7]
+                    currTime += 200
+                    nickname = nickname + str(currTime)
             self.nickname = nickname
             self.save()
         return self.nickname
