@@ -1397,17 +1397,14 @@ class Profile(models.Model):
     def xpTarget(self) -> int:
         """Returns the user's next XP target"""
         xp = self.xp
-        strxp = str(xp)
-        if xp > 100:
-            target = str()
-            for i in range(len(strxp)):
-                if i == 0:
-                    target = str(int(strxp[i]) + 1)
-                else:
-                    target = target + '0'
-            return int(target)
-        else:
-            return 100
+        milestonecount = self.milestone_count
+        if milestonecount == None:
+            if xp <= 50:
+                milestonecount = 0
+            else:
+                milestonecount = int(math.sqrt((xp/50)-1))
+        targetcount = milestonecount
+        return 50*(1+pow(targetcount, 2))
 
     def getTopicIds(self) -> list:
         """Returns the user's visible topic ids"""
