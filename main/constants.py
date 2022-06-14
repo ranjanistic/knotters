@@ -14,6 +14,7 @@ class NotificationCode():
     CORE_PROJ_DELETION = 1
     CORE_PROJ_DELETION_ACCEPTED = 1
     CORE_PROJ_DELETION_REJECTED = 1
+    GITHUB_BOT_INSTALLED = 1
     """Project Ownership Notifcations = 2 """
     PROJ_TRANSFER_INVITE = 2
     PROJ_TRANSFER_ACCEPTED = 2
