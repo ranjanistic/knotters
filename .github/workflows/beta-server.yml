@@ -30,6 +30,9 @@ jobs:
       run: |
         python3 manage.py makemigrations --noinput
         python3 manage.py migrate --noinput
+    - name: Synchronise notifications
+      run: | 
+        python3 manage.py syncnotifications --noinput
 
   deploy:
     needs: [build]

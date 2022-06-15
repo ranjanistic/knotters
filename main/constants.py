@@ -76,8 +76,21 @@ class NotificationCode():
     SUCCESSOR_DECLINED = 12
     MIGRATION_PROBLEM = 12
 
-    names = ["Project Notifications", "Project Ownership Notifications",
-             "Moderator Transfer Notifications", "Competition status Notifications", "Competition Review Notifications", "Competition Result Notifications", "Profile XP Notifications", "Topic XP notifications", "Milestone Notifications", "Report Notifications", "Admire Notifications", "Account Notifications"]
+    def getDetails(self):
 
-    description = ["Project is created, deleted or submitted", "Transfer of ownership of project",
-                   "Transfer of moderator of project", "Updates related to competitions", "Updates related to review of competitons", "Updates related to competition results", "Updates related to changes in profile XP", "Updates related to changes in topic XP", "Updates related to milestones achieved", "User, project or snapshot is reported", "User, project or snapshot is admired", "Account setting updates"]
+        return [{
+            "name": "Project Notifications",
+            "code": self.FREE_PROJ_CREATED,
+            "description": "Project is created, deleted or submitted"
+        },
+            {
+            "name": "Project Ownership Notifications",
+            "code": self.PROJ_TRANSFER_INVITE,
+            "description": "Transfer of ownership of project"
+        }]
+
+        # names = ["Project Notifications", "Project Ownership Notifications",
+        #      "Moderator Transfer Notifications", "Competition status Notifications", "Competition Review Notifications", "Competition Result Notifications", "Profile XP Notifications", "Topic XP notifications", "Milestone Notifications", "Report Notifications", "Admire Notifications", "Account Notifications"]
+
+        # description = ["Project is created, deleted or submitted", "Transfer of ownership of project",
+        #            "Transfer of moderator of project", "Updates related to competitions", "Updates related to review of competitons", "Updates related to competition results", "Updates related to changes in profile XP", "Updates related to changes in topic XP", "Updates related to milestones achieved", "User, project or snapshot is reported", "User, project or snapshot is admired", "Account setting updates"]
