@@ -1641,6 +1641,7 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
                 repositories = payload['repositories']
                 repo_ids = map(lambda r: r['id'], repositories)
                 frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
+                githubBotInstalled(frepos)
                 apprepos = []
                 for frepo in frepos:
                     if not AppRepository.objects.filter(free_repo=frepo).exists():
@@ -1675,6 +1676,7 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
                 repositories = payload['repositories_added']
                 repo_ids = map(lambda r: r['id'], repositories)
                 frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
+                githubBotInstalled(frepos)
                 apprepos = []
                 for frepo in frepos:
                     if not AppRepository.objects.filter(free_repo=frepo).exists():

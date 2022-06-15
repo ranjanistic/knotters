@@ -14,6 +14,7 @@ class NotificationCode():
     CORE_PROJ_DELETION = 1
     CORE_PROJ_DELETION_ACCEPTED = 1
     CORE_PROJ_DELETION_REJECTED = 1
+    GITHUB_BOT_INSTALLED = 1
     """Project Ownership Notifcations = 2 """
     PROJ_TRANSFER_INVITE = 2
     PROJ_TRANSFER_ACCEPTED = 2
@@ -64,17 +65,18 @@ class NotificationCode():
     ADMIRED_COMPETITION = 11
     ADMIRED_SNAPSHOT = 11
     """Account Notifications = 12"""
-    PASSWORD_CHANGED = 12
-    EMAIL_UPDATE = 12
-    EMAIL_ADD = 12
-    EMAIL_REMOVE = 12
-    ACCOUNT_INACTIVE = 12
-    ACCOUNT_REACTIVATED = 12
-    ACCOUNT_DELETED = 12
     SUCCESSOR_INVITE = 12
     SUCCESSOR_ACCEPTED = 12
     SUCCESSOR_DECLINED = 12
     MIGRATION_PROBLEM = 12
+    """Moderation Emails"""
+    MODERATION_ASSIGNED = 13
+    MODERATION_ACTION = 13
+    UPGRADE_MODERATOR = 13
+
+    """Management Notifications"""
+    MANAGEMENT_INVITATION_ACCEPTED = 14
+    ALERT_LEGAL_UPDATE = 14
 
     def getDetails(self):
 
@@ -87,10 +89,73 @@ class NotificationCode():
             "name": "Project Ownership Notifications",
             "code": self.PROJ_TRANSFER_INVITE,
             "description": "Transfer of ownership of project"
-        }]
+        },
+            {"name": "Moderator Transfer Notifications",
+             "code": self. PROJ_MOD_TRANSFER,
+             "description":  "Transfer of moderator of project"
+             },
 
-        # names = ["Project Notifications", "Project Ownership Notifications",
-        #      "Moderator Transfer Notifications", "Competition status Notifications", "Competition Review Notifications", "Competition Result Notifications", "Profile XP Notifications", "Topic XP notifications", "Milestone Notifications", "Report Notifications", "Admire Notifications", "Account Notifications"]
+            {
+            "name": "Competition status Notifications",
+            "code": self.PART_INVITE_ALERT,
+            "description": "Updates related to competitions"
+        },
+            {
+            "name": "Competition Review Notifications",
+            "code": self.SUBM_MOD_ALERT,
+            "description": "Updates related to review of competitons"
+        },
+            {
+            "name": "Competition Result Notifications",
+            "code":  self.RES_DEC_ALERT,
+            "description": "Updates related to competition results",
+        },
+            {
+            "name": "Profile XP Notifications",
+            "code":  self.INCREASE_XP,
+            "description": "Updates related to changes in profile XP",
+        },
+            {
+            "name": "Topic XP notifications",
+            "code":  self.INCREASE_BULK_XP_TOPIC,
+            "description": "Updates related to changes in topic XP",
+        },
+            {
+            "name": "Milestone Notifications",
+            "code":  self.MILESTONE_NOTIF,
+            "description": "Updates related to milestones achieved",
+        },
+            {
+            "name": "Report Notifications",
+            "code":  self.REPORTED_USER,
+            "description": "User, project or snapshot is reported",
+        },
+            {
+            "name": "Admire Notifications",
+            "code":  self.ADMIRED_USER,
+            "description": "User, project or snapshot is admired",
+        },
 
-        # description = ["Project is created, deleted or submitted", "Transfer of ownership of project",
-        #            "Transfer of moderator of project", "Updates related to competitions", "Updates related to review of competitons", "Updates related to competition results", "Updates related to changes in profile XP", "Updates related to changes in topic XP", "Updates related to milestones achieved", "User, project or snapshot is reported", "User, project or snapshot is admired", "Account setting updates"]
+            {
+            "name": "Account Notifications",
+            "code":  self.SUCCESSOR_INVITE,
+            "description": "Account setting updates",
+            "disabled": True
+        },
+            {
+            "name": "Moderation Emails",
+            "code":  self.MODERATION_ASSIGNED,
+            "description": "Updates related to Moderation",
+        },
+            {
+            "name": "Management Notifications",
+            "code":  self. MANAGEMENT_INVITATION_ACCEPTED,
+            "description": "Updates related to Management",
+        },
+        ]
+
+    # names = ["Project Notifications", "Project Ownership Notifications",
+    #          "Moderator Transfer Notifications", "Competition status Notifications", "Competition Review Notifications", "Competition Result Notifications", "Profile XP Notifications", "Topic XP notifications", "Milestone Notifications", "Report Notifications", "Admire Notifications", "Account Notifications", "Moderation Emails", "Management Notifications"]
+
+    # description = ["Project is created, deleted or submitted", "Transfer of ownership of project",
+    #                "Transfer of moderator of project", "Updates related to competitions", "Updates related to review of competitons", "Updates related to competition results", "Updates related to changes in profile XP", "Updates related to changes in topic XP", "Updates related to milestones achieved", "User, project or snapshot is reported", "User, project or snapshot is admired", "Account setting updates", "Updates related to Moderation", "Updates related to Management"]

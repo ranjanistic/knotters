@@ -6,7 +6,7 @@ from main.mailers import sendActionEmail, sendAlertEmail
 
 from .models import (BaseProjectCoCreatorInvitation,
                      CoreModerationTransferInvitation, CoreProject,
-                     CoreProjectDeletionRequest, FreeProject, Project,
+                     CoreProjectDeletionRequest, FreeProject, FreeRepository, Project,
                      ProjectModerationTransferInvitation,
                      ProjectTransferInvitation, Snapshot, VerProjectDeletionRequest, BaseProject)
 from main.methods import user_device_notify
@@ -1207,3 +1207,33 @@ def reportedSnapshot(snap: Snapshot, category: ReportCategory):
             footer=f"Knotters is a place for creating community and belonging. To avoid future reports against your content, make sure you read and understand Knotters terms and conditions.",
             conclusion=f"If you think this is a mistake, please report to us."
         )
+
+
+def githubBotInstalled(frepos):
+    """:type frepos: list[FreeRepository]
+    To notify creator of project that knotters github bot has been installed to their linked github repository
+    """
+    for frepo in frepos:
+        project = frepo.free_project
+        if DeviceNotificationSubscriber.objects.filter(user=project.creator.user, device_notification__notification__code=NotificationCode.GITHUB_BOT_INSTALLED).exists():
+            user_device_notify(project.creator.user, "Github Bot Installed",
+                               f"Knotters Github bot has been installed in repository linked to your project {project.name}.",
+                               project.getLink(),
+                               actions=[{
+                                   'title': 'View Project',
+                                   'url': project.get_link,
+                                   'action': "action1"},
+                                   {'title': 'View Repository',
+                                    'url': frepo.repolink(),
+                                    'action': "action2"}])
+        if EmailNotificationSubscriber.objects.filter(user=project.creator.user, email_notification__notification__code=NotificationCode.GITHUB_BOT_INSTALLED).exists():
+            sendActionEmail(
+                to=project.creator.get_email, username=project.creator.getFName(), subject='Knotters Github Bot Installed',
+                header=f"This is to inform you that Knotters Github bot has been installed in repository linked to project {project.name}.",
+                actions=[{'text': "View Project",
+                          'url': project.getLink()},
+                         {'text': "View Repository",
+                         'url': frepo.repolink()}],
+                footer=f"You are receiving this mail because Knotters Github bot has been installed in the repository linked to a project which is created by you.",
+                conclusion=f"If you think this is a mistake, please report to us."
+            )

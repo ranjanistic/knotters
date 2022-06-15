@@ -12,102 +12,94 @@ from main.methods import user_device_notify
 
 
 def passwordChangeAlert(user: User) -> str:
-    if DeviceNotificationSubscriber.objects.filter(user=user, device_notification__notification__code=NotificationCode.PASSWORD_CHANGED).exists():
-        user_device_notify(user, "Account Password Changed",
-                           f"This is to inform you that your {PUBNAME} account ({user.email}) password was changed recently."
-                           )
-
-    if EmailNotificationSubscriber.objects.filter(user=user, email_notification__notification__code=NotificationCode.PASSWORD_CHANGED).exists():
-        sendAlertEmail(to=user.email, username=user.first_name, subject='Account Password Changed',
-                       header=f"This is to inform you that your {PUBNAME} account ({user.email}) password was changed recently.",
-                       footer="If you acknowledge this action, then this email can be ignored safely.",
-                       conclusion=f"If this action is suspicious and you didn't do such thing, then immediately head on to {PUBNAME} and request a password reset by choosing 'forgot' on login."
+    user_device_notify(user, "Account Password Changed",
+                       f"This is to inform you that your {PUBNAME} account ({user.email}) password was changed recently."
                        )
+
+    sendAlertEmail(to=user.email, username=user.first_name, subject='Account Password Changed',
+                   header=f"This is to inform you that your {PUBNAME} account ({user.email}) password was changed recently.",
+                   footer="If you acknowledge this action, then this email can be ignored safely.",
+                   conclusion=f"If this action is suspicious and you didn't do such thing, then immediately head on to {PUBNAME} and request a password reset by choosing 'forgot' on login."
+                   )
 
 
 def emailUpdateAlert(user: User, oldEmail: str, newEmail: str) -> str:
     if EmailAddress.objects.filter(user=user, verified=True).exists():
-        if DeviceNotificationSubscriber.objects.filter(user=user, device_notification__notification__code=NotificationCode.EMAIL_UPDATE).exists():
-            user_device_notify(user, "Primary Email Address Changed",
-                               f"This is to inform you that your {PUBNAME} primary email address was changed from {oldEmail} to {newEmail}, recently."
-                               )
-
-        if EmailNotificationSubscriber.objects.filter(user=user, email_notification__notification__code=NotificationCode.EMAIL_UPDATE).exists():
-            sendAlertEmail(to=oldEmail, username=user.first_name, subject='Primary Email Address Changed',
-                           header=f"This is to inform you that your {PUBNAME} primary email address was changed from {oldEmail} to {newEmail}, recently.",
-                           footer="If you acknowledge this action, then this email can be ignored safely.",
-                           conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us. Your {PUBNAME} account may have been compromised."
+        user_device_notify(user, "Primary Email Address Changed",
+                           f"This is to inform you that your {PUBNAME} primary email address was changed from {oldEmail} to {newEmail}, recently."
                            )
+
+    if EmailNotificationSubscriber.objects.filter(user=user, email_notification__notification__code=NotificationCode.EMAIL_UPDATE).    exists():
+        sendAlertEmail(to=oldEmail, username=user.first_name, subject='Primary Email Address Changed',
+                       header=f"This is to inform you that your {PUBNAME} primary email address was changed from {oldEmail} to {newEmail}, recently.",
+                       footer="If you acknowledge this action, then this email can be ignored safely.",
+                       conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us. Your {PUBNAME} account may have been compromised."
+                       )
 
 
 def emailAddAlert(user: User, newEmail: str) -> str:
     if EmailAddress.objects.filter(user=user, verified=True).exists():
-        if DeviceNotificationSubscriber.objects.filter(user=user, device_notification__notification__code=NotificationCode.EMAIL_ADD).exists():
-            user_device_notify(user, "New Email Address Added",
-                               f"This is to inform you that a new email address ({newEmail}) was added to your {PUBNAME} account, recently."
-                               )
-
-        if EmailNotificationSubscriber.objects.filter(user=user, email_notification__notification__code=NotificationCode.EMAIL_ADD).exists():
-            sendAlertEmail(to=user.email, username=user.first_name, subject='New Email Address Added',
-                           header=f"This is to inform you that a new email address ({newEmail}) was added to your {PUBNAME} account, recently. This however, will NOT affect your existing ({user.email}) login email address.",
-                           footer="If you acknowledge this action, then this email can be ignored safely.",
-                           conclusion=f"If this action is suspicious and you didn't do such thing, then immediately login to {PUBNAME} and remove this new email address from your acccount."
+        user_device_notify(user, "New Email Address Added",
+                           f"This is to inform you that a new email address ({newEmail}) was added to your {PUBNAME} account, recently."
                            )
+
+        sendAlertEmail(to=user.email, username=user.first_name, subject='New Email Address Added',
+                       header=f"This is to inform you that a new email address ({newEmail}) was added to your {PUBNAME} account, recently. This however, will NOT affect your existing ({user.email}) login email address.",
+                       footer="If you acknowledge this action, then this email can be ignored safely.",
+                       conclusion=f"If this action is suspicious and you didn't do such thing, then immediately login to {PUBNAME} and remove this new email address from your acccount."
+                       )
 
 
 def emailRemoveAlert(user: User, removedEmail: str) -> str:
     if EmailAddress.objects.filter(user=user, verified=True).exists():
-        if DeviceNotificationSubscriber.objects.filter(user=user, device_notification__notification__code=NotificationCode.EMAIL_REMOVE).exists():
-            user_device_notify(user, "New Email Address Removed",
-                               f"This is to inform you that an email address ({removedEmail}) was removed from your {PUBNAME} account."
-                               )
-
-        if EmailNotificationSubscriber.objects.filter(user=user, email_notification__notification__code=NotificationCode.EMAIL_REMOVE).exists():
-            sendAlertEmail(to=user.email, username=user.first_name, subject='Email Address Removed',
-                           header=f"This is to inform you that an email address ({removedEmail}) was removed from your {PUBNAME} account.",
-                           footer="If you acknowledge this action, then this email can be ignored safely.",
-                           conclusion=f"If this action is suspicious and you didn't do such thing, then you can login to {PUBNAME} and add this email address again."
+        user_device_notify(user, "New Email Address Removed",
+                           f"This is to inform you that an email address ({removedEmail}) was removed from your {PUBNAME} account."
                            )
+
+        sendAlertEmail(to=user.email, username=user.first_name, subject='Email Address Removed',
+                       header=f"This is to inform you that an email address ({removedEmail}) was removed from your {PUBNAME} account.",
+                       footer="If you acknowledge this action, then this email can be ignored safely.",
+                       conclusion=f"If this action is suspicious and you didn't do such thing, then you can login to {PUBNAME} and add this email address again."
+                       )
 
 
 def accountInactiveAlert(profile: Profile) -> str:
-    if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.ACCOUNT_INACTIVE).exists():
-        user_device_notify(profile.user, "Account Deactivated",
-                           f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been deactivated."
-                           )
-    if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.ACCOUNT_INACTIVE).exists():
-        sendAlertEmail(to=profile.getEmail(), username=profile.getFName(), subject='Account Deactivated',
-                       header=f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been deactivated.",
-                       footer=f"If you acknowledge this action, then this email can be ignored safely. You can login to {PUBNAME} anytime and re-activate your account.",
-                       conclusion=f"If this action is suspicious and you didn't do such thing, then you should head on to {PUBNAME} and login now."
+
+    user_device_notify(profile.user, "Account Deactivated",
+                       f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been deactivated."
                        )
+
+    sendAlertEmail(to=profile.getEmail(), username=profile.getFName(), subject='Account Deactivated',
+                   header=f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been deactivated.",
+                   footer=f"If you acknowledge this action, then this email can be ignored safely. You can login to {PUBNAME} anytime and re-activate your account.",
+                   conclusion=f"If this action is suspicious and you didn't do such thing, then you should head on to {PUBNAME} and login now."
+                   )
 
 
 def accountReactiveAlert(profile: Profile) -> str:
-    if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.ACCOUNT_REACTIVATED).exists():
-        user_device_notify(profile.user, "Account Re-activated",
-                           f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been re-activated."
-                           )
-    if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.ACCOUNT_REACTIVATED).exists():
-        sendAlertEmail(to=profile.getEmail(), username=profile.getFName(), subject='Account Re-activated',
-                       header=f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been re-activated.",
-                       footer=f"If you acknowledge this action, then this email can be ignored safely. You can login to {PUBNAME} and deactivate your account anytime.",
-                       conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us."
+
+    user_device_notify(profile.user, "Account Re-activated",
+                       f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been re-activated."
                        )
+
+    sendAlertEmail(to=profile.getEmail(), username=profile.getFName(), subject='Account Re-activated',
+                   header=f"This is to inform you that your {PUBNAME} account ({profile.getEmail()}) has been re-activated.",
+                   footer=f"If you acknowledge this action, then this email can be ignored safely. You can login to {PUBNAME} and deactivate your account anytime.",
+                   conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us."
+                   )
 
 
 def accountDeleteAlert(user: User) -> str:
-    if DeviceNotificationSubscriber.objects.filter(user=user, device_notification__notification__code=NotificationCode.ACCOUNT_DELETED).exists():
-        user_device_notify(user, "New Email Address Removed",
-                           f"With heavy heart, this is to inform you that your {PUBNAME} account ({user.email}) has been DELETED."
-                           )
 
-    if EmailNotificationSubscriber.objects.filter(user=user, email_notification__notification__code=NotificationCode.ACCOUNT_DELETED).exists():
-        sendAlertEmail(to=user.email, username=user.first_name, subject='Account Deleted',
-                       header=f"With heavy heart, this is to inform you that your {PUBNAME} account ({user.email}) has been DELETED.",
-                       footer=f"We're sad to see you go. You can no longer access anything related to your account now, as this action was irreversible.",
-                       conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us."
+    user_device_notify(user, "New Email Address Removed",
+                       f"With heavy heart, this is to inform you that your {PUBNAME} account ({user.email}) has been DELETED."
                        )
+
+    sendAlertEmail(to=user.email, username=user.first_name, subject='Account Deleted',
+                   header=f"With heavy heart, this is to inform you that your {PUBNAME} account ({user.email}) has been DELETED.",
+                   footer=f"We're sad to see you go. You can no longer access anything related to your account now, as this action was irreversible.",
+                   conclusion=f"If this action is suspicious and you didn't do such thing, then please report to us."
+                   )
 
 
 def successorInvite(successor: User, predecessor: User) -> str:
