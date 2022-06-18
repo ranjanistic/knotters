@@ -2,14 +2,14 @@ name: Beta CD
 
 on:
   push:
-    branches: [ beta ]
+    branches: [beta]
     paths-ignore:
       - "**/*.md"
       - "**.md"
       - "*.md"
       - "**/*.bat"
       - "**/*.sh"
-      
+
 jobs:
   build:
     runs-on: [self-hosted, beta, building]
@@ -19,20 +19,20 @@ jobs:
         python-version: ["3.10"]
 
     steps:
-    - name: Merge changes
-      run: |
-        git pull origin beta
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Run migrations
-      run: |
-        python3 manage.py makemigrations --noinput
-        python3 manage.py migrate --noinput
-    - name: Synchronise notifications
-      run: | 
-        python3 manage.py syncnotifications --noinput
+      - name: Merge changes
+        run: |
+          git pull origin beta
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run migrations
+        run: |
+          python3 manage.py makemigrations --noinput
+          python3 manage.py migrate --noinput
+      - name: Synchronise notifications
+        run: |
+          python3 manage.py syncnotifications --noinput
 
   deploy:
     needs: [build]
@@ -43,21 +43,21 @@ jobs:
         python-version: ["3.10"]
 
     steps:
-    - name: Create backup
-      run: |
-        tar czf _backup_/media.tar.gz media
-        rm -f _backup_/media.tar.gz.gpg
-        gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
-        rm -f _backup_/media.tar.gz
-    - name: Merge changes
-      run: |
-        git pull origin beta
-    - name: Release new version
-      run: |
-        ~/Env/beta_knotters/bin/python3 genversion.py
-        ~/Env/beta_knotters/bin/python3 manage.py collectstatic --noinput
-        ~/Env/beta_knotters/bin/python3 manage.py preparestatics /var/www/beta/knotters/errors/
-    - name: Restart services
-      run: |
-        systemctl --user restart beta.gunicorn.service
-        systemctl --user restart beta.cluster0.service
+      - name: Create backup
+        run: |
+          tar czf _backup_/media.tar.gz media
+          rm -f _backup_/media.tar.gz.gpg
+          gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
+          rm -f _backup_/media.tar.gz
+      - name: Merge changes
+        run: |
+          git pull origin beta
+      - name: Release new version
+        run: |
+          ~/Env/beta_knotters/bin/python3 genversion.py
+          ~/Env/beta_knotters/bin/python3 manage.py collectstatic --noinput
+          ~/Env/beta_knotters/bin/python3 manage.py preparestatics /var/www/beta/knotters/errors/
+      - name: Restart services
+        run: |
+          systemctl --user restart beta.gunicorn.service
+          systemctl --user restart beta.cluster0.service
