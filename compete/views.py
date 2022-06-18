@@ -26,7 +26,7 @@ from ratelimit.decorators import ratelimit
 from .apps import APPNAME
 from .mailers import (participantInviteAlert, participantWelcomeAlert,
                       participationWithdrawnAlert, submissionConfirmedAlert,
-                      submissionsJudgedAlert)
+                      submissionsJudgedAlert, competitionAdmireNotification, competitonXpClaimed)
 from .methods import (AllotCompetitionCertificates, DeclareResults,
                       competitionProfileData, getCompetitionSectionHTML,
                       getIndexSectionHTML, renderer, rendererstrResponse)
@@ -751,6 +751,7 @@ def claimXP(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         competition = result.submission.competition
         profile.increaseXP(by=(result.points)//(len(topicpointsIDs)+1),
                            reason=f"Claimed XP from {competition.title}")
+        competitonXpClaimed(profile, competition)
         for topic in topics:
             profiletopic, _ = ProfileTopic.objects.get_or_create(
                 profile=request.user.profile,
@@ -1250,6 +1251,7 @@ def toggleAdmiration(request: WSGIRequest, compID: UUID) -> JsonResponse:
         admire = request.POST['admire']
         if admire in ["true", True]:
             compete.admirers.add(request.user.profile)
+            competitionAdmireNotification(request.user.profile, compete)
         elif admire in ["false", False]:
             compete.admirers.remove(request.user.profile)
         if json_body:

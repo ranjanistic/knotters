@@ -8,7 +8,7 @@ from main.methods import errorLog
 from people.models import Profile, User, defaultImagePath, isPictureDeletable
 
 from .mailers import (accountDeleteAlert, emailAddAlert, emailRemoveAlert,
-                      emailUpdateAlert, passordChangeAlert)
+                      emailUpdateAlert, passwordChangeAlert)
 from .models import DeviceNotification, EmailNotification, Notification
 
 
@@ -52,12 +52,12 @@ def on_user_delete(sender, instance: User, **kwargs):
 
 @receiver(password_changed)
 def user_password_changed(request, user: User, **kwargs):
-    passordChangeAlert(user)
+    passwordChangeAlert(user)
 
 
 @receiver(password_reset)
 def user_password_reset(request, user: User, **kwargs):
-    passordChangeAlert(user)
+    passwordChangeAlert(user)
 
 
 @receiver(email_changed)

@@ -317,10 +317,12 @@ self.addEventListener(EVENTS.MESSAGE, (event) => {
 
 // For web push messages
 self.addEventListener(EVENTS.PUSH, (event) => {
+    
     const payload = event.data
         ? event.data.text()
         : JSON.stringify({ title: "{{APPNAME}}" });
     const defaultOps = {
+        url: "/",
         icon: "{{ICON_PNG}}",
         badge: "{{ICON_SHADOW_PNG}}",
         actions: [],
@@ -340,6 +342,7 @@ self.addEventListener(EVENTS.PUSH, (event) => {
         (data = JSON.parse(payload)), (title = data.title);
         options = {
             body: data.body || "",
+            url: data.url || defaultOps.url,
             icon: data.icon || defaultOps.icon,
             badge: data.badge || defaultOps.badge,
             actions: data.actions || defaultOps.actions,
@@ -359,4 +362,22 @@ self.addEventListener(EVENTS.PUSH, (event) => {
     }
     {% if DEBUG %}debug_log(title);{% endif %}
     event.waitUntil(self.registration.showNotification(title, options));
+    
 });
+
+// For notification click event
+self.addEventListener('notificationclick', function(event) {
+    if(event.action.length > 0){
+        let size = data.actions.length
+        for(let i = 0;i<size;i++){
+            if(event.action === data.actions[i].action){
+                clients.openWindow(data.actions[i].url)
+                break
+            }
+        }
+    }
+    else{
+       clients.openWindow(data.url) 
+    }
+    event.notification.close();
+  });

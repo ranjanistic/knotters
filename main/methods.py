@@ -462,8 +462,8 @@ def sendGroupNotification(groups: list, payload: dict, ttl: int = 1000):
         return False
 
 
-def user_device_notify(user_s: str,
-                       title: str, body: str = None, url: str = None, icon: str = None,
+def user_device_notify(user_s: list,
+                       title: str, body: str = None, url: str = "/", icon: str = None,
                        badge: str = None, actions: list = [],
                        dir: str = None, image: str = None, lang: str = None, renotify: bool = None, requireInteraction: bool = False, silent: bool = False, tag: str = None, timestamp=None, vibrate: list = None
                        ):
@@ -609,6 +609,7 @@ def human_readable_size(num: float, suffix="B") -> str:
             return f"{num:3.1f}{unit}{suffix}"
         num /= 1024.0
     return f"{num:.1f}Yi{suffix}"
+
 
 def filterNickname(nickname, limit=30):
     return re_sub(r'[^a-zA-Z0-9\-]', "", "-".join(filter(lambda x: x, nickname.split("-"))))[:limit].lower()
