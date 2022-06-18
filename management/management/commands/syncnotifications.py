@@ -58,20 +58,21 @@ def synchroniseNotifications():
         for notif in notifs:
 
             if not Notification.objects.filter(code=notif["code"]).exists():
-                newnotifications.append(Notification(
-                    name=notif["name"], description=notif["description"], code=notif["code"], disabled=notif.get("disabled", False)))
+                Notification.objects.create(
+                    name=notif["name"], description=notif["description"], code=notif["code"], disabled=notif.get("disabled", False))
+                countcreate += 1
             else:
                 Notification.objects.filter(
                     code=notif["code"]).update(name=notif["name"], description=notif["description"], code=notif["code"], disabled=notif.get("disabled", False))
                 countupdate += 1
 
-        countcreate = Notification.objects.bulk_create(newnotifications)
         codes = list(map(lambda notif: notif["code"], notifs))
         count, _ = Notification.objects.exclude(code__in=codes).delete()
-        print(f"\n{len(countcreate)} notifications created.")
+        print(f"\n{countcreate} notifications created.")
         print(f"\n{countupdate} notifications updated.")
         print(f"\n{count} notifications deleted.")
         return True
     except Exception as e:
         errorLog(e)
         return False
+
