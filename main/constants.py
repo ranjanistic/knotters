@@ -79,83 +79,72 @@ class NotificationCode():
     """Legal Updates = 15"""
     ALERT_LEGAL_UPDATE = 15
 
-    def getDetails(self):
+    def getDetails(self) -> list:
+        """Returns a list of notification dict data
+        primarily meant to be the source of notification types for everyone.
 
+        This is also used to synchronize notifications in database.
+        """
         return [{
-            "name": "Project Notifications",
+            "name": "Projects updates",
             "code": self.FREE_PROJ_CREATED,
-            "description": "Project is created, deleted or submitted, snapshot is created for the project or GitHUb bot is installed in linked repository of the project"
-        },
-            {
-            "name": "Project Ownership Notifications",
+            "description": "Creation, deletion, submission, approval, snapshots, and other things."
+        },{
+            "name": "Projects Invitations",
             "code": self.PROJ_TRANSFER_INVITE,
             "description": "Ownership of a project is transferred or a co-creator is added to the project"
-        },
-            {"name": "Moderator Transfer Notifications",
-             "code": self. PROJ_MOD_TRANSFER,
-             "description":  "Transfer of moderatorship of a project"
-             },
-
-            {
-            "name": "Competition status Notifications",
+        },{
+            "name": "Project moderator updates",
+            "code": self. PROJ_MOD_TRANSFER,
+            "description":  "Moderatiorship changes or moderator invitations, etc."
+        },{
+            "name": "Competition Participation updates",
             "code": self.PART_INVITE_ALERT,
-            "description": "You have participated, withdrawn your participation from a competition or completed a submission."
-        },
-            {
-            "name": "Competition Review Notifications",
+            "description": "Participation, withdrawal, member invitations and other participation related updates."
+        },{
+            "name": "Competition Submission updates",
             "code": self.SUBM_MOD_ALERT,
-            "description": "Your submission has been moderated and judged by the panel"
-        },
-            {
-            "name": "Competition Result Notifications",
+            "description": "Status updates of your competition submissions in review procedure."
+        },{
+            "name": "Competition Results updates",
             "code":  self.RES_DEC_ALERT,
-            "description": "Updates related to competition results",
-        },
-            {
-            "name": "Profile XP Notifications",
+            "description": "Results declaration, certificate allotment, xp claimed and other perks related updates.",
+        },{
+            "name": "Profile XP Updates",
             "code":  self.INCREASE_XP,
-            "description": "XP changes in profile.",
-        },
-            {
-            "name": "Topic XP notifications",
+            "description": "Gained or lost XPs in profile.",
+        },{
+            "name": "Topic XP Updates",
             "code":  self.INCREASE_BULK_XP_TOPIC,
-            "description": "XP changes in topic",
-        },
-            {
-            "name": "Milestone Notifications",
+            "description": "Gained or lost XPs in topics.",
+        },{
+            "name": "Achievements and Milestones",
             "code":  self.MILESTONE_NOTIF,
-            "description": "You have achieved a new milestone in your profile or topic xp",
-        },
-            {
-            "name": "Report Notifications",
+            "description": "Achieved a new milestone in terms of XPs, or any other achievements.",
+        },{
+            "name": "Reports or Guideline violations",
             "code":  self.REPORTED_USER,
-            "description": "A User, project or a snapshot has been reported by you",
-        },
-            {
-            "name": "Admire Notifications",
+            "description": "Follow ups on your reportings, or reports against you or your content.",
+        },{
+            "name": "Admirations",
             "code":  self.ADMIRED_USER,
-            "description": "You admired a user, project or a snapshot",
-        },
-
-            {
-            "name": "Account Notifications",
+            "description": "Someone admires you, your project, your snapshot, your anything.",
+        },{
+            "name": "Account Legacy Updates",
             "code":  self.SUCCESSOR_INVITE,
-            "description": "You have updated your account settings",
+            "description": "Successorship status, invites to you or by you and their relevant actions events.",
             "disabled": True
-        },
-            {
-            "name": "Moderation Emails",
+        },{
+            "name": "Moderation Updates",
             "code":  self.MODERATION_ASSIGNED,
-            "description": "Your have been assigned as a moderator to review a project",
-        },
-            {
-            "name": "Management Notifications",
+            "description": "Assigned moderation, action taken, and related moderator events.",
+        },{
+            "name": "Management Membership Events",
             "code":  self. MANAGEMENT_INVITATION_ACCEPTED,
-            "description": "You have accepted the membership invitation of an organisation.",
-        },
-            {
+            "description": "Organization membership realated updates.",
+        },{
             "name": "Legal Updates",
             "code":  self.ALERT_LEGAL_UPDATE,
-            "description": "Updates in the legal documentation of the website",
+            "description": "Changes in policies, terms and conditions or other legalities from our side.",
         }
-        ]
+    ]
