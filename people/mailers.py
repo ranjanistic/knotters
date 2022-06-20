@@ -147,7 +147,7 @@ def admireAlert(profile: Profile, request: WSGIRequest):
     """
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.ADMIRED_USER).exists():
         user_device_notify(profile.user, 'Profile admired',
-                           f"{request.user.first_name} - {request.user} - has admired your profile",
+                           f"{request.user.first_name} has admired your profile",
                            request.user.getLink(), actions=[{'title': "View your profile",
                                                              'url': profile.getLink(),
                                                              'action': "action1"},
@@ -157,7 +157,7 @@ def admireAlert(profile: Profile, request: WSGIRequest):
     if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.ADMIRED_USER).exists():
         sendActionEmail(
             to=profile.get_email, username=profile.getFName(), subject='Profile admired',
-            header=f"{request.user.first_name} ({request.user}) has admired your profile",
+            header=f"{request.user.first_name} has admired your profile",
             actions=[{'text': "View your profile",
                       'url': profile.getLink()},
                      {'text': f"View {request.user.first_name}'s profile",
