@@ -1033,7 +1033,7 @@ def projectAdmired(request: WSGIRequest, project: BaseProject):
     if DeviceNotificationSubscriber.objects.filter(user=project.creator.user, device_notification__notification__code=NotificationCode.ADMIRED_PROJECT).exists():
         if(project.is_free() and project.getProject().is_submission()):
             user_device_notify(project.creator.user, "Project Admired",
-                               f"Your project - {project.name} - which is a submission of - {project.getProject().submission().competition.title} - competition has been admired by - {request.user.first_name} - ({request.user})",
+                               f"Your project - {project.name} - which is a submission of - {project.getProject().submission().competition.title} - competition has been admired by {request.user.first_name}",
                                project.getLink(),
                                actions=[{
                                    'title': 'View Project',
@@ -1044,7 +1044,7 @@ def projectAdmired(request: WSGIRequest, project: BaseProject):
                                     'action': "action2"}])
         else:
             user_device_notify(project.creator.user, "Project Admired",
-                               f"Your project - {project.name} - has been admired by - {request.user.first_name} - ({request.user})",
+                               f"Your project - {project.name} - has been admired by {request.user.first_name}",
                                project.getLink())
 
     if EmailNotificationSubscriber.objects.filter(user=project.creator.user, email_notification__notification__code=NotificationCode.ADMIRED_PROJECT).exists():
@@ -1053,7 +1053,7 @@ def projectAdmired(request: WSGIRequest, project: BaseProject):
                 to=project.creator.getEmail(),
                 username=project.creator.getFName(),
                 subject=f"Project Admired",
-                header=f"This is to inform you that your project - {project.name} - which is a submission of - {project.getProject().submission().competition.title} - competition has been admired by - {request.user.first_name} - ({request.user}).",
+                header=f"This is to inform you that your project - {project.name} - which is a submission of - {project.getProject().submission().competition.title} - competition has been admired by {request.user.first_name}.",
                 actions=[{
                     'text': 'View Project',
                     'url': project.get_link
@@ -1070,7 +1070,7 @@ def projectAdmired(request: WSGIRequest, project: BaseProject):
                 to=project.creator.getEmail(),
                 username=project.creator.getFName(),
                 subject=f"Project Admired",
-                header=f"This is to inform you that your project - {project.name} - has been admired by - {request.user.first_name} - ({request.user}).",
+                header=f"This is to inform you that your project - {project.name} - has been admired by {request.user.first_name}.",
                 actions=[{
                     'text': 'View Project',
                     'url': project.get_link
@@ -1086,7 +1086,7 @@ def snapshotAdmired(request: WSGIRequest, snap: Snapshot):
     """
     if DeviceNotificationSubscriber.objects.filter(user=snap.creator.user, device_notification__notification__code=NotificationCode.ADMIRED_SNAPSHOT).exists():
         user_device_notify(snap.creator.user, "Snapshot Admired",
-                           f"Your snapshot of project - {snap.base_project.name} - has been admired by - {request.user.first_name} - ({request.user})",
+                           f"Your snapshot of project - {snap.base_project.name} - has been admired by - {request.user.first_name}",
                            snap.getLink())
 
     if EmailNotificationSubscriber.objects.filter(user=snap.creator.user, email_notification__notification__code=NotificationCode.ADMIRED_SNAPSHOT).exists():
@@ -1094,7 +1094,7 @@ def snapshotAdmired(request: WSGIRequest, snap: Snapshot):
             to=snap.creator.getEmail(),
             username=snap.creator.getFName(),
             subject=f"Snapshot Admired",
-            header=f"This is to inform you that your snapshot of project - {snap.base_project.name} - has been admired by - {request.user.first_name} - ({request.user}).",
+            header=f"This is to inform you that your snapshot of project - {snap.base_project.name} - has been admired by - {request.user.first_name}.",
             actions=[{
                 'text': 'View Snapshot',
                 'url': snap.get_link
@@ -1130,7 +1130,7 @@ def snapshotCreated(project: BaseProject, snap: Snapshot):
     if(project.creator != snap.creator):
         if DeviceNotificationSubscriber.objects.filter(user=project.creator.user, device_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
             user_device_notify(project.creator.user, "Snapshot Created",
-                               f"Snapshot has been created for your project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
+                               f"Snapshot has been created for your project - {project.name} - by {snap.creator.getFName()}",
                                snap.getLink())
 
         if EmailNotificationSubscriber.objects.filter(user=project.creator.user, email_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
@@ -1138,7 +1138,7 @@ def snapshotCreated(project: BaseProject, snap: Snapshot):
                 to=project.creator.getEmail(),
                 username=project.creator.getFName(),
                 subject=f"Snapshot Created",
-                header=f"This is to inform you that snapshot has been created for your project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
+                header=f"This is to inform you that snapshot has been created for your project - {project.name} - by {snap.creator.getFName()}",
                 actions=[{
                     'text': 'View Snapshot',
                     'url': snap.get_link
@@ -1151,7 +1151,7 @@ def snapshotCreated(project: BaseProject, snap: Snapshot):
         moderator = project.get_moderator()
         if DeviceNotificationSubscriber.objects.filter(user=moderator.user, device_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
             user_device_notify(moderator.user, "Snapshot Created",
-                               f"Snapshot has been created for your moderated project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
+                               f"Snapshot has been created for your moderated project - {project.name} - by {snap.creator.getFName()}",
                                snap.getLink())
 
         if EmailNotificationSubscriber.objects.filter(user=moderator.user, email_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
@@ -1159,7 +1159,7 @@ def snapshotCreated(project: BaseProject, snap: Snapshot):
                 to=moderator.getEmail(),
                 username=moderator.getFName(),
                 subject=f"Snapshot Created",
-                header=f"This is to inform you that snapshot has been created for your moderated project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
+                header=f"This is to inform you that snapshot has been created for your moderated project - {project.name} - by {snap.creator.getFName()}",
                 actions=[{
                     'text': 'View Snapshot',
                     'url': snap.get_link
@@ -1172,7 +1172,7 @@ def snapshotCreated(project: BaseProject, snap: Snapshot):
         mentor = project.get_mentor()
         if DeviceNotificationSubscriber.objects.filter(user=mentor.user, device_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
             user_device_notify(mentor.user, "Snapshot Created",
-                               f"Snapshot has been created for your mentored project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
+                               f"Snapshot has been created for your mentored project - {project.name} - by {snap.creator.getFName()}",
                                snap.getLink())
 
         if EmailNotificationSubscriber.objects.filter(user=mentor.user, email_notification__notification__code=NotificationCode.SNAPSHOT_CREATED).exists():
@@ -1180,7 +1180,7 @@ def snapshotCreated(project: BaseProject, snap: Snapshot):
                 to=mentor.getEmail(),
                 username=mentor.getFName(),
                 subject=f"Snapshot Created",
-                header=f"This is to inform you that snapshot has been created for your mentored project - {project.name} - by -{snap.creator.getFName()} - ({snap.creator.user})",
+                header=f"This is to inform you that snapshot has been created for your mentored project - {project.name} - by {snap.creator.getFName()}",
                 actions=[{
                     'text': 'View Snapshot',
                     'url': snap.get_link
