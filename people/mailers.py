@@ -1,4 +1,3 @@
-from typing_extensions import Self
 from main.env import PUBNAME
 from main.mailers import sendActionEmail
 from main.strings import URL
