@@ -349,7 +349,7 @@ def verify_captcha(recaptcha_response: str) -> bool:
             response=recaptcha_response
         ))
         result = resp.json()
-        return result['success'] if result['score'] > 0.7 else False
+        return result['success'] if result['score'] > 0.4 else False
     except Exception as e:
         errorLog(e)
         return False
