@@ -35,29 +35,29 @@ class TestViews(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         self.email = getTestEmail()
         self.password = getTestPassword()
-        self.user:User= User.objects.create_user(
+        self.user: User = User.objects.create_user(
             email=self.email, password=self.password, first_name=getTestName())
-        self.profile:Profile = Profile.objects.get(user=self.user)
+        self.profile: Profile = Profile.objects.get(user=self.user)
         self.judgeemail = getTestEmail()
         self.judgepassword = getTestPassword()
-        self.judgeuser:User= User.objects.create_user(
+        self.judgeuser: User = User.objects.create_user(
             email=self.judgeemail, password=self.judgepassword, first_name=getTestName())
-        self.judgeprofile:Profile = Profile.objects.get(user=self.judgeuser)
+        self.judgeprofile: Profile = Profile.objects.get(user=self.judgeuser)
         self.modemail = getTestEmail()
         self.modpassword = getTestPassword()
-        self.moduser:User= User.objects.create_user(
+        self.moduser: User = User.objects.create_user(
             email=self.modemail, password=self.modpassword, first_name=getTestName())
-        self.modprofile:Profile = Profile.objects.get(user=self.moduser)
+        self.modprofile: Profile = Profile.objects.get(user=self.moduser)
         self.modprofile.is_moderator = True
         self.modprofile.save()
         self.mgemail = getTestEmail()
         self.mgpassword = getTestPassword()
-        self.mguser:User= User.objects.create_user(
+        self.mguser: User = User.objects.create_user(
             email=self.mgemail, password=self.mgpassword, first_name=getTestName())
-        self.mgprofile:Profile = Profile.objects.get(user=self.mguser)
+        self.mgprofile: Profile = Profile.objects.get(user=self.mguser)
         self.mgprofile.convertToManagement()
         self.mgprofile.save()
-        self.comp:Competition = Competition.objects.create(is_draft=False,title=getCompTitle(
+        self.comp: Competition = Competition.objects.create(is_draft=False, title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(days=3), eachTopicMaxPoint=30)
         assignModeratorToObject(APPNAME, self.comp, self.modprofile)
         # requestModerationForObject(self.comp, APPNAME)
@@ -76,40 +76,43 @@ class TestViews(TestCase):
             ))
         EmailAddress.objects.bulk_create(mailaddrs)
         return super().setUpTestData()
-    
+
     def setUp(self) -> None:
         Profile.KNOTBOT()
         return super().setUp()
 
     def test_index(self):
-        response = self.client.get(follow=True, path=root(appendslash=True))
+        client = Client()
+        response = client.get(follow=True, path=root(appendslash=True))
         self.assertEqual(response.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(response, template.index)
         self.assertTemplateUsed(response, template.compete.index)
 
     def test_indexTab(self):
-        response = self.client.get(follow=True, path=root(
+        client = Client()
+        response = client.get(follow=True, path=root(
             url.compete.indexTab(tab=Compete.ACTIVE)))
         self.assertEqual(response.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(response, template.compete.active)
 
-        response = self.client.get(follow=True, path=root(
+        response = client.get(follow=True, path=root(
             url.compete.indexTab(tab=Compete.UPCOMING)))
         self.assertEqual(response.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(response, template.compete.upcoming)
 
-        response = self.client.get(follow=True, path=root(
+        response = client.get(follow=True, path=root(
             url.compete.indexTab(tab=Compete.HISTORY)))
         self.assertEqual(response.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(response, template.compete.history)
 
     @tag('afm')
     def test_competition(self):
-        resp = self.client.get(follow=True, path=root(
+        client = Client()
+        resp = client.get(follow=True, path=root(
             url.compete.compID(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
 
-        resp = self.client.get(follow=True, path=root(
+        resp = client.get(follow=True, path=root(
             url.compete.compID(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
@@ -117,8 +120,8 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.compete.profile)
         self.assertEqual(resp.context['compete'], self.comp)
 
-        self.client.login(email=self.mgemail, password=self.mgpassword)
-        resp = self.client.get(follow=True, path=root(
+        client.login(email=self.mgemail, password=self.mgpassword)
+        resp = client.get(follow=True, path=root(
             url.compete.compID(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile)
@@ -126,10 +129,10 @@ class TestViews(TestCase):
         self.assertFalse(resp.context['isJudge'])
         self.assertFalse(resp.context['isMod'])
         self.assertTrue(resp.context['isManager'])
-        self.client.logout()
+        client.logout()
 
-        self.client.login(email=self.modemail, password=self.modpassword)
-        resp = self.client.get(follow=True, path=root(
+        client.login(email=self.modemail, password=self.modpassword)
+        resp = client.get(follow=True, path=root(
             url.compete.compID(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile)
@@ -137,10 +140,10 @@ class TestViews(TestCase):
         self.assertFalse(resp.context['isJudge'])
         self.assertTrue(resp.context['isMod'])
         self.assertFalse(resp.context['isManager'])
-        self.client.logout()
+        client.logout()
 
-        self.client.login(email=self.judgeemail, password=self.judgepassword)
-        resp = self.client.get(follow=True, path=root(
+        client.login(email=self.judgeemail, password=self.judgepassword)
+        resp = client.get(follow=True, path=root(
             url.compete.compID(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile)
@@ -148,25 +151,25 @@ class TestViews(TestCase):
         self.assertTrue(resp.context['isJudge'])
         self.assertFalse(resp.context['isMod'])
         self.assertFalse(resp.context['isManager'])
-        self.client.logout()
+        client.logout()
 
     def test_data(self):
-        resp = self.client.post(follow=True, path=root(
+        client = Client()
+        resp = client.post(follow=True, path=root(
             url.compete.data(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.NO))
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.data(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(json_loads(
             resp.content.decode(Code.UTF_8))['code'], Code.OK)
         self.assertTrue(json_loads(resp.content.decode(Code.UTF_8))[
                         'timeleft'] >= self.comp.secondsLeft())
-
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(follow=True, path=root(
+        client.login(email=self.email, password=self.password)
+        resp = client.post(follow=True, path=root(
             url.compete.data(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(json_loads(
@@ -180,7 +183,7 @@ class TestViews(TestCase):
         subm.members.add(self.profile)
         SubmissionParticipant.objects.filter(
             submission=subm, profile=self.profile).update(confirmed=True)
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.data(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(json_loads(
@@ -192,31 +195,32 @@ class TestViews(TestCase):
         self.assertEqual(json_loads(resp.content.decode(Code.UTF_8))
                          ['subID'], subm.getID())
         subm.delete()
-        self.client.logout()
+        client.logout()
 
     def test_competitionTab(self):
-        resp = self.client.get(follow=True, path=root(
+        client = Client()
+        resp = client.get(follow=True, path=root(
             url.compete.competeTabSection(self.comp.getID(), Compete.OVERVIEW)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile_overview)
         self.assertEqual(resp.context['compete'], self.comp)
-        resp = self.client.get(follow=True, path=root(
+        resp = client.get(follow=True, path=root(
             url.compete.competeTabSection(self.comp.getID(), Compete.TASK)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile_task)
         self.assertEqual(resp.context['compete'], self.comp)
-        resp = self.client.get(follow=True, path=root(url.compete.competeTabSection(
+        resp = client.get(follow=True, path=root(url.compete.competeTabSection(
             self.comp.getID(), Compete.GUIDELINES)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile_guidelines)
         self.assertEqual(resp.context['compete'], self.comp)
-        resp = self.client.get(follow=True, path=root(url.compete.competeTabSection(
+        resp = client.get(follow=True, path=root(url.compete.competeTabSection(
             self.comp.getID(), Compete.SUBMISSION)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile_submission)
         self.assertEqual(resp.context['compete'], self.comp)
         self.assertIsNone(resp.context['submission'])
-        resp = self.client.get(follow=True, path=root(
+        resp = client.get(follow=True, path=root(
             url.compete.competeTabSection(self.comp.getID(), Compete.RESULT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile_result)
@@ -227,94 +231,113 @@ class TestViews(TestCase):
         subm.members.add(self.profile)
         SubmissionParticipant.objects.filter(
             submission=subm, profile=self.profile).update(confirmed=True)
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.get(follow=True, path=root(url.compete.competeTabSection(
+        client.login(email=self.email, password=self.password)
+        resp = client.get(follow=True, path=root(url.compete.competeTabSection(
             self.comp.getID(), Compete.SUBMISSION)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile_submission)
         self.assertEqual(resp.context['compete'], self.comp)
         self.assertIsInstance(resp.context['submission'], Submission)
         self.assertTrue(resp.context['confirmed'])
-        resp = self.client.get(follow=True, path=root(
+        resp = client.get(follow=True, path=root(
             url.compete.competeTabSection(self.comp.getID(), Compete.RESULT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile_result)
         self.assertEqual(resp.context['compete'], self.comp)
         self.assertIsNone(resp.context['results'])
         subm.delete()
-        self.client.logout()
+        client.logout()
 
+    @tag("create_sub")
     def test_createSubmission(self):
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(follow=True, path=root(
+        client = Client()
+        email = getTestEmail()
+        password = getTestPassword()
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+            email=email,
+            first_name=getTestName(),
+            password1=password
+        ))
+        subm = Submission.objects.create(competition=self.comp)
+        subm.members.add(resp.context['user'].profile)
+        SubmissionParticipant.objects.filter(
+            submission=subm, profile=resp.context['user'].profile).update(confirmed=True)
+        resp = client.post(follow=True, path=root(
             url.compete.participate(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(SubmissionParticipant.objects.get(
-            submission__competition=self.comp, profile=self.profile, confirmed=True), SubmissionParticipant)
+            submission__competition=self.comp, profile=resp.context['user'].profile, confirmed=True), SubmissionParticipant)
         self.assertTemplateUsed(resp, template.compete.profile)
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.participate(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(SubmissionParticipant.objects.filter(
-            submission__competition=self.comp, profile=self.profile, confirmed=True).count(), 1)
+            submission__competition=self.comp, profile=resp.context['user'].profile, confirmed=True).count(), 1)
         self.assertTemplateUsed(resp, template.compete.profile)
 
-        comp = Competition.objects.create(is_draft=False,title=getCompTitle(
+        comp = Competition.objects.create(is_draft=False, title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(days=2))
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.participate(comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertIsInstance(SubmissionParticipant.objects.get(
-            submission__competition=comp, profile=self.profile, confirmed=True), SubmissionParticipant)
+            submission__competition=comp, profile=resp.context['user'].profile, confirmed=True), SubmissionParticipant)
         self.assertTemplateUsed(resp, template.compete.profile)
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.participate(comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(SubmissionParticipant.objects.filter(
-            submission__competition=comp, profile=self.profile, confirmed=True).count(), 1)
+            submission__competition=comp, profile=resp.context['user'].profile, confirmed=True).count(), 1)
         self.assertTemplateUsed(resp, template.compete.profile)
 
         comp = Competition.objects.create(is_draft=False,
-            title=getCompTitle(), creator=self.mgprofile, endAt=timezone.now())
-        resp = self.client.post(follow=True, path=root(
+                                          title=getCompTitle(), creator=self.mgprofile, endAt=timezone.now())
+        resp = client.post(follow=True, path=root(
             url.compete.participate(comp.getID())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
         with self.assertRaises(ObjectDoesNotExist):
             SubmissionParticipant.objects.get(
                 submission__competition=comp, profile=self.profile, confirmed=True)
         Submission.objects.filter(competition=self.comp).delete()
-        self.client.logout()
+        client.logout()
 
     @tag("tg")
     def test_invite(self):
-        user:User= User.objects.create_user(email=getTestEmail(
+        client = Client()
+        user: User = User.objects.create_user(email=getTestEmail(
         ), password=getTestPassword(), first_name=getTestName())
         P2 = getTestPassword()
-        user2:User= User.objects.create_user(
+        user2: User = User.objects.create_user(
             email=getTestEmail(), password=P2, first_name=getTestName())
         EmailAddress.objects.create(
             user=user, email=user.email, primary=True, verified=True)
         EmailAddress.objects.create(
             user=user2, email=user2.email, primary=True, verified=True)
 
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(follow=True, path=root(
+        email = getTestEmail()
+        password = getTestPassword()
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+            email=email,
+            first_name=getTestName(),
+            password1=password
+        ))
+        resp = client.post(follow=True, path=root(
             url.compete.participate(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.data(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
 
-        resp = self.client.post(
+        resp = client.post(
             follow=True, path=root(url.compete.invite(subID)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
 
-        resp = self.client.post(follow=True, path=root(url.compete.invite(subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
@@ -343,7 +366,7 @@ class TestViews(TestCase):
         self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.NO, error=Message.USER_PARTICIPANT_OR_INVITED))
 
-        comp2 = Competition.objects.create(is_draft=False,title=getCompTitle(
+        comp2 = Competition.objects.create(is_draft=False, title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(days=2))
         resp = client2.post(follow=True, path=root(
             url.compete.participate(comp2.getID())))
@@ -368,73 +391,81 @@ class TestViews(TestCase):
 
     def test_invitation(self):
         P2 = getTestPassword()
-        user:User= User.objects.create_user(
+        client = Client()
+        user: User = User.objects.create_user(
             email=getTestEmail(), password=P2, first_name=getTestName())
         EmailAddress.objects.create(
             user=user, email=user.email, primary=True, verified=True)
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(follow=True, path=root(
+        email = getTestEmail()
+        password = getTestPassword()
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+            email=email,
+            first_name=getTestName(),
+            password1=password
+        ))
+        resp = client.post(follow=True, path=root(
             url.compete.participate(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.data(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
 
-        resp = self.client.post(follow=True, path=root(url.compete.invite(subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        client = Client()
-        self.assertTrue(client.login(email=user.email, password=P2))
-        resp = client.get(follow=True, path=root(url.compete.invitation(
+        client2 = Client()
+        self.assertTrue(client2.login(email=user.email, password=P2))
+        resp = client2.get(follow=True, path=root(url.compete.invitation(
             getRandomStr(), self.user.getID())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
 
-        resp = client.get(follow=True, path=root(url.compete.invitation(
+        resp = client2.get(follow=True, path=root(url.compete.invitation(
             subID, user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.invitation)
         self.assertTemplateUsed(resp, template.compete.invitation)
         self.assertIsInstance(resp.context['submission'], Submission)
-
+    
+    @tag("invite_action")
     def test_inviteAction(self):
         P2 = getTestPassword()
-        user:User= User.objects.create_user(
+        client = Client()
+        user: User = User.objects.create_user(
             email=getTestEmail(), password=P2, first_name=getTestName())
         EmailAddress.objects.create(
             user=user, email=user.email, primary=True, verified=True)
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(follow=True, path=root(
+        client.login(email=self.email, password=self.password)
+        resp = client.post(follow=True, path=root(
             url.compete.participate(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.data(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
 
-        resp = self.client.post(follow=True, path=root(url.compete.invite(subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        client = Client()
-        self.assertTrue(client.login(email=user.email, password=P2))
-        resp = client.get(follow=True, path=root(url.compete.invitation(
+        client2 = Client()
+        self.assertTrue(client2.login(email=user.email, password=P2))
+        resp = client2.get(follow=True, path=root(url.compete.invitation(
             subID, user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
         self.assertTemplateUsed(resp, template.compete.invitation)
 
-        resp = client.post(follow=True, path=root(url.compete.inviteAction(
+        resp = client2.post(follow=True, path=root(url.compete.inviteAction(
             subID, user.getID(), getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
 
-        resp = client.post(follow=True, path=root(url.compete.inviteAction(
+        resp = client2.post(follow=True, path=root(url.compete.inviteAction(
             subID, user.getID(), Action.DECLINE)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
@@ -444,14 +475,14 @@ class TestViews(TestCase):
         self.assertEqual(SubmissionParticipant.objects.filter(
             submission__id=subID, confirmed=True).count(), 1)
 
-        resp = self.client.post(follow=True, path=root(url.compete.invite(subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(SubmissionParticipant.objects.filter(
             submission__id=subID, confirmed=False).count(), 1)
 
-        resp = client.post(follow=True, path=root(url.compete.inviteAction(
+        resp = client2.post(follow=True, path=root(url.compete.inviteAction(
             subID, user.getID(), Action.ACCEPT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
@@ -464,50 +495,51 @@ class TestViews(TestCase):
 
     def test_removeMember(self):
         P2 = getTestPassword()
-        user:User= User.objects.create_user(
+        client = Client()
+        user: User = User.objects.create_user(
             email=getTestEmail(), password=P2, first_name=getTestName())
         EmailAddress.objects.create(
             user=user, email=user.email, primary=True, verified=True)
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(follow=True, path=root(
+        client.login(email=self.email, password=self.password)
+        resp = client.post(follow=True, path=root(
             url.compete.participate(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.data(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
 
-        resp = self.client.post(follow=True, path=root(url.compete.invite(subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.removeMember(getRandomStr(), self.user.getID())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.removeMember(subID, user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(SubmissionParticipant.objects.filter(
             submission__id=subID, confirmed=False).count(), 0)
         self.assertTemplateUsed(resp, template.compete.profile)
 
-        resp = self.client.post(follow=True, path=root(url.compete.invite(subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        client = Client()
-        self.assertTrue(client.login(email=user.email, password=P2))
-        resp = client.get(follow=True, path=root(url.compete.invitation(
+        client2 = Client()
+        self.assertTrue(client2.login(email=user.email, password=P2))
+        resp = client2.get(follow=True, path=root(url.compete.invitation(
             subID, user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
         self.assertTemplateUsed(resp, template.compete.invitation)
 
-        resp = client.post(follow=True, path=root(url.compete.inviteAction(
+        resp = client2.post(follow=True, path=root(url.compete.inviteAction(
             subID, user.getID(), Action.ACCEPT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
@@ -515,21 +547,21 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['submission'], Submission)
         self.assertTrue(resp.context['accepted'])
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.removeMember(subID, user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(SubmissionParticipant.objects.filter(
             submission__id=subID).count(), 1)
         self.assertTemplateUsed(resp, template.compete.profile)
 
-        resp = self.client.post(follow=True, path=root(url.compete.invite(subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.invite(subID)), data={
             'userID': user.email,
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(SubmissionParticipant.objects.filter(
             submission__id=subID, confirmed=False).count(), 1)
 
-        resp = client.post(follow=True, path=root(url.compete.inviteAction(
+        resp = client2.post(follow=True, path=root(url.compete.inviteAction(
             subID, user.getID(), Action.ACCEPT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.invitation)
@@ -537,7 +569,7 @@ class TestViews(TestCase):
         self.assertIsInstance(resp.context['submission'], Submission)
         self.assertTrue(resp.context['accepted'])
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.removeMember(subID, self.user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(SubmissionParticipant.objects.filter(
@@ -546,14 +578,14 @@ class TestViews(TestCase):
             submission__id=subID, profile=user.profile), SubmissionParticipant)
         self.assertTemplateUsed(resp, template.compete.profile)
 
-        resp = client.post(follow=True, path=root(url.compete.invite(subID)), data={
+        resp = client2.post(follow=True, path=root(url.compete.invite(subID)), data={
             'userID': self.user.email,
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(SubmissionParticipant.objects.filter(
             submission__id=subID, confirmed=False).count(), 1)
 
-        resp = client.post(follow=True, path=root(
+        resp = client2.post(follow=True, path=root(
             url.compete.removeMember(subID, user.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.compete.profile)
@@ -563,17 +595,18 @@ class TestViews(TestCase):
         Submission.objects.filter(competition=self.comp).delete()
 
     def test_save(self):
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(follow=True, path=root(
+        client = Client()
+        client.login(email=self.email, password=self.password)
+        resp = client.post(follow=True, path=root(
             url.compete.participate(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.data(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
 
-        resp = self.client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
             'submissionurl': getTestUrl()
         })
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
@@ -586,7 +619,7 @@ class TestViews(TestCase):
             license=License.objects.create(name=getTestName(), content=getTestName(
             ), description=getTestName(), creator=self.bot.profile),
         )
-        resp = self.client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
             'submissionfreeproject': freeproject.get_id
         })
         self.assertTemplateUsed(resp, template.compete.profile)
@@ -595,12 +628,13 @@ class TestViews(TestCase):
 
     @tag("finalsubm")
     def test_finalSubmit(self):
-        self.client.login(email=self.email, password=self.password)
-        resp = self.client.post(follow=True, path=root(
+        client = Client()
+        client.login(email=self.email, password=self.password)
+        resp = client.post(follow=True, path=root(
             url.compete.participate(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.data(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
@@ -614,22 +648,22 @@ class TestViews(TestCase):
             license=License.objects.create(name=getTestName(), content=getTestName(
             ), description=getTestName(), creator=self.bot.profile),
         )
-        resp = self.client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
+        resp = client.post(follow=True, path=root(url.compete.save(self.comp.getID(), subID)), data={
             'submissionfreeproject': freeproject.get_id
         })
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.submit(self.comp.getID(), subID)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(resp.content.decode(
             Code.UTF_8)), dict(code=Code.OK, message=Message.SUBMITTED_SUCCESS))
 
-        comp = Competition.objects.create(is_draft=False,title=getCompTitle(
+        comp = Competition.objects.create(is_draft=False, title=getCompTitle(
         ), creator=self.mgprofile, endAt=timezone.now()+timedelta(seconds=3))
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.participate(comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.data(comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         subID = json_loads(resp.content.decode(Code.UTF_8))['subID']
@@ -637,7 +671,7 @@ class TestViews(TestCase):
         comp.endAt = timezone.now()
         comp.save()
 
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.compete.submit(comp.getID(), subID)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertDictEqual(json_loads(resp.content.decode(
@@ -670,11 +704,11 @@ class TestViews(TestCase):
                     password=make_password(userpasswords[i], None, 'md5'), is_active=True
                 )
             )
-        users:User= User.objects.bulk_create(users)
+        users: User = User.objects.bulk_create(users)
         profiles = []
         for u in users:
             profiles.append(Profile(user=u))
-        profiles:Profile = Profile.objects.bulk_create(profiles)
+        profiles: Profile = Profile.objects.bulk_create(profiles)
         i = -1
         for profile in profiles:
             i += 1
@@ -709,7 +743,7 @@ class TestViews(TestCase):
 
         modemail = getTestEmail()
         modpassword = getTestPassword()
-        moduser:User= User.objects.create_user(
+        moduser: User = User.objects.create_user(
             email=modemail, password=modpassword, first_name=getTestName())
         EmailAddress.objects.create(
             user=moduser, email=moduser.email, primary=True, verified=True)
@@ -731,11 +765,11 @@ class TestViews(TestCase):
                     password=make_password(judgepasswords[j], None, 'md5'), is_active=True
                 )
             )
-        judges:User= User.objects.bulk_create(judges)
+        judges: User = User.objects.bulk_create(judges)
         judgeprofiles = []
         for ju in judges:
             judgeprofiles.append(Profile(user=ju, is_mentor=True))
-        judgeprofiles:Profile = Profile.objects.bulk_create(judgeprofiles)
+        judgeprofiles: Profile = Profile.objects.bulk_create(judgeprofiles)
 
         for judge in judgeprofiles:
             self.comp.judges.add(judge)
@@ -780,7 +814,8 @@ class TestViews(TestCase):
             login=self.mgemail, password=self.mgpassword))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTrue(resp.context['user'].is_authenticated)
-        resp = client.post(follow=True, path=root(url.compete.declareResults(self.comp.getID())))
+        resp = client.post(follow=True, path=root(
+            url.compete.declareResults(self.comp.getID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.management.index)
@@ -797,7 +832,8 @@ class TestViews(TestCase):
         for profile in profiles:
             i += 1
             client = Client()
-            resp = client.post(authroot(url.auth.LOGIN), data=dict(login=useremails[i], password=userpasswords[i]))
+            resp = client.post(authroot(url.auth.LOGIN), data=dict(
+                login=useremails[i], password=userpasswords[i]))
             self.assertTrue(resp.context['user'].is_authenticated)
             resp = client.post(follow=True, path=root(
                 url.compete.data(self.comp.getID())))
@@ -844,11 +880,11 @@ class TestViews(TestCase):
                     password=make_password(userpasswords[i], None, 'md5'), is_active=True
                 )
             )
-        users:User= User.objects.bulk_create(users)
+        users: User = User.objects.bulk_create(users)
         profiles = []
         for u in users:
             profiles.append(Profile(user=u))
-        profiles:Profile = Profile.objects.bulk_create(profiles)
+        profiles: Profile = Profile.objects.bulk_create(profiles)
         i = -1
         for _ in profiles:
             i += 1
@@ -874,7 +910,7 @@ class TestViews(TestCase):
 
         modemail = getTestEmail()
         modpassword = getTestPassword()
-        moduser:User= User.objects.create_user(
+        moduser: User = User.objects.create_user(
             email=modemail, password=modpassword, first_name=getTestName())
         EmailAddress.objects.create(
             user=moduser, email=moduser.email, primary=True, verified=True)
@@ -896,11 +932,11 @@ class TestViews(TestCase):
                     password=make_password(judgepasswords[j], None, 'md5'), is_active=True
                 )
             )
-        judges:User= User.objects.bulk_create(judges)
+        judges: User = User.objects.bulk_create(judges)
         judgeprofiles = []
         for ju in judges:
             judgeprofiles.append(Profile(user=ju, is_mentor=True))
-        judgeprofiles:Profile = Profile.objects.bulk_create(judgeprofiles)
+        judgeprofiles: Profile = Profile.objects.bulk_create(judgeprofiles)
 
         for judge in judgeprofiles:
             self.comp.judges.add(judge)
