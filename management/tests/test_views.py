@@ -8,6 +8,7 @@ from main.strings import Code, Template, url
 from main.tests.utils import authroot
 from management.apps import APPNAME
 from people.models import Profile, User
+from django.test.client import Client
 
 from .utils import root
 
@@ -31,15 +32,17 @@ class TestViews(TestCase):
         return super().setUp()
 
     def test_index(self) -> None:
-        response = self.client.get(path=root(appendslash=True))
+        client = Client()
+        response = client.get(path=root(appendslash=True))
         self.assertEqual(response.status_code,
                          HttpResponseRedirect.status_code)
-        response = self.client.get(path=root(appendslash=True), follow=True)
+        response = client.get(path=root(appendslash=True), follow=True)
         self.assertEqual(response.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(response, Template.auth.login)
 
     def test_competition(self) -> None:
-        response = self.client.get(root(url.management.COMPETITIONS))
+        client = Client()
+        response = client.get(root(url.management.COMPETITIONS))
         self.assertEqual(response.status_code,
                          HttpResponseRedirect.status_code)
         response = self.client.get(
@@ -48,15 +51,16 @@ class TestViews(TestCase):
         self.assertTemplateUsed(response, Template.auth.login)
 
     def test_competition_view(self):
-        response = self.client.get(
+        client = Client()
+        response = client.get(
             root(url.management.COMPETITIONS), follow=True)
         self.assertEqual(response.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(response, Template.auth.login)
-        response = self.client.post(authroot(url.auth.LOGIN), data=dict(
+        response = client.post(authroot(url.auth.LOGIN), data=dict(
             login=self.email, password=self.password), follow=True)
         self.assertEqual(response.status_code, HttpResponse.status_code)
         self.assertTrue(response.context["user"].is_authenticated)
-        response = self.client.get(
+        response = client.get(
             root(url.management.competition(uuid4())), follow=True)
         self.assertEqual(response.status_code,
                          HttpResponseNotFound.status_code)
