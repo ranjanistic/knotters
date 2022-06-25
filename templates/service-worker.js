@@ -332,7 +332,7 @@ self.addEventListener(EVENTS.PUSH, (event) => {
         renotify: false,
         requireInteraction: false,
         silent: false,
-        tag: "{{APPNAME}}{{VERSION}}" + Date.now(),
+        tag: "{{APPNAME}}{{VERSION}}",
         timestamp: Date.now(),
         vibrate: [200, 100, 200],
     };
@@ -353,7 +353,7 @@ self.addEventListener(EVENTS.PUSH, (event) => {
             requireInteraction:
                 data.requireInteraction || defaultOps.requireInteraction,
             silent: data.silent || defaultOps.silent,
-            tag: data.tag || defaultOps.tag,
+            tag: data.tag || title || defaultOps.tag,
             timestamp: data.timestamp || defaultOps.timestamp,
             vibrate: data.vibrate || defaultOps.vibrate,
         };
