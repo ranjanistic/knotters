@@ -49,7 +49,7 @@ Then install dependencies
 pip install -r requirements.txt
 ```
 
-> If there's a ```Microsoft Visual c++ 14.0``` required error with installation of _rcssmin_ or related modules, then do following execution if you want to **avoid installing Microsoft C++ Build Tools**
+> If there's a `Microsoft Visual c++ 14.0` required error with installation of _rcssmin_ or related modules, then do following execution if you want to **avoid installing Microsoft C++ Build Tools**
 
 ```bash
  # Only if an error occurs
@@ -118,6 +118,14 @@ python3 manage.py migrate --fake
 ```
 
 - This should fix the issue for you.
+
+### Notification setup
+
+Synchronise your database with notifications data from the source code
+
+```bash
+python3 manage.py syncnotifications
+```
 
 ### Accounts setup
 
@@ -253,9 +261,11 @@ There are total 4 workflows in the repository, for different event trigger cases
 - beta-server.yml: This workflow is triggered on any commit to `branch:beta` for building and deployment in beta.knotters.org environment
 
 --
+
 - main-pr.yml: This workflow is triggered on any pull request to `branch:main` for testing in test environment.
 
 --
+
 - main-server.yml: This workflow is triggered on any commit to `branch:main` for testing, building and deployment in knotters.org environment, except on changes in static assets of repository, particularly the `static/` folder, as static updates are handled by `main-client-static.yml` workflow.
 - main-client-static.yml: This workflow is triggered on any commit to `branch:main` for testing, building and deployment in knotters.org environment, but only if changes are restricted to static assets of repository, particularly the `static/` folder, as this workflow has additional tasks to release new client side version, compress and deploy new static assets, etc. Also, this workflow does not reload the knotters cluster, assuming that cluster does not depend on static asset changes. Also, **please make sure that any changes to contents or code in `static/` directory are deployed on a single commit at once, to avoid multiple triggering of client side static updates release caused by separate commits for the same.**
 
@@ -264,10 +274,12 @@ There are total 5 runners in the repository, hosted on our own servers, for the 
 - tester_knotters: All testing jobs run on this runner. Currently testing is limited to commits & pull requests on branch:main only. Deployment on beta.knotters.org does not uses testing for now (for no special reasons). The testing environment is separate from beta.knotters.org & knotters.org environment. tags: `self-hosted, testing`
 
 --
+
 - beta_builder: Any commit which is pushed on `branch:beta` triggers the `beta-server.yml` action, which uses this runner to install/update dependencies and setup for beta.knotters.org environment. tags: `self-hosted, beta, building`
 - beta_knotters: Any commit which is pushed on `branch:beta` triggers the `beta-server.yml` action, which uses this runner to deploy latest changes on beta.knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, beta, deployment`
 
 --
+
 - builder_knotters: Any commit which is pushed on `branch:main` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to install/update dependencies and setup for knotters.org environment. This job for building requires the testing job to be successful to run. tags: `self-hosted, building, production`
 - deploy_knotters: Any commit which is pushed on `branch:beta` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to deploy latest changes on knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, deployment, production`
 

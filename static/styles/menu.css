@@ -1,0 +1,67 @@
+.mobile-nav{
+    overflow-y: scroll;
+    margin-left: auto; 
+    margin-right: 0;
+    position: fixed;
+    left: 70%;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    display: none;
+    width: 30%;
+    height: 100vh;
+    z-index: 1000;
+    padding-top: 200px;
+    transition: 0.4s;
+}
+
+.mobile-nav.is-active{
+    display: block;
+}
+
+@media only screen and (max-width:1205px) {
+    .mobile-nav{
+        width: 40%;
+    }
+}
+
+@media only screen and (max-width:900px) {
+  .mobile-nav{
+      width: 60%;
+  }
+}
+
+@media only screen and (max-width:600px) {
+    .mobile-nav{
+        width: 100%;
+        left: 0%;
+    }
+}
+
+.menu-close-btn{
+  position: fixed;
+  bottom: 10%;
+}
+
+/* Style the buttons that are used to open and close the accordion panel */
+.accordion {
+  cursor: pointer;
+  transition: 0.4s;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .accordion:hover {
+  background-color: bisque;
+}
+
+/* Style the accordion panel. Note: hidden by default */
+.panel {
+  padding: 0 18px;
+  display: none;
+  overflow: hidden;
+}
+
+.panel ul{
+  list-style: none;
+  padding-left: 0;
+}

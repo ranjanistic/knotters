@@ -32,3 +32,10 @@ if ("{{request.GET.search}}") {
     getElement("browse-search-exec").click();
 }
 
+let tabindex = false;
+if ("{{request.GET.tab}}"){
+    if(["1","2","3"].includes("{{request.GET.tab}}")){
+        tabindex = Number("{{request.GET.tab}}")-1;
+    }
+}
+

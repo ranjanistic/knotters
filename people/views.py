@@ -25,6 +25,7 @@ from .methods import (addTopicToDatabase, convertToFLname, filterBio,
 from .models import (Profile, ProfileSetting, ProfileSocial, ProfileTag,
                      ProfileTopic, Topic, User)
 from .receivers import *
+from .mailers import reportedUser, admireAlert
 
 
 @require_GET
@@ -613,7 +614,7 @@ def zombieProfile(request: WSGIRequest, profileID: UUID) -> JsonResponse:
     """
     try:
         profile = list(map(lambda p: dict(id=p[0], xp=p[1]), list(Profile.objects.filter(id=profileID,
-                       successor_confirmed=True, is_zombie=True).values_list("id", "xp"))))[0]
+                                                                                         successor_confirmed=True, is_zombie=True).values_list("id", "xp"))))[0]
         return respondJson(Code.OK, dict(profile=profile))
     except (ObjectDoesNotExist, ValidationError, IndexError) as e:
         raise Http404(e)
@@ -666,6 +667,7 @@ def reportUser(request: WSGIRequest) -> JsonResponse:
         category = ReportCategory.get_cache_one(id=report)
         if not request.user.profile.reportUser(user, category):
             raise ObjectDoesNotExist(user, category)
+        reportedUser(user, category)
         return respondJson(Code.OK)
     except (ValidationError, ObjectDoesNotExist, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -957,6 +959,7 @@ def toggleAdmiration(request: WSGIRequest, userID: UUID) -> JsonResponse:
             user__id=userID, suspended=False, is_active=True, to_be_zombie=False)
         if request.POST['admire'] in ["true", True]:
             profile.admirers.add(request.user.profile)
+            admireAlert(profile, request)
         elif request.POST['admire'] in ["false", False]:
             profile.admirers.remove(request.user.profile)
         if json_body:

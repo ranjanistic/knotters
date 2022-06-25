@@ -44,4 +44,5 @@ initializeTabsView({
     onShowTab: loadTabScript,
     activeTabClass: "active",
     inactiveTabClass: "primary text-primary",
+    tabindex,
 });

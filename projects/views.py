@@ -53,6 +53,8 @@ from .models import (AppRepository, Asset, BaseProject,
                      ProjectTag, ProjectTopic, ProjectTransferInvitation,
                      Snapshot, Tag, VerProjectDeletionRequest)
 from .receivers import *
+from main.constants import NotificationCode
+from auth2.models import EmailNotificationSubscriber
 
 
 @require_GET
@@ -119,10 +121,10 @@ def public_licenses(request: WSGIRequest) -> JsonResponse:
         for l in licenses:
             if content:
                 publices.append(dict(id=l.id, name=l.name, keyword=l.keyword,
-                                description=l.description, content=l.content))
+                                     description=l.description, content=l.content))
             else:
                 publices.append(dict(id=l.id, name=l.name,
-                                keyword=l.keyword, description=l.description,))
+                                     keyword=l.keyword, description=l.description,))
         return respondJson(Code.OK, dict(licenses=publices))
     except Exception as e:
         errorLog(e)
@@ -680,6 +682,7 @@ def trashProject(request: WSGIRequest, projID: UUID) -> HttpResponse:
         errorLog(e)
         raise Http404(e)
 
+
 @require_GET
 def at_nickname(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
     try:
@@ -689,6 +692,7 @@ def at_nickname(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+
 
 @require_GET
 def profileBase(request: WSGIRequest, nickname: str) -> HttpResponseRedirect:
@@ -1252,7 +1256,7 @@ def tagsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 addtags = addtags.strip(',').split(",")
             if (currentcount + len(addtags)) <= 5:
                 for tag in map(lambda addtag: addTagToDatabase(
-                    addtag, request.user.profile), addtags):
+                        addtag, request.user.profile), addtags):
                     project.tags.add(tag)
                     for topic in project.getTopics():
                         topic.tags.add(tag)
@@ -1410,6 +1414,8 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID) -> HttpResponse:
             id=projID, trashed=False, is_archived=False, suspended=False)
         if admire in ["true", True]:
             project.admirers.add(request.user.profile)
+            if(project.creator.user != request.user):
+                projectAdmired(request, project)
         elif admire in ["false", False]:
             project.admirers.remove(request.user.profile)
         if json_body:
@@ -1539,6 +1545,8 @@ def toggleSnapAdmiration(request: WSGIRequest, snapID: UUID) -> JsonResponse:
             id=snapID, base_project__trashed=False, base_project__is_archived=False, base_project__suspended=False)
         if admire in ["true", True]:
             snap.admirers.add(request.user.profile)
+            if(snap.creator.user != request.user):
+                snapshotAdmired(request, snap)
         elif admire in ["false", False]:
             snap.admirers.remove(request.user.profile)
         return respondJson(Code.OK)
@@ -1633,6 +1641,7 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
                 repositories = payload['repositories']
                 repo_ids = map(lambda r: r['id'], repositories)
                 frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
+                githubBotInstalled(frepos)
                 apprepos = []
                 for frepo in frepos:
                     if not AppRepository.objects.filter(free_repo=frepo).exists():
@@ -1667,6 +1676,7 @@ def githubBotEvents(request: WSGIRequest, botID: str) -> HttpResponse:
                 repositories = payload['repositories_added']
                 repo_ids = map(lambda r: r['id'], repositories)
                 frepos = FreeRepository.objects.filter(repo_id__in=repo_ids)
+                githubBotInstalled(frepos)
                 apprepos = []
                 for frepo in frepos:
                     if not AppRepository.objects.filter(free_repo=frepo).exists():
@@ -2065,6 +2075,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
                 image=imagefile,
                 video=videofile
             )
+            snapshotCreated(baseproject, snapshot)
             return redirect(baseproject.getProject().getLink(alert=Message.SNAP_CREATED))
 
         id = request.POST['snapid'][:50]
@@ -2166,6 +2177,7 @@ def reportProject(request: WSGIRequest) -> JsonResponse:
         category: ReportCategory = ReportCategory.get_cache_one(id=report)
         if not request.user.profile.reportProject(baseproject, category):
             raise ObjectDoesNotExist(baseproject, category)
+        reportedProject(baseproject, category)
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, KeyError, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -2197,6 +2209,7 @@ def reportSnapshot(request: WSGIRequest) -> JsonResponse:
         category: ReportCategory = ReportCategory.get_cache_one(id=report)
         if not request.user.profile.reportSnapshot(snapshot, category):
             raise ObjectDoesNotExist(snapshot, category)
+        reportedSnapshot(snapshot, category)
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, KeyError, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
