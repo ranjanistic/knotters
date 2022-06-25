@@ -109,6 +109,16 @@
         </noscript>
         {% block nav %}
         <div class="w3-row secondary w3-padding mobile-nav" id="nav-menu">
+            <div class="w3-padding">
+                <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
+                <a href="{{URLS.ROOT}}">
+                    <button class="primary" data-icon="home"><span class="w3-hide-small">{% trans "Home" %}</span></button>
+                </a>
+                {% if request.user.is_authenticated %}
+                    <a href="{{ URLS.AUTH }}"><button class="primary" id="new-settings-action"><i class="">settings</i><span class="w3-hide-small">{% trans "Settings" %}</span></button></a>
+                    <a href="{% url 'account_logout' %}?next={{request.path}}"><button class="negative" data-icon="logout"><span class="w3-hide-small">{% trans "Logout" %}</span></button></a>
+                {% endif %}
+            </div>
             {% if request.user.is_authenticated %}
                 <a href="{% if request.user.profile %}{{request.user.profile.getLink}}{% else %}{{request.user.getLink}}{% endif %}" class="no-opacity-change">
                     <div class="w3-row pallete secondary text-secondary hover-{{request.user.profile.theme}}"><h2 class="w3-left align"><img src="{{request.user.profile.getDP}}" width="40" class="w3-circle" alt="{{request.user.profile.get_nickname}}"/>&nbsp;{{request.user.profile.get_nickname}}</h2></div>
@@ -117,32 +127,92 @@
                 <a href="{% url 'account_signup' %}?next={{request.path}}" class="no-opacity-change"><div class="w3-row pallete secondary accent-text hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">person_add</i>&nbsp;Join</h2></div>           
                 <a href="{% url 'account_login' %}?next={{request.path}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">login</i>&nbsp;Login</h2></div></a>
             {% endif %}
+            <a href="{{URLS.SEARCH}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">search</i>&nbsp;Search</h2></div></a>
+            {% if request.user.profile.is_manager %}
+                <div class="w3-row pallete secondary text-secondary hover-vibrant accordion"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">business</i>&nbsp;Management</h2></div>
+                <div class="pallete secondary text-secondary panel">
+                    <ul>
+                        <a href="{{URLS.MANAGEMENT}}{{URLS.COMPETITIONS}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-vibrant"><i class="w3-large material-icons">article</i> Competitions </li></h3></a>
+                        <a href="{{URLS.MANAGEMENT}}{{URLS.COMPETITIONS}}{{URLS.CREATE_COMP}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-vibrant"><i class="w3-large material-icons">add</i> Create Competition </li></h3></a>
+                        <a href="{{URLS.MANAGEMENT}}{{URLS.COMMUNITY}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-vibrant"><i class="w3-large material-icons">group</i> People </li></h3></a>
+                        <a href="{{URLS.MANAGEMENT}}{{URLS.COMMUNITY}}{{URLS.MODERATORS}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-vibrant"><i class="w3-large material-icons">add</i> Moderators </li></h3></a>
+                        <a href="{{URLS.MANAGEMENT}}{{URLS.COMMUNITY}}{{URLS.MENTORS}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-vibrant"><i class="w3-large material-icons">add</i> Mentors </li></h3></a>
+                        <a href="{{URLS.MANAGEMENT}}{{URLS.COMMUNITY}}{{URLS.LABELS}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-vibrant"><i class="w3-large material-icons">add</i> Labels </li></h3></a>
+                        <a href="{{URLS.MANAGEMENT}}{{URLS.REPORT_FEED}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-vibrant"><i class="w3-large material-icons">add</i> Reports </li></h3></a>
+                    </ul>
+                </div>
+                {% comment %} <a href="{{URLS.MANAGEMENT}}"class="no-opacity-change"><div class="vibrant"><h2 class="w3-hide-small w3-hide-medium">{% trans "Management" %}</h2></div></a> {% endcomment %}
+            {% endif %}
             <div class="w3-row pallete secondary text-secondary hover-positive accordion"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">widgets</i>&nbsp;Projects</h2></div>
             <div class="pallete secondary text-secondary panel">
                 <ul>
-                    <a href="{{URLS.PROJECTS}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"> Home </li></h3></a>
-                    <a href="{{URLS.ALLLICENSES}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"><i class="w3-large material-icons">article</i> Licenses </li></h3></a>
-                    <a href="{{URLS.CREATE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"><i class="w3-large material-icons">add</i> New Project </li></h3></a>
+                    <a href="{{URLS.PROJECTS}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"> Browse </li></h3></a>
+                    <a href="{{URLS.CREATE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"><i class="w3-large material-icons">add</i> Create Project </li></h3></a>
+                    <a href="{{URLS.CREATE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"><i class="w3-large material-icons">add</i> New Quick Project </li></h3></a>
+                    <a href="{{URLS.CREATE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"><i class="w3-large material-icons">add</i> Submit Verified Project </li></h3></a>
+                    <a href="{{URLS.CREATE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"><i class="w3-large material-icons">add</i> Request Core Project </li></h3></a>
+                    <a href="{{URLS.CREATE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-positive"><i class="w3-large material-icons">article</i> Licenses </li></h3></a>
+
                 </ul>
             </div>
             <div class="w3-row pallete secondary text-secondary accordion hover-active"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">psychology</i>&nbsp;Competitions</h2></div>
             <div class="pallete secondary text-secondary panel">
                 <ul>
-                    <a href="{{URLS.COMPETE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"> Home </li></h3></a>
+                    <a href="{{URLS.COMPETE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"> Browse </li></h3></a>
                     <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">stream</i> Active </li></h3></a>
                     <a href="{{URLS.COMPETE}}?tab=2" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">hourglass_top</i> Upcoming </li></h3></a>
                     <a href="{{URLS.COMPETE}}?tab=3" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">history</i> History </li></h3></a>
                     <a href="{{URLS.CERT_INDEX}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">qr_code</i> Certification </li></h3></a>
+                    {% if not is_manager %}
+                        <a href="{{URLS.CERT_INDEX}}" class="no-opacity-change" id="acheivements"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">emoji_events</i> Acheivements </li></h3></a>
+                    {% endif %}
                 </ul>
             </div>
             <div class="w3-row pallete secondary text-secondary hover-accent accordion"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">groups</i>&nbsp;Community</h2></div>
             <div class="pallete secondary text-secondary panel">
                 <ul>
-                    <a href="{{URLS.PEOPLE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"> Home </li></h3></a>
+                    <a href="{{URLS.PEOPLE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"> Browse </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><i class="w3-large material-icons">stream</i> Mentors </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><i class="w3-large material-icons">stream</i> Moderators </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><i class="w3-large material-icons">stream</i> Managers </li></h3></a>
+
+                </ul>
+            </div>
+            <a href="{{URLS.HOME}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-accent"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">groups</i>&nbsp;{% trans "About" %} {{APPNAME}}</h2></div></a>
+            <div class="w3-row secondary text-secondary">
+                <h2 class="w3-left align">
+                    <form action="{% url "set_language" %}" method="POST" class="secondary no-opacity-change text-secondary">
+                        {% csrf_token %}
+                        <select name="language" class="pallete selectLanguage secondary no-opacity-change text-secondary hover-accent" id="language">
+                        {% for language in LANGUAGES %}
+                            <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
+                        {% endfor %}
+                        </select>
+                    </form>
+                </h2>
+            </div>  
+            <a href="https://knotters.org/projects/profile/knottrans" target="_blank" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-accent"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">groups</i>&nbsp;{% trans "Translation Project" %}</h2></div></a>
+            <div class="w3-row pallete secondary text-secondary hover-accent accordion"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">groups</i>&nbsp;Docs &amp; Statements</h2></div>
+            <div class="pallete secondary text-secondary panel">
+                <ul>
+                    <a href="{{URLS.PEOPLE}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"> Browse </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><i class="w3-large material-icons">stream</i> Community Guidelines </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><i class="w3-large material-icons">stream</i> Project Guidelines </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><i class="w3-large material-icons">stream</i> Competition Guidelines </li></h3></a>
+                    <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><i class="w3-large material-icons">stream</i> Privacy Policy </li></h3></a>
+
                 </ul>
             </div>
             <div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive contact-request-action"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">perm_phone_msg</i>&nbsp;Contact Us</h2></div>
-            <a href="{{URLS.SEARCH}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">search</i>&nbsp;Search</h2></div></a>
+            <a href="#0" class="webapp-install-action no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "Web App Installation" %}</h2></div></a>
+            <a href="#0" class="troubleshoot-action no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "Troubleshooting" %}</h2></div></a>
+            <a href="#0" class="report-feedback-action no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "Report" %} &amp; {% trans "Feedback" %}</h2></div></a>
+            <a href="{{URLS.BRANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "Brand Resources" %}</h2></div></a>
+            <a href="{{URLS.LANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "The Landing Page" %}</h2></div></a>
+            <div class="w3-row pallete secondary text-secondary navigator-share-action hover-primary hover-text-positive" data-title="{{APPNAME}}" data-text="Checkout this page at {{APPNAME}}" data-url="{{request.path}}"><h2><i class="w3-xxlarge material-icons">share</i>&nbsp;{% trans "Share" %}</h2></div>
+            <div class="w3-row w3-center">
+                <h4><a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="text-secondary">{% trans "Copyright" %} {% now "Y" %} Knotters</a></h4>
+            </div>
             <div style="padding-bottom: 200px"></div>
             <div class="w3-center align text-primary"><button class="menu-close-btn primary"><i class="w3-xxlarge material-icons text-primary">close</i></button></div>
         </div>  
