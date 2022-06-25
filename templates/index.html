@@ -219,7 +219,7 @@
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
             <div class="w3-row w3-center tertiary pointer beta-alert-view" hidden>This is Knotters Beta, not Knotters. {% trans "Click here to learn more." %}</div>
             {% block nav_title %}
-            <div class="w3-col s2 m3">
+            <div class="w3-col s1 m3">
             <a
                 style="padding:8px"
                 href="{% block nav_href %}{% if request.GET.previous %}{{request.GET.previous}}{% else %}{{ROOT}}{% endif %}{% endblock %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" 
@@ -237,7 +237,7 @@
             </div>
             {% endblock %}
             {% block nav_right %}
-            <div class="w3-col s10 m9">
+            <div class="w3-col s11 m9">
             <span class="w3-right w3-animate-right nav-tabs-span">
                 <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
@@ -248,9 +248,6 @@
                         {% block nav_noauth_projects %}<a href="{{URLS.PROJECTS}}"><button aria-label="Projects" title="Projects" class="positive" data-icon="widgets"><span class="w3-hide-small w3-hide-medium">{% trans "Projects" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_people %}<a href="{{URLS.PEOPLE}}"><button aria-label="People" title="People" class="accent" data-icon="groups"><span class="w3-hide-small w3-hide-medium">{% trans "Community" %}</span></button></a>{% endblock %}
                         {% block nav_noauth_contact_us %}
-                        {% if request.path == URLS.HOME or request.path == URLS.ROOT and not request.user.is_authenticated %}
-                        <button aria-label="Contact Us" title="Contact" class="primary contact-request-action" data-icon="perm_phone_msg"><span class="w3-hide-small w3-hide-medium">{% trans "Contact Us" %}</span></button>
-                        {% endif %}
                         {% endblock %}
                         {% if request.user.profile.is_manager %}
                         {% block nav_noauth_management %}<a href="{{URLS.MANAGEMENT}}"><button aria-label="Management" title="Management" class="vibrant" data-icon="business"><span class="w3-hide-small w3-hide-medium">{% trans "Management" %}</span></button></a>{% endblock %}
@@ -276,7 +273,7 @@
                         <a href="{{URLS.DONATE}}" hidden><button aria-label="Donate" title="Donate" class="vibrant" data-icon="volunteer_activism"><span class="w3-hide-small w3-hide-medium">{% trans "Donate" %}</span></button></a>
                         {% endif %}
                         {% endblock %}
-                        <button title="Menu" class="menu-action primary" data-icon="menu" id="nav-menu-btn"></button>
+                        <button title="Menu" class="menu-action primary" data-icon="more_vert" id="nav-menu-btn"></button>
                         {% block nav_auth_extra_links %}{% endblock %}
                     {% endblock %}
                 {% endblock %}
