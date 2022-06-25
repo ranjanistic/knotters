@@ -332,7 +332,7 @@ self.addEventListener(EVENTS.PUSH, (event) => {
         renotify: false,
         requireInteraction: false,
         silent: false,
-        tag: "{{APPNAME}}{{VERSION}}",
+        tag: "{{APPNAME}}{{VERSION}}" + Date.now(),
         timestamp: Date.now(),
         vibrate: [200, 100, 200],
     };
