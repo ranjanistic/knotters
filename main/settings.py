@@ -189,6 +189,7 @@ if env.REDIS_LOCATION:
             'PASSWORD': env.REDIS_PASSWORD,
             'db': env.REDIS_DB,
         },
+        "KEY_PREFIX": "beta:" if env.ISBETA else "",
         'TIMEOUT': None
     }
 
