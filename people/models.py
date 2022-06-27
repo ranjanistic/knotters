@@ -390,6 +390,8 @@ class Profile(models.Model):
     """githubID (CharField): The GitHub ID of the user."""
     bio: str = models.CharField(max_length=350, blank=True, null=True)
     """bio (CharField): The bio of the user."""
+    extended_bio: str = models.CharField(max_length=500,blank=True,null=True)
+    """extended bio (CharField): The extended bio of the user."""
     successor: User = models.ForeignKey(User, null=True, blank=True, related_name='successor_profile',
                                         on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
     """successor (ForeignKey<User>): The successor of the user."""
@@ -902,6 +904,10 @@ class Profile(models.Model):
     def getBio(self) -> str:
         """Returns the user's bio"""
         return self.bio if self.bio else ''
+
+    def getExtendedBio(self) -> str:
+        """Returns the extended user bio"""
+        return self.extended_bio if self.extended_bio else ''
 
     def getSubtitle(self) -> str:
         """Returns the user's subtitle"""
@@ -1947,6 +1953,12 @@ class DisplayMentor(models.Model):
         return self.about
 
     @property
+    def get_extendedBio(self) -> str:
+        if self.profile:
+            return self.profile.getExtendedBio()
+        return self.about
+
+    @property
     def get_link(self) -> str:
         if self.profile:
             return self.profile.getLink()
@@ -2158,7 +2170,7 @@ class CoreMember(models.Model):
         return self.profile.get_name
 
     def get_about(self):
-        return self.about or self.profile.getBio()
+        return self.about or self.profile.getBio() or self.profile.getExtendedBio()
 
 
 class ProfileXPRecord(models.Model):

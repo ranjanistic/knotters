@@ -910,6 +910,11 @@ class URL():
         def profileEdit(self, section):
             return setPathParams(self.PROFILEEDIT, section)
 
+        EXTENDEDBIOEDIT = 'profile/extendededbioedit/<str:section>'
+
+        def extendedBioedit(self, section):
+            return setPathParams(self.EXTENDEDBIOEDIT, section)
+
         PROFILETAB = 'profiletab/<str:userID>/<str:section>'
 
         def profileTab(self, userID, section):
@@ -965,6 +970,7 @@ class URL():
             for key in urls:
                 URLS[key] = f"{url.getRoot(PEOPLE)}{setPathParams(urls[key])}"
             return URLS
+
 
     people = People()
 
