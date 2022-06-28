@@ -297,9 +297,9 @@ def errorLog(*args):
     """
     if not ISTESTING:
         log(LOG_CODE_ERROR, args)
-        if ISPRODUCTION:
-            from main.mailers import sendErrorLog
-            return sendErrorLog(*args)
+       # if ISPRODUCTION:
+         #   from main.mailers import sendErrorLog
+      #      return sendErrorLog(*args)
         if ISDEVELOPMENT:
             return print_exc()
 
