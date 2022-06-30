@@ -15,11 +15,12 @@ def participantInviteAlert(profile: Profile, host: Profile, submission: Submissi
     """
     Email invitation to a user for participation with a submission in a competition.
     """
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.PART_INVITE_ALERT).exists():
-        user_device_notify(profile.user, "Participation Invite",
+        device = user_device_notify(profile.user, "Participation Invite",
                            f"{host.get_name} ({host.get_email}) has invited you to participate with them in our upcoming competition \'{submission.competition.title}\'.", f"{url.getRoot(APPNAME)}{URL.compete.invitation(submission.get_id,profile.getUserID())}")
     if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.PART_INVITE_ALERT).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=profile.get_email, username=profile.getFName(), subject='Invitation to Participate Together',
             header=f"{host.get_name} ({host.get_email}) has invited you to participate with them in our upcoming competition \'{submission.competition.title}\'.",
             actions=[{'text': "See invitation",
@@ -27,18 +28,20 @@ def participantInviteAlert(profile: Profile, host: Profile, submission: Submissi
             footer=f"You may accept or deny this invitation. If you won't respond, then this invitation will automatically become invalid at the end of competition, or, upon final submission, or, cancellation of your invitation by {host.get_name}, whichever occurrs earlier.",
             conclusion=f"You can ignore this email if you're not interested. If you're being spammed by this invitation or this is an error, please report to us."
         )
+    return device, email
 
 
 def participantWelcomeAlert(profile: Profile, submission: Submission) -> str:
     """
     Email alert to a participant of a submission notifying their participation confirmation
     """
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.PART_WELCOME_ALERT).exists():
-        user_device_notify(profile.user, "Participation Confirmed",
+        device = user_device_notify(profile.user, "Participation Confirmed",
                            f"This is to inform you that you've participated in our '{submission.competition.title}' competition. Great! With a lots of goodluck from {PUBNAME} Community, make sure you put your 100% efforts in this.", submission.competition.get_link)
 
     if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.PART_WELCOME_ALERT).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=profile.get_email, username=profile.getFName(), subject=f"Your Participation Confirmed",
             header=f"This is to inform you that you've participated in our '{submission.competition.title}' competition. Great! With a lots of goodluck from {PUBNAME} Community, make sure you put your 100% efforts in this.",
             actions=[{'text': "View competition",
@@ -47,6 +50,7 @@ def participantWelcomeAlert(profile: Profile, submission: Submission) -> str:
             conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
         )
     participantJoinedAlert(profile, submission)
+    return device, email
 
 
 def participantJoinedAlert(profile: Profile, submission: Submission) -> str:
@@ -58,10 +62,10 @@ def participantJoinedAlert(profile: Profile, submission: Submission) -> str:
         return True
     for members in profiles:
         if DeviceNotificationSubscriber.objects.filter(user=members.user, device_notification__notification__code=NotificationCode.PART_JOINED_ALERT).exists():
-            user_device_notify(members.user, "Teammate Joined Submission",
+            device = user_device_notify(members.user, "Teammate Joined Submission",
                                f"This is to inform you that '{profile.getName()}' has joined your team in '{submission.competition.title}' competition.", submission.competition.get_link)
         if EmailNotificationSubscriber.objects.filter(user=members.user, email_notification__notification__code=NotificationCode.PART_JOINED_ALERT).exists():
-            sendActionEmail(
+            email = sendActionEmail(
                 to=members.get_email,
                 username=members.getFName(),
                 subject=f"Teammate Joined Submission",
@@ -77,12 +81,13 @@ def participationWithdrawnAlert(profile: Profile, submission: Submission) -> str
     """
     Email alert to a participant of a submission notifying their participation cancellation
     """
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.PART_WITHDRAWN_ALERT).exists():
-        user_device_notify(profile.user, "Participation Withdrawn",
+        device = user_device_notify(profile.user, "Participation Withdrawn",
                            f"This is to inform you that your existing participation in our '{submission.competition.title}' competition has been cancelled. Either someone has removed you from your team, or you have withdrawn yourself.", submission.competition.get_link)
 
     if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.PART_WITHDRAWN_ALERT).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=profile.get_email, username=profile.getFName(), subject=f"Your Participation Cancelled",
             header=f"This is to inform you that your existing participation in our '{submission.competition.title}' competition has been cancelled. Either someone has removed you from your team, or you have withdrawn yourself.",
             actions=[{'text': "View competition",
@@ -90,6 +95,7 @@ def participationWithdrawnAlert(profile: Profile, submission: Submission) -> str
             footer=f"If you acknowledge this action, then this email can be ignored. You can participate independently again, as long as the competition is active.",
             conclusion=f"You received this email because your participation was cancelled in a competition at {PUBNAME}. If this is unexpected, please report to us."
         )
+    return device, email
 
 
 def submissionConfirmedAlert(submission: Submission) -> list:
@@ -143,14 +149,15 @@ def submissionsJudgedAlert(competition: Competition, judge: Profile) -> str:
     """
     Email alert to the manager of a competition indicating the submissions have been judged by the given judge.
     """
+    device, email = False, False
     if (not competition.moderated()) or competition.resultDeclared or (not competition.allSubmissionsMarkedByJudge(judge)):
         return False
     if DeviceNotificationSubscriber.objects.filter(user=judge.user, device_notification__notification__code=NotificationCode.SUB_JUDGE_ALERT).exists():
-        user_device_notify(competition.creator.user, "Submissions Judged",
+        device = user_device_notify(competition.creator.user, "Submissions Judged",
                            f"The submissions for '{competition.title}' competition have been judged by the respected judge - {judge.get_name}. You can check the status of judgment.", competition.getManagementLink())
 
     if EmailNotificationSubscriber.objects.filter(user=competition.creator.user, email_notification__notification__code=NotificationCode.SUB_JUDGE_ALERT).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=competition.creator.get_email(),
             subject=f"Submissions Judged: {competition.title}",
             username=competition.creator.get_name,
@@ -162,19 +169,21 @@ def submissionsJudgedAlert(competition: Competition, judge: Profile) -> str:
             footer=f"You will be able to declare the results, once all judges submit their judgement on all submissions.",
             conclusion=f"You received this email because you are the manager of the mentioned competition. If this is an error, then please report to us."
         )
+    return device, email
 
 
 def resultsDeclaredAlert(competition: Competition) -> list:
     """
     Notify results to everyone involved in given competition
     """
+    device, email = False, False
     if not competition.resultDeclared:
         return False
     if DeviceNotificationSubscriber.objects.filter(user=competition.creator.user, device_notification__notification__code=NotificationCode.RES_DEC_ALERT).exists():
-        user_device_notify(competition.creator.user, "Results Declared",
+        device = user_device_notify(competition.creator.user, "Results Declared",
                            f"This is to inform you that the results of '{competition.title}' competition have been declared. You can generate the certificates of all participants at one click only, by visiting the following link.", competition.getManagementLink())
     if EmailNotificationSubscriber.objects.filter(user=competition.creator.user, email_notification__notification__code=NotificationCode.RES_DEC_ALERT).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=competition.creator.get_email,
             subject=f"Results Declared: {competition.title}",
             username=competition.creator.get_name,
@@ -189,6 +198,7 @@ def resultsDeclaredAlert(competition: Competition) -> list:
     resultsDeclaredModeratorAlert(competition),
     resultsDeclaredJudgeAlert(competition),
     resultsDeclaredParticipantAlert(competition)
+    return device, email
 
 
 def certsAllotedAlert(competition: Competition) -> list:
@@ -197,8 +207,9 @@ def certsAllotedAlert(competition: Competition) -> list:
     """
     if not competition.resultDeclared:
         return False
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=competition.creator.user, device_notification__notification__code=NotificationCode.CERT_ALLOT_ALERT).exists():
-        user_device_notify(competition.creator.user, "Certificates Alloted",
+        device = user_device_notify(competition.creator.user, "Certificates Alloted",
                            f"This is to inform you that the certificates of participants for the '{competition.title}' competition have been alloted successfully.", competition.getManagementLink())
 
     list(map(
@@ -211,7 +222,7 @@ def certsAllotedAlert(competition: Competition) -> list:
         if DeviceNotificationSubscriber.objects.filter(partcert.profile.user, device_notification__notification__code=NotificationCode.CERT_ALLOT_ALERT).exists() else None, ParticipantCertificate.objects.filter(result__competition=competition)))
 
     if EmailNotificationSubscriber.objects.filter(user=competition.creator.user, email_notification__notification__code=NotificationCode.CERT_ALLOT_ALERT).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=competition.creator.get_email,
             subject=f"Certificates Alloted: {competition.title}",
             username=competition.creator.get_name,
@@ -251,6 +262,7 @@ def certsAllotedAlert(competition: Competition) -> list:
             conclusion=f"You received this email because you participated the mentioned competition. If this is an error, then please report to us."
         )if EmailNotificationSubscriber.objects.filter(user=partcert.profile.user, email_notification__notification__code=NotificationCode.CERT_ALLOT_ALERT).exists() else None, ParticipantCertificate.objects.filter(result__competition=competition)
     ))
+    return device, email
 
 
 def filteredMails(s: Submission, competition: Competition):
@@ -332,12 +344,13 @@ def resultsDeclaredModeratorAlert(competition: Competition) -> str:
     """
     if not competition.resultDeclared:
         return False
+    device, email = False, False
     mod = competition.getModerator()
     if DeviceNotificationSubscriber.objects.filter(user=mod.user, device_notification__notification__code=NotificationCode.RES_DEC_MOD_ALERT).exists():
-        user_device_notify(mod.user, f"Results Declared: {competition.title}",
+        device = user_device_notify(mod.user, f"Results Declared: {competition.title}",
                            f"This is to inform you that the results of '{competition.title}' competition have been declared. This marks the successfull end of the competition.", {competition.get_link})
     if EmailNotificationSubscriber.objects.filter(user=mod.user, email_notification__notification__code=NotificationCode.RES_DEC_MOD_ALERT).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=mod.get_email,
             username=mod.get_name,
             subject=f"Results Declared: {competition.title}",
@@ -349,19 +362,21 @@ def resultsDeclaredModeratorAlert(competition: Competition) -> str:
             footer=f"The results were based on aggregated markings by independent judgement panel. All participants will be informed shortly. Thank you for ensuring successful conduction of this competition.",
             conclusion=f"You received this email because you moderated the mentioned competition. If this is an error, then please report to us."
         )
+    return device, email
     
 
 def competitionAdmireNotification(profile: Profile, compete: Competition):
     """
     To notify creator of competition that someone has admired their competition
     """
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=compete.creator.user, device_notification__notification__code=NotificationCode.ADMIRED_COMPETITION).exists():
-        user_device_notify(compete.creator.user, "Competition Admired",
+        device = user_device_notify(compete.creator.user, "Competition Admired",
                            f"Your competition - {compete.title} - has been admired by - {profile.getFName()} - ({profile.user})",
                            compete.getLink())
 
     if EmailNotificationSubscriber.objects.filter(user=compete.creator.user, email_notification__notification__code=NotificationCode.ADMIRED_COMPETITION).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=compete.creator.getEmail(),
             username=compete.creator.getFName,
             subject=f"Competition Admired",
@@ -373,19 +388,21 @@ def competitionAdmireNotification(profile: Profile, compete: Competition):
             footer=f"You can thank and reach out to {profile.getFName()}.",
             conclusion=f"If this action is unfamiliar, then you may contact us."
         )
+    return device, email
 
 
 def competitonXpClaimed(profile: Profile, compete: Competition):
     """
     To notify the user that they have claimed their XP from a competition
     """
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.CLAIM_XP_COMPETITION).exists():
-        user_device_notify(profile.user, "Competition XP Claimed",
+        device = user_device_notify(profile.user, "Competition XP Claimed",
                            f"You have claimed XP from competition - {compete.title}",
                            compete.getLink())
 
     if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.CLAIM_XP_COMPETITION).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=profile.getEmail(),
             username=profile.getFName,
             subject=f"Competition XP Claimed",
@@ -397,3 +414,4 @@ def competitonXpClaimed(profile: Profile, compete: Competition):
             footer=f"Thank you for participating. We hope that you keep participating in future competitions.",
             conclusion=f"If this action is unfamiliar, then you may contact us."
         )
+    return device, email

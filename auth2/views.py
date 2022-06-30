@@ -472,7 +472,7 @@ def email_notification_toggle(request: WSGIRequest, notifID: UUID) -> JsonRespon
         enotif: EmailNotification = EmailNotification.objects.get(
             notification__id=notifID)
         if not subscribe:
-            rem = enotif.subscribers.remove(request.user)
+            enotif.subscribers.remove(request.user)
         else:
             enotif.subscribers.add(request.user)
         return respondJson(Code.OK)

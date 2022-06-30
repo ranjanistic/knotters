@@ -1,4 +1,4 @@
-from json import loads as json_loads, dumps as json_dumps
+from json import loads as json_loads
 
 from allauth.account.models import EmailAddress
 from auth2.apps import APPNAME
