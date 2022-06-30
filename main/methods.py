@@ -297,9 +297,9 @@ def errorLog(*args):
     """
     if not ISTESTING:
         log(LOG_CODE_ERROR, args)
-        if ISPRODUCTION:
-            from main.mailers import sendErrorLog
-            return sendErrorLog(*args)
+       # if ISPRODUCTION:
+         #   from main.mailers import sendErrorLog
+      #      return sendErrorLog(*args)
         if ISDEVELOPMENT:
             return print_exc()
 
@@ -349,7 +349,7 @@ def verify_captcha(recaptcha_response: str) -> bool:
             response=recaptcha_response
         ))
         result = resp.json()
-        return result['success'] if result['score'] > 0.7 else False
+        return result['success'] if result['score'] > 0.4 else False
     except Exception as e:
         errorLog(e)
         return False
