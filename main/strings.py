@@ -682,7 +682,14 @@ class URL():
             return setPathParams(self.SUCCESSORINVITEACTION, action)
 
         NOTIFICATION_TOGGLE_EMAIL = "notification/toggle/e/<str:notifID>"
+
+        def notificationToggleEmail(self, notifID):
+            return setPathParams(self.NOTIFICATION_TOGGLE_EMAIL, notifID)
+
         NOTIFICATION_TOGGLE_DEVICE = "notification/toggle/d/<str:notifID>"
+
+        def notificationToggleDevice(self, notifID):
+            return setPathParams(self.NOTIFICATION_TOGGLE_DEVICE, notifID)
 
         def getURLSForClient(self) -> dict:
             URLS = dict()

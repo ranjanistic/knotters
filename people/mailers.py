@@ -79,12 +79,13 @@ def milestoneNotif(profile: Profile):
     """
     Check the milestone status of the user and accordingly send a notification
     """
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.MILESTONE_NOTIF).exists():
-        user_device_notify(profile.user, "Milestone achieved",
+        device = user_device_notify(profile.user, "Milestone achieved",
                            f"You have achieved a milestone for earning { 50*(1+pow(profile.milestone_count, 2))} XP congratulations!", profile.get_abs_link)
 
     if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.MILESTONE_NOTIF).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=profile.getEmail(),
             username=profile.getFName(),
             subject='Milestone Achieved!',
@@ -96,25 +97,26 @@ def milestoneNotif(profile: Profile):
             footer=f"You can visit your profile and view your XP by clicking this link",
             conclusion=f"This email was sent to you because you have subscibed to milestone notifications on our webiste"
         )
+    return device,email
 
 
-def milestoneNotifTopic(profile: ProfileTopic):
+def milestoneNotifTopic(profileTopic: ProfileTopic):
     """
     Check the milestone status of the user and accordingly send a notification
     """
-    if DeviceNotificationSubscriber.objects.filter(user=profile.profile.user, device_notification__notification__code=NotificationCode.MILESTONE_NOTIF_TOPIC).exists():
-        user_device_notify(profile.profile.user, "Milestone achieved",
-                           f"You have achieved a milestone for earning { 50*(1+pow(profile.milestone_count_topic, 2))} XP congratulations!", profile.profile.get_abs_link)
+    if DeviceNotificationSubscriber.objects.filter(user=profileTopic.profile.user, device_notification__notification__code=NotificationCode.MILESTONE_NOTIF_TOPIC).exists():
+        user_device_notify(profileTopic.profile.user, "Milestone achieved",
+                           f"You have achieved a milestone for earning { 50*(1+pow(profileTopic.milestone_count_topic, 2))} XP congratulations!", profileTopic.profile.get_abs_link)
 
-    if EmailNotificationSubscriber.objects.filter(user=profile.profile.user, email_notification__notification__code=NotificationCode.MILESTONE_NOTIF_TOPIC).exists():
+    if EmailNotificationSubscriber.objects.filter(user=profileTopic.profile.user, email_notification__notification__code=NotificationCode.MILESTONE_NOTIF_TOPIC).exists():
         sendActionEmail(
-            to=profile.profile.getEmail(),
-            username=profile.profile.getFName(),
+            to=profileTopic.profile.getEmail(),
+            username=profileTopic.profile.getFName(),
             subject='Milestone Achieved!',
-            header=f"Yay! You have successfully achieved a milestone for earning { 50*(1+pow(profile.milestone_count_topic, 2))} XP. You can view your your profile by clicking the link",
+            header=f"Yay! You have successfully achieved a milestone for earning { 50*(1+pow(profileTopic.milestone_count_topic, 2))} XP. You can view your your profile by clicking the link",
             actions=[{
                 'text': 'View Profile',
-                'url': profile.profile.get_abs_link
+                'url': profileTopic.profile.get_abs_link
             }],
             footer=f"You can visit your profile and view your XP by clicking this link",
             conclusion=f"This email was sent to you because you have subscibed to milestone notifications on our webiste"

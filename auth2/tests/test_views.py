@@ -1,4 +1,4 @@
-from json import loads as json_loads
+from json import loads as json_loads, dumps as json_dumps
 
 from allauth.account.models import EmailAddress
 from auth2.apps import APPNAME
@@ -11,9 +11,11 @@ from main.methods import testPathRegex
 from main.strings import Action, Code, Message, template, url
 from main.tests.utils import authroot, getRandomStr
 from people.models import Profile, User
-
+from auth2.models import Notification, EmailNotificationSubscriber
+from main.constants import NotificationCode
 from .utils import (getTestEmail, getTestGHID, getTestName, getTestPassword,
                     root)
+from people.mailers import milestoneNotif
 
 
 @tag(Code.Test.VIEW, APPNAME)
@@ -340,8 +342,50 @@ class TestViews(TestCase):
             Code.UTF_8)), dict(code=Code.OK, message=Message.ACCOUNT_DELETED))
         with self.assertRaises(ObjectDoesNotExist):
             User.objects.get(email=E2)
+    
+    @tag("notif")
+    def test_notifications(self):
+        client = Client()
+        email = getTestEmail()
+        password = getTestPassword()
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+            email=email,
+            first_name=getTestName(),
+            password1=password
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTrue(resp.context['user'].is_authenticated)
+        notif:Notification = Notification.objects.create(name=getRandomStr(), description=getRandomStr(), code=NotificationCode.MILESTONE_NOTIF)
+        resp = client.post(follow=True, path=authroot(url.auth.notificationToggleEmail(notif.id)), data=dict(
+            subscribe=True
+        ), content_type=Code.APPLICATION_JSON)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        profile = Profile.objects.get(user__email=email)
+        device, email1 = milestoneNotif(profile)
+        self.assertNotEqual(email1, False)
+        self.assertFalse(device)
+        resp = client.post(follow=True, path=authroot(url.auth.notificationToggleDevice(notif.id)), data=dict(
+            subscribe=True
+        ), content_type=Code.APPLICATION_JSON)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        device, email1 = milestoneNotif(profile)
+        self.assertNotEqual(device, False)
+        self.assertNotEqual(email1, False)
+        resp = client.post(follow=True, path=authroot(url.auth.notificationToggleEmail(notif.id)), data=dict(
+            subscribe=False
+        ), content_type=Code.APPLICATION_JSON)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        device, email1 = milestoneNotif(profile)
+        self.assertNotEqual(device, False)
+        self.assertFalse(email1)
 
-
+        
 @tag(Code.Test.VIEW, Code.Test.REST, APPNAME)
 class TestViewsAuth(TestCase):
     @classmethod
@@ -404,6 +448,7 @@ class TestViewsAuth(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.on_boarding)
 
+    @tag("login_post")
     def test_login_post(self):
         client = Client()
         email = getTestEmail()
@@ -414,7 +459,7 @@ class TestViewsAuth(TestCase):
             password1=password
         ))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-
+        self.assertTrue(resp.context['user'].is_authenticated)
         resp = client.post(follow=True, path=authroot(url.auth.LOGOUT))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertFalse(resp.context['user'].is_authenticated)

@@ -1195,11 +1195,11 @@ def reportedSnapshot(snap: Snapshot, category: ReportCategory):
     To notify creator of snapshot that their snapshot has been reported
     """
     if DeviceNotificationSubscriber.objects.filter(user=snap.creator.user, device_notification__notification__code=NotificationCode.REPORTED_SNAPSHOT).exists():
-        user_device_notify(snap.creator.user, "Snapshot Reported",
+        device = user_device_notify(snap.creator.user, "Snapshot Reported",
                            f"Your snapshot of project - {snap.base_project.name} - has been reported for {category}. The complaint is under review.",
                            snap.getLink())
     if EmailNotificationSubscriber.objects.filter(user=snap.creator.user, email_notification__notification__code=NotificationCode.REPORTED_SNAPSHOT).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=snap.creator.get_email, username=snap.creator.getFName(), subject='Snapshot Reported for violation of rules',
             header=f"This is to inform you that your snapshot of project - {snap.base_project.name} - has been reported for {category}. The report is under review.",
             actions=[{'text': "View Snapshot",
@@ -1207,6 +1207,7 @@ def reportedSnapshot(snap: Snapshot, category: ReportCategory):
             footer=f"Knotters is a place for creating community and belonging. To avoid future reports against your content, make sure you read and understand Knotters terms and conditions.",
             conclusion=f"If you think this is a mistake, please report to us."
         )
+    return device, email
 
 
 def githubBotInstalled(frepos):

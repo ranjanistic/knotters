@@ -23,10 +23,10 @@ def alertLegalUpdate(docname: str, docurl: str) -> list:
     done = []
     for email in emails:
         if DeviceNotificationSubscriber.objects.filter(user=email, device_notification__notification__code=NotificationCode.ALERT_LEGAL_UPDATE).exists():
-            user_device_notify(email, f"Update to our {docname}",
+            device = user_device_notify(email, f"Update to our {docname}",
                                f"This is to infom you that our {docname} document was updated recently. You can read the latest information anytime from the following link", docurl)
         if EmailNotificationSubscriber.objects.filter(user=email, email_notification__notification__code=NotificationCode.ALERT_LEGAL_UPDATE).exists():
-            taskID = sendActionEmail(
+            email = sendActionEmail(
                 to=email,
                 subject=f"Update to our {docname}",
                 header=f"This is to infom you that our {docname} document was updated recently. You can read the latest information anytime from the following link",
@@ -37,8 +37,8 @@ def alertLegalUpdate(docname: str, docurl: str) -> list:
                 footer="It is our duty to keep you updated with changes in our terms & policies.",
                 conclusion=f"This email was sent because we have updated a legal document from our side, which may concern you as you are a member at {PUBNAME}."
             )
-            done.append([email, taskID])
-        return done
+        done.append([device, email])
+    return done
 
 
 def managementInvitationSent(invite: ManagementInvitation) -> str:
