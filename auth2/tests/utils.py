@@ -1,3 +1,5 @@
+import string
+import random
 from uuid import uuid4
 
 from auth2.apps import APPNAME
@@ -39,8 +41,14 @@ def getTestNames(count=1):
     return names
 
 
-def getTestPassword():
-    return uuid4().hex
+def getTestPassword(length: int = 20):
+    characters = list(string.ascii_letters + string.digits + "!@#$%^&*()")
+    random.shuffle(characters)
+    password = []
+    for i in range(length):
+        password.append(random.choice(characters))
+    random.shuffle(password)
+    return "".join(password)
 
 
 def getTestPasswords(count=1):

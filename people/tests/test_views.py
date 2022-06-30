@@ -58,25 +58,25 @@ class TestViews(TestCase):
         #     mail.save()
         return super().setUpTestData()
 
-    def setUp(self) -> None:
-        Profile.KNOTBOT()
-        resp = self.client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+    def test_index(self):
+        client = Client()
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
             login=self.email,
             password=self.password,
         ))
-        self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertTrue(resp.context['user'].is_authenticated)
-        return super().setUp()
-
-    def test_index(self):
-        resp = self.client.get(follow=True, path=root(url.INDEX))
+        resp = client.get(follow=True, path=root(url.INDEX))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.people.index)
 
     @tag("gg")
     def test_profile(self):
-        resp = self.client.get(follow=True, path=root(url.people.profile(
+        client = Client()
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=self.email,
+            password=self.password,
+        ))
+        resp = client.get(follow=True, path=root(url.people.profile(
             userID=self.profile.getUserID())))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
@@ -84,37 +84,47 @@ class TestViews(TestCase):
 
     @tag("aag")
     def test_profileTab(self):
-        resp = self.client.get(follow=True, path=root(url.people.profileTab(
+        client = Client()
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=self.email,
+            password=self.password,
+        ))
+        resp = client.get(follow=True, path=root(url.people.profileTab(
             self.profile.getUserID(), section=profileString.OVERVIEW)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_overview)
-        resp = self.client.get(follow=True, path=root(url.people.profileTab(
+        resp = client.get(follow=True, path=root(url.people.profileTab(
             self.profile.getUserID(), section=profileString.PROJECTS)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_projects)
-        resp = self.client.get(follow=True, path=root(url.people.profileTab(
+        resp = client.get(follow=True, path=root(url.people.profileTab(
             self.profile.getUserID(), section=profileString.CONTRIBUTION)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_contribution)
-        resp = self.client.get(follow=True, path=root(url.people.profileTab(
+        resp = client.get(follow=True, path=root(url.people.profileTab(
             self.profile.getUserID(), section=profileString.ACTIVITY)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_activity)
-        resp = self.client.get(follow=True, path=root(url.people.profileTab(
+        resp = client.get(follow=True, path=root(url.people.profileTab(
             self.profile.getUserID(), section=profileString.MODERATION)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.profile_moderation)
 
     def test_settingTab(self):
-        resp = self.client.get(follow=True, path=root(
+        client1 = Client()
+        resp = client1.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=self.email,
+            password=self.password,
+        ))
+        resp = client1.get(follow=True, path=root(
             url.people.settingTab(profileString.Setting.ACCOUNT)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.setting_account)
-        resp = self.client.get(follow=True, path=root(
+        resp = client1.get(follow=True, path=root(
             url.people.settingTab(profileString.Setting.PREFERENCE)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.setting_preference)
-        resp = self.client.get(follow=True, path=root(
+        resp = client1.get(follow=True, path=root(
             url.people.settingTab(profileString.Setting.SECURITY)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.people.setting_security)
@@ -146,37 +156,58 @@ class TestViews(TestCase):
 
     @tag("editprof")
     def test_editProfile(self):
-        resp = self.client.post(follow=True, path=root(
+        client = Client()
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=self.email,
+            password=self.password,
+        ))
+        resp = client.post(follow=True, path=root(
             url.people.profileEdit(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
-        resp = self.client.post(follow=True, path=root(
+        resp = client.post(follow=True, path=root(
             url.people.profileEdit('pallete')))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        resp = self.client.post(follow=True, path=root(url.people.profileEdit('pallete')), data={
+        resp = client.post(follow=True, path=root(url.people.profileEdit('pallete')), data={
             'profilepic': getTestDP()
         })
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
     @tag("gg")
     def test_accountprefs(self):
-        resp = self.client.post(follow=True, path=root(
+        client = Client()
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=self.email,
+            password=self.password,
+        ))
+        resp = client.post(follow=True, path=root(
             url.people.ACCOUNTPREFERENCES))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
 
     @tag("topsearch")
     def test_topicsSearch(self):
-        resp = self.client.post(follow=True, path=root(url.people.TOPICSEARCH), data={
-                                'query': getRandomStr()})
+        client = Client()
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=self.email,
+            password=self.password,
+        ))
+        resp = client.post(follow=True, path=root(url.people.TOPICSEARCH), data={
+            'query': getRandomStr()})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
-        self.assertDictEqual(json_loads(resp.content.decode(Code.UTF_8)), dict(code=Code.OK, topics=[]))
+        self.assertDictEqual(json_loads(resp.content.decode(
+            Code.UTF_8)), dict(code=Code.OK, topics=[]))
 
     def test_topicsUpdate(self):
+        client = Client()
+        resp = client.post(follow=True, path=authroot(url.auth.LOGIN), data=dict(
+            login=self.email,
+            password=self.password,
+        ))
         topics = Topic.objects.bulk_create(getTestTopicsInst(4))
         addTopicIDs = ''
         for top in topics:
             addTopicIDs = f"{addTopicIDs},{top.getID()}"
-        resp = self.client.post(follow=True, path=root(url.people.TOPICSUPDATE), data={
-                                'addtopicIDs': addTopicIDs})
+        resp = client.post(follow=True, path=root(url.people.TOPICSUPDATE), data={
+            'addtopicIDs': addTopicIDs})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(self.profile.totalAllTopics(), 4)
 
@@ -187,8 +218,8 @@ class TestViews(TestCase):
             i += 1
             if i > 1:
                 break
-        resp = self.client.post(follow=True, path=root(url.people.TOPICSUPDATE), data={
-                                'removetopicIDs': removeTopicIDs})
+        resp = client.post(follow=True, path=root(url.people.TOPICSUPDATE), data={
+            'removetopicIDs': removeTopicIDs})
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(self.profile.totalAllTopics(), 4)
         self.assertEqual(self.profile.totalTopics(), 2)
