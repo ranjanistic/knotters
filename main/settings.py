@@ -317,7 +317,7 @@ else:
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = f"{env.PUBNAME} Alerts <beta.no-reply@knotters.org>"
+DEFAULT_FROM_EMAIL = f"{env.PUBNAME} Alerts <{'beta.' if env.ISBETA else ''}no-reply@knotters.org>"
 EMAIL_HOST_USER = env.MAIL_USERNAME
 EMAIL_HOST_PASSWORD = env.MAIL_PASSWORD
 EMAIL_SUBJECT_PREFIX = env.PUBNAME
