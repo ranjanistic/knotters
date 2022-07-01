@@ -39,13 +39,12 @@
 				{% get_providers as socialaccount_providers %}
 				{% for provider in socialaccount_providers %}
 					<br/>
-					{% with next=request.GET.next|or:URLS.ROOT %}
-						{% with x=URLS.REDIRECTOR|getquery:"n=next" %}
+					{% with x=request.GET.next|or:URLS.ROOT %}
 						<a class="w3-row hide-beta"
                                                      {% if provider.id != 'github' %}
-                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' next=x %}{% endfilter %}"
+                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' next=request.GET.next %}{% endfilter %}"
                                                      {% else %}
-                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' scope='read:org' next=x %}{% endfilter %}"
+                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' scope='read:org' next=request.GET.next %}{% endfilter %}"
                                                      {% endif %}
                                                  >
                                                      <button class="w3-padding {% if provider.id == 'github' %}secondary{% elif provider.id == 'discord' %}tertiary{% else %}primary{% endif %}">
@@ -56,7 +55,6 @@
 							</button>
 						</a>
 						{% endwith %}
-					{% endwith %}
 				{% endfor %}
 				<br/>
 				<h3 class="text-accent">New here?</h3>
