@@ -27,19 +27,17 @@ class TestViews(TestCase):
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
         return super().setUpTestData()
     
-    def setUp(self) -> None:
-        Profile.KNOTBOT()
-        return super().setUp()
-
     def test_offline(self):
-        resp = self.client.get(follow=True, path=root(url.OFFLINE))
+        client = Client()
+        resp = client.get(follow=True, path=root(url.OFFLINE))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.offline)
 
     @tag('ss')
     def test_index(self):
-        resp = self.client.get(follow=True, path=root())
+        client = Client()
+        resp = client.get(follow=True, path=root())
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertEqual(
@@ -58,33 +56,37 @@ class TestViews(TestCase):
         # self.assertEqual(resp.context['knotbot'], self.bot.profile)
 
     def test_redirector(self):
-        resp = self.client.get(path=root(url.redirector(to=root(url.OFFLINE))))
+        client = Client()
+        resp = client.get(path=root(url.redirector(to=root(url.OFFLINE))))
         self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
         self.assertRedirects(resp, root(url.OFFLINE))
         uri = 'https://github.com'
-        resp = self.client.get(follow=True, path=root(url.redirector(to=uri)))
+        resp = client.get(follow=True, path=root(url.redirector(to=uri)))
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.forward)
         self.assertEqual(resp.context['next'], uri)
 
     def test_onboarding(self):
-        resp = self.client.get(follow=True, path=root(url.ON_BOARDING))
+        client = Client()
+        resp = client.get(follow=True, path=root(url.ON_BOARDING))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.auth.login)
 
     def test_docIndex(self):
-        resp = self.client.get(follow=True, path=root(url.DOCS))
+        client = Client();
+        resp = client.get(follow=True, path=root(url.DOCS))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.docs.index)
         # self.assertEqual(resp.context['docs'], LegalDoc.objects.all())
 
     def test_docs(self):
-        resp = self.client.get(follow=True, path=docroot(
+        client = Client()
+        resp = client.get(follow=True, path=docroot(
             url.docs.type(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
-        resp = self.client.get(follow=True, path=docroot(
+        resp = client.get(follow=True, path=docroot(
             url.docs.type(self.legaldoc.pseudonym)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
@@ -92,14 +94,16 @@ class TestViews(TestCase):
         self.assertEqual(resp.context['doc'], self.legaldoc)
 
     def test_landing(self):
-        resp = self.client.get(follow=True, path=root(url.LANDING))
+        client = Client()
+        resp = client.get(follow=True, path=root(url.LANDING))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.landing)
 
     @tag(Code.Test.STATIC)
     def test_robots(self):
-        resp = self.client.get(follow=True, path=root(url.ROBOTS_TXT))
+        client = Client()
+        resp = client.get(follow=True, path=root(url.ROBOTS_TXT))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.TEXT_PLAIN)
         self.assertTemplateUsed(resp, template.ROBOTS_TXT)
@@ -108,7 +112,8 @@ class TestViews(TestCase):
 
     @tag(Code.Test.STATIC, "only-this")
     def test_manifest(self):
-        resp = self.client.get(follow=True, path=root(url.MANIFEST))
+        client = Client()
+        resp = client.get(follow=True, path=root(url.MANIFEST))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.APPLICATION_JSON)
         self.assertTemplateUsed(resp, template.MANIFEST_JSON)
@@ -117,7 +122,8 @@ class TestViews(TestCase):
 
     @tag(Code.Test.STATIC)
     def test_strings(self):
-        resp = self.client.get(follow=True, path=root(
+        client = Client()
+        resp = client.get(follow=True, path=root(
             setPathParams(url.SCRIPTS, template.script.STRINGS)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.APPLICATION_JS)
@@ -125,7 +131,8 @@ class TestViews(TestCase):
 
     @tag(Code.Test.STATIC)
     def test_constants(self):
-        resp = self.client.get(follow=True, path=root(
+        client = Client()
+        resp = client.get(follow=True, path=root(
             setPathParams(url.SCRIPTS, template.script.CONSTANTS)))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.APPLICATION_JS)
@@ -133,7 +140,8 @@ class TestViews(TestCase):
 
     @tag(Code.Test.STATIC)
     def test_service_worker(self):
-        resp = self.client.get(follow=True, path=root(url.SERVICE_WORKER))
+        client = Client()
+        resp = client.get(follow=True, path=root(url.SERVICE_WORKER))
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertEqual(resp['content-type'], Code.APPLICATION_JS)
         self.assertTemplateUsed(resp, template.SW_JS)
@@ -144,6 +152,7 @@ class TestViews(TestCase):
 
     @tag('browse')
     def test_browser(self):
-        resp = self.client.get(
+        client = Client()
+        resp = client.get(
             follow=True, path=root(url.browser(getRandomStr())))
         self.assertEqual(resp.status_code, HttpResponseBadRequest.status_code)
