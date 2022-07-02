@@ -6,6 +6,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) if you have read the whole README.md and 
 
 ## Setup
 
+Linux environment is preferred, so if you were planning to boot/dual boot your pc with linux, this is the right time.
+
+For windows developers who don't want to boot linux, [setup WSL](https://docs.microsoft.com/en-us/windows/wsl/install) first.
+
 _All commands/bash scripts should be assumed to be executed in the root of project directory, unless specified explicitly._
 
 _`python3` (python), `pip` (python package manager) - these cmdlets may vary depending on your system platform, therefore, act accordingly._
@@ -17,6 +21,17 @@ _`python3` (python), `pip` (python package manager) - these cmdlets may vary dep
 - MongoDB (5.0.x) connection string (mongodb://user:password@host:port/database)
 - A running redis (6.x or above) server
 
+For setting up mongodb first time locally, check [these steps](https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-18-04-source)
+
+For setting up redis first time locally, check [these steps](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04)
+
+For WSL users, commands like `systemctl` may not be present, therefore proceed accordingly. (E.g. use `service` command for `systemctl`)
+
+After setting up redis, add a user&password pair in acl section in your redis configuration file (typically at /etc/redis/redis.conf) will access to allkeys and allcommands.
+`requirepass` in redis is no longer being used.
+
+Restart redis after any changes to its configuration.
+
 ### Environment
 
 ```bash
@@ -27,21 +42,7 @@ Check values in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.tes
 
 ### Dependencies
 
-Using a python virtual environment is recommended. For example
-
-```bash
-pip install virtualenvwrapper
-mkvirtualenv your-virtual-environment-name
-workon your-virtual-environment-name
-```
-
-or for Windows
-
-```bash
-pip install virtualenvwrapper-win
-mkvirtualenv your-virtual-environment-name
-workon your-virtual-environment-name
-```
+Create a python virtual environment by following the [steps here](https://docs.python.org/3/tutorial/venv.html).
 
 Then install dependencies
 
@@ -49,18 +50,10 @@ Then install dependencies
 pip install -r requirements.txt
 ```
 
-> If there's a `Microsoft Visual c++ 14.0` required error with installation of _rcssmin_ or related modules, then do following execution if you want to **avoid installing Microsoft C++ Build Tools**
-
-```bash
- # Only if an error occurs
-pip install rcssmin --install-option="--without-c-extensions"
-pip install rjsmin --install-option="--without-c-extensions"
-pip install -r requirements.txt
-```
-
 ### Static setup
 
-Set `STATIC_ROOT` in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) (both should have same values for this) to the absolute path of a directory (like `/var/www/knotters/static/` or `C:\Users\static\`) where you can allow server to load static files from the `static` folder. Make sure whichever path you set is not restricted for server by any directory permissions.
+Set `STATIC_ROOT` in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) (both should have same values for this) to the absolute path of an empty directory (like `/var/www/knotters/static/`) where you can allow server to load static files from the `static` folder. 
+Make sure whichever path you set is not restricted for server by any directory permissions.
 Also make sure that you DO NOT set the `STATIC_ROOT` as path to the `./static` folder in this project's directory in any way.
 
 Then, use the following to load static files.
@@ -293,8 +286,6 @@ There are total 5 runners in the repository, hosted on our own servers, for the 
 
 - Try to publish the server sided changes before client side ones for better update delivery.
 
-- Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates.
-
-- Some tests fail arbitrarily on CI as well as locally too. Please see [#114](https://github.com/knottersbot/knotters/issues/114) for more details. Meanwhile, you can check the status of your deployment in this repository's `Actions` tab. Only if such condition occurs that tests on your deployment CI are failing arbitrarily, you can try re-running the jobs, but only if failure of those tests have no reason linked to your changes in code.
+- Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates. 
 
 Jump to [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guide now.
