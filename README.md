@@ -4,6 +4,9 @@ The Knotters Platform source code.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) if you have read the whole README.md and have already setup the repository as instructed in this file. If not, then go through the following steps first, then jump to [CONTRIBUTING.md](CONTRIBUTING.md) for further contribution guidelines.
 
+- हिंदी में रीडमी [यहां पढ़ें](रीडमी.md)
+- You can contribute too by adding Readme.md in another language
+
 ## Setup
 
 Linux environment is preferred, so if you were planning to boot/dual boot your pc with linux, this is the right time.
@@ -274,7 +277,7 @@ There are total 5 runners in the repository, hosted on our own servers, for the 
 --
 
 - builder_knotters: Any commit which is pushed on `branch:main` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to install/update dependencies and setup for knotters.org environment. This job for building requires the testing job to be successful to run. tags: `self-hosted, building, production`
-- deploy_knotters: Any commit which is pushed on `branch:beta` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to deploy latest changes on knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, deployment, production`
+- deploy_knotters: Any commit which is pushed on `branch:main` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to deploy latest changes on knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, deployment, production`
 
 ## Footnotes
 
