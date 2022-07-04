@@ -16,15 +16,15 @@ from main.methods import (addMethodToAsyncQueue, errorLog, renderString,
 from main.strings import Code, Event, Message, url
 from management.models import HookRecord
 from people.methods import addTopicToDatabase
-from people.models import Profile
+from people.models import Profile, Topic
 
 from .apps import APPNAME
 from .mailers import (sendCoreProjectApprovedNotification,
                       sendProjectApprovedNotification)
 from .models import (BaseProject, Category, CoreProject,
                      CoreProjectVerificationRequest, FileExtension,
-                     FreeProject, FreeProjectVerificationRequest, License,
-                     Project, ProjectSocial, Tag)
+                     TopicFileExtension, FreeProject, FreeProjectVerificationRequest, 
+                     License, Project, ProjectSocial, Tag)
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -1062,10 +1062,17 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
                                     extension__iexact=ext)
                             extensions[ext] = dict(fileext=fileext, topics=[])
                             try:
-                                ftops = fileext.getTopics()
-                                if not len(ftops):
-                                    fileext.topics.set(
-                                        ftops | project.topics.all())
+                                for topic in project.topics.all():
+                                    if not TopicFileExtension.objects.filter(file_extension=fileext, topic=topic).exists():
+                                        TopicFileExtension.objects.create(file_extension=fileext, topic=topic)
+                                    else:
+                                        topicfileext: TopicFileExtension = TopicFileExtension.objects.get(file_extension=fileext, topic=topic)
+                                        topicfileext.score = topicfileext.score + 1
+                                        topicfileext.save()
+                                # ftops = fileext.getTopics()
+                                # if not len(ftops):
+                                #     fileext.topics.set(
+                                #         ftops | project.topics.all())
                             except:
                                 pass
                         for topic in fileext.topics.all():
