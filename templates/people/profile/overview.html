@@ -30,7 +30,7 @@
             <form method="POST" action="{{URLS.EXTENDEDBIOEDIT|params:'pallete'}}">
               {% csrf_token %}
               <div class="w3-row w3-padding">
-                <textarea type="text" class="wide" placeholder="ExtendedBio" autocomplete="nickname" maxlength="300" name="ExtendedBio" >{{ request.user.profile.getExtendedBio }}</textarea><br/>
+                <textarea type="text" class="wide" placeholder="ExtendedBio" maxlength="300" name="ExtendedBio" >{{ request.user.profile.getExtendedBio }}</textarea><br/>
               </div>
               <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
               <button id="discard-edit-pallete"><i class="material-icons">close</i>Discard</button>

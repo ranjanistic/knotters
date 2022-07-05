@@ -412,6 +412,30 @@ initializeTabsView({
                     });
                 }
                 break;
+            case 'account' :{
+                getElement("nickname").onchange = async (e) => {
+    let nickname = String(e.target.value).toLowerCase().trim();
+    nickname = nickname.replace(/[^a-z0-9\-]/g, "-").split('-').filter((k)=>k.length).join('-');
+    console.log(nickname)
+    if (!nickname) return;
+    e.target.value = nickname;
+    const data = await postRequest(
+      URLS.VALIDATEFIELD,{nickname}
+    );
+    if (!data) return;
+    if (data.code !== code.OK) return error(data.error);
+    return success(`'${nickname}' is available!`);
+};
+    getElement("nickname").oninput = async (e) => {
+    let nickname = String(e.target.value).toLowerCase().trim();
+    nickname = nickname.replace(/[^a-z0-9\-]/g, "-").split('-').filter((k)=>k.length).join('-');
+    console.log(nickname)
+    if (!nickname) return;
+    e.target.value = nickname;
+};
+            }
+            break;
         }
     },
 });
+

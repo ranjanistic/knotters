@@ -1,3 +1,4 @@
+from re import sub as re_sub
 from pkgutil import extend_path
 from uuid import UUID
 
@@ -216,20 +217,20 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
             try:
                 fname, lname = convertToFLname(
                     str(request.POST['displayname']))
+                nickname = str(request.POST['nickname'])
                 bio = str(request.POST['profilebio']).strip()
-                # extended_bio=str(request.POST['ExtendedBio']).strip()
                 if fname and fname != profile.user.first_name:
                     profile.user.first_name = fname
                     userchanged = True
                 if lname != profile.user.last_name:
                     profile.user.last_name = lname
                     userchanged = True
-                if filterBio(bio) != profile.bio: 
+                if nickname != profile.nickname:
+                    profile.nickname = nickname
+                    profilechanged = True
+                if filterBio(bio) != profile.bio:
                     profile.bio = filterBio(bio)
                     profilechanged = True
-                # if filterExtendedBio(extended_bio) !=profile.extended_bio:
-                #     profile.extended_bio=filterExtendedBio(extended_bio)
-                #     profilechanged = True
                 if userchanged:
                     profile.user.save()
                 if profilechanged:
@@ -275,6 +276,7 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
 
+
 def editExtendedBio(request: WSGIRequest, section: str) -> HttpResponse:
     """To edit a ExtendedBio.
 
@@ -297,9 +299,9 @@ def editExtendedBio(request: WSGIRequest, section: str) -> HttpResponse:
         nextlink = request.POST.get('next', None)
         if section == 'pallete':
             try:
-                extended_bio=str(request.POST['ExtendedBio']).strip()
-                if filterExtendedBio(extended_bio) !=profile.extended_bio:
-                    profile.extended_bio=filterExtendedBio(extended_bio)
+                extended_bio = str(request.POST['ExtendedBio']).strip()
+                if filterExtendedBio(extended_bio) != profile.extended_bio:
+                    profile.extended_bio = filterExtendedBio(extended_bio)
                     profilechanged = True
                     profile.save()
                     if json_body:
@@ -1071,3 +1073,6 @@ def profileAdmirations(request: WSGIRequest, userID: UUID) -> HttpResponse:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         errorLog(e)
         raise Http404(e)
+
+
+
