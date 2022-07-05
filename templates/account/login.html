@@ -42,9 +42,9 @@
 					{% with x=request.GET.next|or:URLS.ROOT %}
 						<a class="w3-row hide-beta"
                                                      {% if provider.id != 'github' %}
-                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' next=request.GET.next %}{% endfilter %}"
+                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' next=x %}{% endfilter %}"
                                                      {% else %}
-                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' scope='read:org' next=request.GET.next %}{% endfilter %}"
+                                                      href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' scope='read:org' next=x %}{% endfilter %}"
                                                      {% endif %}
                                                  >
                                                      <button class="w3-padding {% if provider.id == 'github' %}secondary{% elif provider.id == 'discord' %}tertiary{% else %}primary{% endif %}">
