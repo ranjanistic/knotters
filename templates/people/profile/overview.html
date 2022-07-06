@@ -25,6 +25,18 @@
                 {% endif %}
                 </div>
             {% endfor %}
+            {% if self %}
+          <div class="pallete w3-center w3-animate-opacity" id="edit-pallete">
+            <form method="POST" action="{{URLS.EXTENDEDBIOEDIT|params:'pallete'}}">
+              {% csrf_token %}
+              <div class="w3-row w3-padding">
+                <textarea type="text" class="wide" placeholder="ExtendedBio" maxlength="300" name="ExtendedBio" >{{ request.user.profile.getExtendedBio }}</textarea><br/>
+              </div>
+              <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
+              <button id="discard-edit-pallete"><i class="material-icons">close</i>Discard</button>
+            </form>
+          </div>
+        {% endif %}
             {% if self and profile.totalTopics > 0 %}<i class="edit-action w3-right" data-edittarget="profiletopics">edit</i>{% endif %}</span>
             </div>
             {% if self %}

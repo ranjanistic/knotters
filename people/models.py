@@ -390,6 +390,8 @@ class Profile(models.Model):
     """githubID (CharField): The GitHub ID of the user."""
     bio: str = models.CharField(max_length=350, blank=True, null=True)
     """bio (CharField): The bio of the user."""
+    extended_bio: str = models.CharField(max_length=500, blank=True, null=True)
+    """extended bio (CharField): The extended bio of the user."""
     successor: User = models.ForeignKey(User, null=True, blank=True, related_name='successor_profile',
                                         on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
     """successor (ForeignKey<User>): The successor of the user."""
@@ -903,6 +905,10 @@ class Profile(models.Model):
         """Returns the user's bio"""
         return self.bio if self.bio else ''
 
+    def getExtendedBio(self) -> str:
+        """Returns the extended user bio"""
+        return self.extended_bio if self.extended_bio else ''
+
     def getSubtitle(self) -> str:
         """Returns the user's subtitle"""
         return self.bio if self.bio else self.ghID() if self.ghID() else ''
@@ -1268,12 +1274,8 @@ class Profile(models.Model):
             return self.xp
         if self.xp == None:
             self.xp = 0
-            self.milestone_count = 0
         if self.milestone_count == None:
-            if self.xp <= 50:
-                self.milestone_count = 0
-            else:
-                self.milestone_count = int(math.sqrt((self.xp/50)-1))
+            self.milestone_count = 0
         self.xp = self.xp + by
         if self.xp >= 50*(1+pow(self.milestone_count, 2)) and self.xp-by < 50*(1+pow(self.milestone_count, 2)):
             from .mailers import milestoneNotif
@@ -1402,15 +1404,9 @@ class Profile(models.Model):
 
     def xpTarget(self) -> int:
         """Returns the user's next XP target"""
-        xp = self.xp
-        milestonecount = self.milestone_count
-        if milestonecount == None:
-            if xp <= 50:
-                milestonecount = 0
-            else:
-                milestonecount = int(math.sqrt((xp/50)-1))
-        targetcount = milestonecount
-        return 50*(1+pow(targetcount, 2))
+        if self.milestone_count == None:
+            self.milestone_count = 0
+        return 50*(1+pow(self.milestone_count, 2))
 
     def getTopicIds(self) -> list:
         """Returns the user's visible topic ids"""
@@ -1947,6 +1943,12 @@ class DisplayMentor(models.Model):
         return self.about
 
     @property
+    def get_extendedBio(self) -> str:
+        if self.profile:
+            return self.profile.getExtendedBio()
+        return self.about
+
+    @property
     def get_link(self) -> str:
         if self.profile:
             return self.profile.getLink()
@@ -2158,7 +2160,7 @@ class CoreMember(models.Model):
         return self.profile.get_name
 
     def get_about(self):
-        return self.about or self.profile.getBio()
+        return self.about or self.profile.getBio() or self.profile.getExtendedBio()
 
 
 class ProfileXPRecord(models.Model):

@@ -1,3 +1,5 @@
+from re import sub as re_sub
+from pkgutil import extend_path
 from uuid import UUID
 
 from django.conf import settings
@@ -19,7 +21,7 @@ from projects.methods import addTagToDatabase
 from projects.models import Tag
 from ratelimit.decorators import ratelimit
 
-from .methods import (addTopicToDatabase, convertToFLname, filterBio,
+from .methods import (addTopicToDatabase, convertToFLname, filterBio, filterExtendedBio,
                       getProfileSectionHTML, getSettingSectionHTML,
                       profileRenderData, renderer, rendererstr)
 from .models import (Profile, ProfileSetting, ProfileSocial, ProfileTag,
@@ -215,6 +217,7 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
             try:
                 fname, lname = convertToFLname(
                     str(request.POST['displayname']))
+                nickname = str(request.POST['nickname'])
                 bio = str(request.POST['profilebio']).strip()
                 if fname and fname != profile.user.first_name:
                     profile.user.first_name = fname
@@ -222,10 +225,12 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                 if lname != profile.user.last_name:
                     profile.user.last_name = lname
                     userchanged = True
+                if nickname != profile.nickname:
+                    profile.nickname = nickname
+                    profilechanged = True
                 if filterBio(bio) != profile.bio:
                     profile.bio = filterBio(bio)
                     profilechanged = True
-
                 if userchanged:
                     profile.user.save()
                 if profilechanged:
@@ -265,6 +270,50 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(e)
+
+
+def editExtendedBio(request: WSGIRequest, section: str) -> HttpResponse:
+    """To edit a ExtendedBio.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object.
+        section (str): The section to edit.
+
+    Raises:
+        Http404: If the section does not exist or invalid request
+
+    Returns:
+        HttpResponseRedirect: Redirects to user profile view
+        JsonResponse: Responds with json object with main.strings.Code.OK or main.strings.Code.NO
+    """
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        profile: Profile = Profile.objects.get(user=request.user)
+        nextlink = request.POST.get('next', None)
+        if section == 'pallete':
+            try:
+                extended_bio = str(request.POST['ExtendedBio']).strip()
+                if filterExtendedBio(extended_bio) != profile.extended_bio:
+                    profile.extended_bio = filterExtendedBio(extended_bio)
+                    profilechanged = True
+                    profile.save()
+                    if json_body:
+                        return respondJson(Code.OK, message=Message.PROFILE_UPDATED)
+                    return redirect(nextlink or profile.getLink(success=Message.PROFILE_UPDATED))
+                if json_body:
+                    return respondJson(Code.OK)
+                return redirect(nextlink or profile.get_link)
+            except Exception as e:
+                if json_body:
+                    return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+                return redirect(nextlink or profile.getLink(error=Message.ERROR_OCCURRED))
     except Exception as e:
         errorLog(e)
         if json_body:
@@ -890,6 +939,7 @@ def browseSearch(request: WSGIRequest):
                     is_moderator=m.is_moderator,
                     url=m.get_abs_link,
                     bio=m.bio,
+                    extended_bio=m.extended_bio,
                     imageUrl=m.get_abs_dp
                 ), profiles)),
                 query=query
@@ -1023,3 +1073,6 @@ def profileAdmirations(request: WSGIRequest, userID: UUID) -> HttpResponse:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         errorLog(e)
         raise Http404(e)
+
+
+

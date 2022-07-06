@@ -670,6 +670,8 @@ class URL():
         GETSUCCESSOR = 'account/successor'
         INVITESUCCESSOR = 'account/successor/invite'
         ACCOUNTDELETE = "account/delete"
+        NICKNAMEEDIT = "account/nickname"
+        VALIDATEFIELD = 'validate'
 
         SUCCESSORINVITE = 'invitation/successor/<str:predID>'
 
@@ -917,6 +919,11 @@ class URL():
         def profileEdit(self, section):
             return setPathParams(self.PROFILEEDIT, section)
 
+        EXTENDEDBIOEDIT = 'profile/extendededbioedit/<str:section>'
+
+        def extendedBioedit(self, section):
+            return setPathParams(self.EXTENDEDBIOEDIT, section)
+
         PROFILETAB = 'profiletab/<str:userID>/<str:section>'
 
         def profileTab(self, userID, section):
@@ -1036,7 +1043,7 @@ class URL():
             return setPathParams(self.PROFILE_BASE, nickname)
 
         AT_NICKANAME = '@<str:nickname>'
-        
+
         def at_nickname(self, nickname: str):
             return setPathParams(self.AT_NICKANAME, nickname)
 

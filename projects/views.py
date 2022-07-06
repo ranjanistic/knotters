@@ -444,7 +444,8 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
             if json_body:
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
             return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
-    except KeyError:
+    except KeyError as e:
+        print(e)
         if projectobj:
             projectobj.delete()
         if json_body:
