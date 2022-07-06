@@ -1953,6 +1953,67 @@ class DisplayMentor(models.Model):
         return self.website
 
 
+def displayContributorImagePath(instance: "CoreContributor", filename: str) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/displaycontributors/{instance.get_id}.{fileparts[-1]}"
+
+
+class CoreContributor(models.Model):
+    """Display palletes of core developers"""
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='display_contributor_profile', null=True, blank=True)
+    """profile (ForeignKey<Profile>): The profile of developer, if present."""
+    name: datetime = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): The name of the developer"""
+    about: str = models.CharField(max_length=500, null=True, blank=True)
+    """about (CharField): The about of the developer"""
+    picture: str = models.ImageField(
+        upload_to=displayMentorImagePath, default=defaultImagePath, null=True, blank=True)
+    """picture (ImageField): The picture of the developer"""
+    website: datetime = models.URLField(max_length=500, null=True, blank=True)
+    """website (URLField): The website of the display mentor"""
+    hidden: datetime = models.BooleanField(default=False)
+    """hidden (BooleanField): Whether the display developer is hidden"""
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """createdOn (DateTimeField): The time the display developer was created"""
+
+    def __str__(self):
+        return self.name or self.get_name or str(self.id)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    @property
+    def get_DP(self):
+        if self.profile:
+            return self.profile.getDP()
+        dp = str(self.picture)
+        return settings.MEDIA_URL+dp if not dp.startswith('/') else settings.MEDIA_URL + dp.removeprefix('/')
+
+    @property
+    def get_name(self) -> str:
+        if self.profile:
+            return self.profile.getName()
+        return self.name
+
+    @property
+    def get_about(self) -> str:
+        if self.profile:
+            return self.profile.getBio()
+        return self.about
+
+    @property
+    def get_link(self) -> str:
+        if self.profile:
+            return self.profile.getLink()
+        return self.website
+
+    
+
 class ProfileSuccessorInvitation(Invitation):
     """The model for a profile successor invitation"""
     sender: Profile = models.ForeignKey(

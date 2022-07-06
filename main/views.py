@@ -37,7 +37,7 @@ from moderation.methods import moderationRenderData
 from moderation.models import LocalStorage
 from people.methods import profileRenderData
 from people.methods import rendererstr as peopleRendererstr
-from people.models import (CoreMember, DisplayMentor, GHMarketPurchase,
+from people.models import (CoreMember, DisplayMentor, CoreContributor, GHMarketPurchase,
                            Profile, Topic)
 from projects.methods import coreProfileData, freeProfileData
 from projects.methods import rendererstr as projectsRendererstr
@@ -177,7 +177,7 @@ def home(request: WSGIRequest) -> HttpResponse:
         return redirect(URL.ROOT)
     competition: Competition = Competition.latest_competition()
     topics = Topic.homepage_topics()
-    project:BaseProject = BaseProject.homepage_project()
+    project: BaseProject = BaseProject.homepage_project()
     return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
 
 
@@ -196,6 +196,7 @@ def homeDomains(request: WSGIRequest, domain: str) -> HttpResponse:
     """
     return renderView(request, domain, fromApp="home")
 
+
 @require_GET
 def search_view(request: WSGIRequest) -> HttpResponse:
     """To render the search view
@@ -204,7 +205,7 @@ def search_view(request: WSGIRequest) -> HttpResponse:
 
     Args:
         request (WSGIRequest): The request object.
-            
+
     Returns:
         HttpResponse: The rendered text/html view with context.
     """
@@ -212,6 +213,7 @@ def search_view(request: WSGIRequest) -> HttpResponse:
         return renderView(request, Template.SEARCH)
     except Exception as e:
         raise Http404(e)
+
 
 @ratelimit(key='user_or_ip', rate='2/s', block=True)
 @decode_JSON
@@ -222,7 +224,7 @@ def search_results(request: WSGIRequest) -> HttpResponse:
 
     Args:
         request (WSGIRequest): The request object.
-            
+
     Returns:
         HttpResponse: The rendered text/html view with context.
     """
@@ -249,6 +251,7 @@ def search_results(request: WSGIRequest) -> HttpResponse:
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         return redirect(setURLAlerts(f"/{URL.SEARCH}", error=Message.ERROR_OCCURRED))
+
 
 @require_GET
 def redirector(request: WSGIRequest) -> HttpResponse:
@@ -307,7 +310,7 @@ def at_nickname(request: WSGIRequest, nickname: str) -> HttpResponse:
         if request.user.is_authenticated:
             if nickname == request.user.profile.get_nickname():
                 return redirect(request.user.profile.get_link)
-        profile_url:str = Profile.nickname_profile_url(nickname)
+        profile_url: str = Profile.nickname_profile_url(nickname)
         return redirect(profile_url)
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -381,7 +384,7 @@ def on_boarding_update(request: WSGIRequest) -> JsonResponse:
         request (WSGIRequest): The request object.
 
     Returns:
-        JsonResponse: The response json with main.strings.Code.OK if the on boarding status is updated successfully, 
+        JsonResponse: The response json with main.strings.Code.OK if the on boarding status is updated successfully,
             else main.strings.Code.NO
     """
     try:
@@ -500,7 +503,7 @@ def verifyCaptcha(request: WSGIRequest) -> JsonResponse:
         request (WSGIRequest): The request object.
 
     Returns:
-        JsonResponse: The response json with main.strings.Code.OK if the captcha is verified successfully, 
+        JsonResponse: The response json with main.strings.Code.OK if the captcha is verified successfully,
             else main.strings.Code.NO
     """
     try:
@@ -559,6 +562,36 @@ def donation(request: WSGIRequest) -> HttpResponse:
         return respondJson(Code.NO)
     else:
         return renderView(request, Template.DONATION)
+
+
+@decode_JSON
+def thankyou(request: WSGIRequest) -> HttpResponse:
+    """To render the donation page and handle all donation requests.
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view of donation page.
+        JsonResponse: the response json with main.strings.Code.OK if request succeeds, else main.strings.Code.NO.
+
+    """
+    cachekey = f"thankyou_{type}{request.LANGUAGE_CODE}"
+    if request.method == "POST":
+        return respondJson(Code.NO)
+    else:
+        contributors = cache.get(cachekey, [])
+        count = len(contributors)
+        if not count:
+            contributors = CoreContributor.objects.filter(
+                hidden=False).order_by("-createdOn")
+            count = len(contributors)
+        if count:
+            cache.set(cachekey, contributors, settings.CACHE_MINI)
+        print(contributors)
+        return renderView(request, Template.THANKYOU, dict(dmentors=contributors, count=count))
 
 
 @require_GET
@@ -1145,15 +1178,16 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 snaps = cache.get(cachekey, [])
                 snapIDs = [snap.id for snap in snaps]
                 if not len(snaps):
-                    projIDs = Submission.objects.filter(competition__admirers=request.user.profile).exclude(free_project=None).values_list("free_project__id", flat=True)
+                    projIDs = Submission.objects.filter(competition__admirers=request.user.profile).exclude(
+                        free_project=None).values_list("free_project__id", flat=True)
                     snaps = Snapshot.objects.filter(
                         Q(
                             Q(creator=request.user.profile)
-                          | Q(base_project__creator=request.user.profile)
-                          | Q(base_project__co_creators=request.user.profile)
-                          | Q(base_project__id__in=list(projIDs))
-                          | Q(creator__admirers=request.user.profile)
-                          | Q(base_project__admirers=request.user.profile)
+                            | Q(base_project__creator=request.user.profile)
+                            | Q(base_project__co_creators=request.user.profile)
+                            | Q(base_project__id__in=list(projIDs))
+                            | Q(creator__admirers=request.user.profile)
+                            | Q(base_project__admirers=request.user.profile)
                         ),
                         base_project__suspended=False, base_project__trashed=False, base_project__is_archived=False, suspended=False
                     ).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
