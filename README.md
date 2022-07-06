@@ -7,6 +7,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) if you have read the whole README.md and 
 - हिंदी में रीडमी [यहां पढ़ें](रीडमी.md)
 - You can contribute too by adding Readme.md in another language
 
+Join the internal communications channel on our own [Knotters Discord Server](https://discord.gg/ZxbY6GgCES) for discussions.
+
 ## Setup
 
 Linux environment is preferred, so if you were planning to boot/dual boot your pc with linux, this is the right time.
