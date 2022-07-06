@@ -217,7 +217,6 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
             try:
                 fname, lname = convertToFLname(
                     str(request.POST['displayname']))
-                nickname = str(request.POST['nickname'])
                 bio = str(request.POST['profilebio']).strip()
                 if fname and fname != profile.user.first_name:
                     profile.user.first_name = fname
@@ -225,9 +224,6 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
                 if lname != profile.user.last_name:
                     profile.user.last_name = lname
                     userchanged = True
-                if nickname != profile.nickname:
-                    profile.nickname = nickname
-                    profilechanged = True
                 if filterBio(bio) != profile.bio:
                     profile.bio = filterBio(bio)
                     profilechanged = True

@@ -518,26 +518,23 @@ def device_notifcation_toggle(request: WSGIRequest, notifID: UUID) -> JsonRespon
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@ require_JSON
-def nicknameEdit(request: WSGIRequest) -> JsonResponse:
+@require_JSON
+def nicknameEdit(request: WSGIRequest):
 
     try:
-        nicknamedata = request.POST['nickname']
-        nicknamedata = re_sub(r'[^a-z0-9\-]', "", nicknamedata[:20])
-        nicknamedata = "-".join(list(filter(lambda c: c,
-                                nicknamedata.split('-')))).lower()
-
-        if Profile.objects.filter(nickname=nicknamedata).exists():
-            return respondRedirect(APPNAME, "", error=Message.ALREADY_EXISTS)
+        nickname = request.POST['nickname']
+        nickname = re_sub(r'[^a-z0-9\-]', "", nickname[:20])
+        nickname = "-".join(list(filter(lambda c: c, nickname.split('-')))).lower()
+        if Profile.objects.filter(nickname__iexact=nickname).exists():
+            return respondRedirect(APPNAME, alert=Message.NICKNAME_ALREADY_TAKEN)
         else:
-            request.user.profile.nickname = nicknamedata
+            request.user.profile.nickname = nickname
             request.user.profile.save()
-            print(URL.AUTH)
-            return redirect(URL.AUTH)
+            return respondRedirect(APPNAME, alert=Message.NICKNAME_UPDATED)
 
     except Exception as e:
         errorLog(e)
-        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return respondRedirect(APPNAME, alert=Message.SUBMISSION_ERROR)
 
 
 @ require_JSON

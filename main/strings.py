@@ -245,6 +245,7 @@ class Message():
     LICENSE_UNSELECTED = _("You have to choose a license")
     NICKNAME_ALREADY_TAKEN = _(
         "The nickname is not available, try something else.")
+    NICKNAME_UPDATED = _("Nickname updated successfully")
     CODENAME_ALREADY_TAKEN = _(
         "The codename is not available, try something else.")
     INVALID_LIC_DATA = _('Invalid license data')

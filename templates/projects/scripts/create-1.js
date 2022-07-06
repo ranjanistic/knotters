@@ -1,7 +1,7 @@
 let currentStep = isNaN("{{request.GET.step}}")
     ? 0
     : Number("{{request.GET.step}}");
-{% if request.user.profile.has_ghID %}
+{% if not request.user.profile.has_ghID %}
 connectWithGithub(URLS.CREATE_MOD, (_) => {
     window.location.replace(URLS.CREATE);
 });

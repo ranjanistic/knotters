@@ -20,7 +20,7 @@
 {% block nav_noauth %}{% endblock %}
 
 {% block content %}
-{% if not user.profile.has_ghID %}
+{% if user.profile.has_ghID %}
 <div class="w3-center w3-padding-small tertiary w3-animate-opacity">
     <h6>Before you apply a project for verification, you should go through the <a target="_blank" rel="noreferrer" class="positive-text" href="/docs/moderationguidelines">
     project guidelines</a>.</h6>
