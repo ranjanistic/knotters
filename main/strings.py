@@ -1179,6 +1179,8 @@ class URL():
         COCREATOR_INVITE_ACT = 'invitation/action/cocreatorship/<str:inviteID>'
         MANAGE_PROJECT_COCREATOR = 'cocreator/manage/<str:projectID>'
 
+        LEAVE_MODERATORSHIP = 'leavemod'
+
         def inviteProjectCocreator(self, projectID):
             return setPathParams(self.INVITE_PROJECT_COCREATOR, projectID)
 

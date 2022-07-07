@@ -3157,3 +3157,16 @@ def projectCocreatorManage(request: WSGIRequest, projectID: UUID) -> JsonRespons
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@normal_profile_required
+def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
+    """To leave moderatorship without transferring projects"""
+    try:
+        profile:Profile = request.user.profile
+        profile.is_moderator = 0
+        profile.save()
+        return redirect(profile.getLink())
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
