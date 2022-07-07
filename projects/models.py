@@ -869,7 +869,7 @@ class BaseProject(models.Model):
 
     def can_edit_assets(self, profile: Profile) -> bool:
         """checks if the profile can edit assets in general"""
-        return self.is_cocreator(profile) or self.creator == profile or self.getModerator() == profile
+        return self.is_cocreator(profile) or self.creator == profile or (self.is_free() or self.getProject().getModerator() == profile)
 
     def can_add_assets(self, profile: Profile = None) -> bool:
         """Returns True if the project can add more assets. (If profile is provided, checks if the profile can add assets as well)"""

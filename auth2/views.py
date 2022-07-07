@@ -1,5 +1,6 @@
+from main.strings import url
 from uuid import UUID
-
+from re import sub as re_sub
 from allauth.account.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
@@ -18,6 +19,10 @@ from .mailers import (accountInactiveAlert, accountReactiveAlert, assetMigration
 from .methods import get_auth_section_html, migrateUserAssets, renderer
 from .models import DeviceNotification, EmailNotification
 from .receivers import *
+
+from main.strings import URL
+from main.methods import respondRedirect
+from auth2.apps import APPNAME
 
 
 @normal_profile_required
@@ -508,6 +513,43 @@ def device_notifcation_toggle(request: WSGIRequest, notifID: UUID) -> JsonRespon
         return respondJson(Code.OK)
     except (KeyError, ObjectDoesNotExist, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@require_JSON
+def nicknameEdit(request: WSGIRequest):
+
+    try:
+        nickname = request.POST['nickname']
+        nickname = re_sub(r'[^a-z0-9\-]', "", nickname[:20])
+        nickname = "-".join(list(filter(lambda c: c, nickname.split('-')))).lower()
+        if Profile.objects.filter(nickname__iexact=nickname).exists():
+            return respondRedirect(APPNAME, alert=Message.NICKNAME_ALREADY_TAKEN)
+        else:
+            request.user.profile.nickname = nickname
+            request.user.profile.save()
+            return respondRedirect(APPNAME, alert=Message.NICKNAME_UPDATED)
+
+    except Exception as e:
+        errorLog(e)
+        return respondRedirect(APPNAME, alert=Message.SUBMISSION_ERROR)
+
+
+@ require_JSON
+def validateField(request: WSGIRequest) -> JsonResponse:
+
+    try:
+        data = request.POST["nickname"]
+        data = re_sub(r'[^a-z0-9\-]', "", data[:20])
+        data = "-".join(list(filter(lambda c: c, data.split('-')))).lower()
+        if Profile.objects.filter(nickname=data).exists():
+            print("exists")
+            return respondJson(Code.NO, error=Message.Custom.already_exists(data))
+        else:
+            return respondJson(Code.OK)
+
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

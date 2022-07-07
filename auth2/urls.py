@@ -24,6 +24,8 @@ urlpatterns = [
     # account
     path(URL.Auth.ACCOUNTACTIVATION, accountActivation),
     path(URL.Auth.ACCOUNTDELETE, accountDelete),
+    path(URL.Auth.NICKNAMEEDIT, nicknameEdit),
+    path(URL.Auth.VALIDATEFIELD, validateField),
     # notification
     path(URL.Auth.NOTIF_ENABLED, notification_enabled),
     path(URL.Auth.NOTIFICATION_TOGGLE_EMAIL, email_notification_toggle),

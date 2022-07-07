@@ -353,7 +353,7 @@ self.addEventListener(EVENTS.PUSH, (event) => {
             requireInteraction:
                 data.requireInteraction || defaultOps.requireInteraction,
             silent: data.silent || defaultOps.silent,
-            tag: data.tag || defaultOps.tag,
+            tag: data.tag || title || defaultOps.tag,
             timestamp: data.timestamp || defaultOps.timestamp,
             vibrate: data.vibrate || defaultOps.vibrate,
         };

@@ -5,6 +5,7 @@ from people.models import Profile
 from .env import BOTMAIL, PUBNAME, SITE, VERSION
 from .methods import renderData
 from .strings import DIVISIONS, URL, Action, Browse, Code, Message, Template
+from projects.models import LegalDoc
 
 GlobalContextData = dict(
     APPNAME=PUBNAME,
@@ -18,6 +19,8 @@ GlobalContextData = dict(
     ICON_PNG=f"{settings.STATIC_URL}graphics/self/1024/icon.webp",
     ICON_DARK_PNG=f"{settings.STATIC_URL}graphics/self/1024/icon-dark.webp",
     ICON_SHADOW_PNG=f"{settings.STATIC_URL}graphics/self/1024/icon-shadow.webp",
+    ICON_CIRCLE=f"{settings.STATIC_URL}graphics/self/icon-circle.svg",
+    ICON_CIRCLE_DARK=f"{settings.STATIC_URL}graphics/self/icon-circle-dark.svg",
     BANNER=f"{settings.STATIC_URL}graphics/self/banner.svg",
     BANNER_PNG=f"{settings.STATIC_URL}graphics/self/2500x1000/banner-bg.webp",
     SERVICE_WORKER=f"/{URL.SERVICE_WORKER}",
@@ -45,7 +48,8 @@ def Global(request):
                 CODE=Code.getAllKeys(),
                 SUBAPPS=dict(),
                 SUBAPPSLIST=[],
-                SOCIALS=ThirdPartyAccount.get_all()
+                SOCIALS=ThirdPartyAccount.get_all(),
+                LEGAL_DOCS=LegalDoc.get_all(),
                 )
 
     for div in DIVISIONS:

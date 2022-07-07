@@ -342,6 +342,14 @@ Follow are some specific coding guides for this project, can be used as referenc
       ```
       The above script import example can be found at the bottom of `templates/people/profile.html`.
 
+- See [this](https://github.com/knottersbot/knotters/commit/aea98d9ef496f227366a298d84ad03cc17c12578#commitcomment-74920666) for nomenclature guide
+
+- In test cases, use separate client objects for each individual test function as much as possible
+
+- All time consuming functions are passed over to `qcluster` for execution, including sending email or push notifications, generating certificates, etc.
+
+- Global information such as Knotters social links, documents like privacy policy etc. are kept in database too.
+
 You can start contribution by going through the [issues](https://github.com/knottersbot/knotters/issues) and working upon them as per your knowledge.
 In doubt, you can always reach out the maintainers of this project.
 
@@ -349,13 +357,13 @@ In doubt, you can always reach out the maintainers of this project.
 
 - Always document your code as much as possible. Every function, class, Global object, or anything worth documenting created by you should be documented by you too. Follow the pattern being followed in existing source code for documentation.
 
-- Write tests for everything you create, especially for the request handling functions.
+- Write tests for everything you create, especially for the request handling functions (views)
 
 - Avoid changing database model names once deployed, to avoid problems related to existing records.
 
-- Always create a separate branch for any new task, and always create it from the beta branch.
+- Always create a separate branch for any new task, and always create it from the beta branch. (You can update the beta branch from main if beta is behind main, though this shouldn't happen)
 
-- Always create a pull request from your branch to beta branch. No changes should be made on main branch directly.
+- No changes should be made on main branch directly. You may however, merge your branch directly into beta, and after testing everything there, create a pull request from your branch to main.
 
 - Updates on beta branch are always deployed on beta.knotters.org
 

@@ -245,6 +245,7 @@ class Message():
     LICENSE_UNSELECTED = _("You have to choose a license")
     NICKNAME_ALREADY_TAKEN = _(
         "The nickname is not available, try something else.")
+    NICKNAME_UPDATED = _("Nickname updated successfully")
     CODENAME_ALREADY_TAKEN = _(
         "The codename is not available, try something else.")
     INVALID_LIC_DATA = _('Invalid license data')
@@ -670,6 +671,8 @@ class URL():
         GETSUCCESSOR = 'account/successor'
         INVITESUCCESSOR = 'account/successor/invite'
         ACCOUNTDELETE = "account/delete"
+        NICKNAMEEDIT = "account/nickname"
+        VALIDATEFIELD = 'validate'
 
         SUCCESSORINVITE = 'invitation/successor/<str:predID>'
 
@@ -682,7 +685,14 @@ class URL():
             return setPathParams(self.SUCCESSORINVITEACTION, action)
 
         NOTIFICATION_TOGGLE_EMAIL = "notification/toggle/e/<str:notifID>"
+
+        def notificationToggleEmail(self, notifID):
+            return setPathParams(self.NOTIFICATION_TOGGLE_EMAIL, notifID)
+
         NOTIFICATION_TOGGLE_DEVICE = "notification/toggle/d/<str:notifID>"
+
+        def notificationToggleDevice(self, notifID):
+            return setPathParams(self.NOTIFICATION_TOGGLE_DEVICE, notifID)
 
         def getURLSForClient(self) -> dict:
             URLS = dict()
@@ -971,7 +981,6 @@ class URL():
                 URLS[key] = f"{url.getRoot(PEOPLE)}{setPathParams(urls[key])}"
             return URLS
 
-
     people = People()
 
     class Projects():
@@ -1035,7 +1044,7 @@ class URL():
             return setPathParams(self.PROFILE_BASE, nickname)
 
         AT_NICKANAME = '@<str:nickname>'
-        
+
         def at_nickname(self, nickname: str):
             return setPathParams(self.AT_NICKANAME, nickname)
 

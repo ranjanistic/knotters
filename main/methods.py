@@ -136,7 +136,7 @@ def respondJson(code: str, data: dict = dict(), error: str = str(), message: str
     ), encoder=JsonEncoder)
 
 
-def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(), error: str = str()) -> HttpResponseRedirect:
+def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(), error: str = str(), success: str = str()) -> HttpResponseRedirect:
     """returns redirect http response, with some parametric modifications.
 
     Args:
@@ -144,11 +144,12 @@ def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(),
         path (str, optional): The path to redirect to.
         alert (str, optional): The alert message to be sent along with the redirect.
         error (str, optional): The error message to be sent along with the redirect.
+        success (str, optional): The success message to be sent along with the redirect.
 
     Returns:
         HttpResponseRedirect: The redirect http response.
     """
-    return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,otherQueries=(path.__contains__('?') or path.__contains__('&')))}")
+    return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,success=success,otherQueries=(path.__contains__('?') or path.__contains__('&')))}")
 
 
 def getDeepFilePaths(dir_name: str, appendWhen: callable = None):
@@ -297,9 +298,9 @@ def errorLog(*args):
     """
     if not ISTESTING:
         log(LOG_CODE_ERROR, args)
-        if ISPRODUCTION:
-            from main.mailers import sendErrorLog
-            return sendErrorLog(*args)
+       # if ISPRODUCTION:
+         #   from main.mailers import sendErrorLog
+      #      return sendErrorLog(*args)
         if ISDEVELOPMENT:
             return print_exc()
 
@@ -349,7 +350,7 @@ def verify_captcha(recaptcha_response: str) -> bool:
             response=recaptcha_response
         ))
         result = resp.json()
-        return result['success'] if result['score'] > 0.7 else False
+        return result['success'] if result['score'] > 0.4 else False
     except Exception as e:
         errorLog(e)
         return False

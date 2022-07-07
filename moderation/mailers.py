@@ -18,11 +18,12 @@ def moderationAssignedAlert(moderation: Moderation) -> str:
         str: task ID of the email task.
         bool: False if the email was not sent.
     """
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=moderation.moderator.user, device_notification__notification__code=NotificationCode.MODERATION_ASSIGNED).exists():
-        user_device_notify(moderation.moderator.user, "New Moderation Assigned",
+        device = user_device_notify(moderation.moderator.user, "New Moderation Assigned",
                            f"A new {['project', 'competition', 'person', 'core project'][[PROJECTS, COMPETE, PEOPLE, CORE_PROJECT].index(moderation.type)]} moderation has been assigned to you to review. The following link button will take you directly to the moderation view.", moderation.getLink())
     if EmailNotificationSubscriber.objects.filter(user=moderation.moderator.user, email_notification__notification__code=NotificationCode.MODERATION_ASSIGNED).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=moderation.moderator.getEmail(),
             username=moderation.moderator.getName(),
             subject="New Moderation Assigned",
@@ -34,6 +35,7 @@ def moderationAssignedAlert(moderation: Moderation) -> str:
             footer=f"Take action only after thoroughly reviewing this moderation. This moderation will become stale in {moderation.stale_days} days if not responded.",
             conclusion=f"You received this email because you're a moderator at {PUBNAME}. If this is an error, please report to us."
         )
+    return device, email
 
 
 def moderationActionAlert(moderation: Moderation, status: str) -> str:
@@ -48,11 +50,12 @@ def moderationActionAlert(moderation: Moderation, status: str) -> str:
         bool: False if the email was not sent.
 
     """
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=moderation.moderator.user, device_notification__notification__code=NotificationCode.MODERATION_ACTION).exists():
-        user_device_notify(moderation.moderator.user, f"Moderation {status.capitalize()}",
+        device = user_device_notify(moderation.moderator.user, f"Moderation {status.capitalize()}",
                            f"This is to inform you that a {['project', 'competition', 'person', 'core project'][[PROJECTS, COMPETE, PEOPLE, CORE_PROJECT].index(moderation.type)]} moderation has been {status} by you as the assigned moderator.", moderation.getLink())
     if EmailNotificationSubscriber.objects.filter(user=moderation.moderator.user, email_notification__notification__code=NotificationCode.MODERATION_ACTION).exists():
-        sendAlertEmail(
+        email = sendAlertEmail(
             to=moderation.moderator.getEmail(),
             username=moderation.moderator.getFName(),
             subject=f"Moderation {status.capitalize()}",
@@ -64,6 +67,7 @@ def moderationActionAlert(moderation: Moderation, status: str) -> str:
             footer="If you acknowledge this action, then this email can be ignored safely.",
             conclusion=f"You received this email because you're a moderator at {PUBNAME}. If this is an error, please report to us."
         )
+    return device, email
 
 
 def madeModeratorAlert(profile: Profile) -> str:
@@ -76,11 +80,12 @@ def madeModeratorAlert(profile: Profile) -> str:
         str: task ID of the email task.
         bool: False if the email was not sent.
     """
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.MODERATION_ACTION).exists():
-        user_device_notify(profile.user, "Promotion to Moderator",
+        device = user_device_notify(profile.user, "Promotion to Moderator",
                            f"Congratulations! You have been made one of our moderators. This brings previleges and duties with rewards! The following link button will brief you as a moderator.", '/docs/moderationguidelines')
     if EmailNotificationSubscriber.objects.filter(user=profile.user, email_notification__notification__code=NotificationCode.UPGRADE_MODERATOR).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=profile.getEmail(),
             username=profile.getFName(),
             subject=f"Promotion to Moderator",
@@ -92,3 +97,4 @@ def madeModeratorAlert(profile: Profile) -> str:
             footer=f"It's fun and rewarding to be a moderator at {PUBNAME}, and we wish you loads of luck with your adventure lying ahead!",
             conclusion=f"You received this email because you've been made a moderator at {PUBNAME}. You can always withdraw from this previlege via your account settings."
         )
+    return device, email

@@ -23,10 +23,10 @@ def alertLegalUpdate(docname: str, docurl: str) -> list:
     done = []
     for email in emails:
         if DeviceNotificationSubscriber.objects.filter(user=email, device_notification__notification__code=NotificationCode.ALERT_LEGAL_UPDATE).exists():
-            user_device_notify(email, f"Update to our {docname}",
+            device = user_device_notify(email, f"Update to our {docname}",
                                f"This is to infom you that our {docname} document was updated recently. You can read the latest information anytime from the following link", docurl)
         if EmailNotificationSubscriber.objects.filter(user=email, email_notification__notification__code=NotificationCode.ALERT_LEGAL_UPDATE).exists():
-            taskID = sendActionEmail(
+            email1 = sendActionEmail(
                 to=email,
                 subject=f"Update to our {docname}",
                 header=f"This is to infom you that our {docname} document was updated recently. You can read the latest information anytime from the following link",
@@ -37,8 +37,8 @@ def alertLegalUpdate(docname: str, docurl: str) -> list:
                 footer="It is our duty to keep you updated with changes in our terms & policies.",
                 conclusion=f"This email was sent because we have updated a legal document from our side, which may concern you as you are a member at {PUBNAME}."
             )
-            done.append([email, taskID])
-        return done
+        done.append([device, email1])
+    return done
 
 
 def managementInvitationSent(invite: ManagementInvitation) -> str:
@@ -53,9 +53,10 @@ def managementInvitationSent(invite: ManagementInvitation) -> str:
         return False
     if invite.expired:
         return False
-    user_device_notify(invite.receiver.user, f"Organization Invitation",
+    device, email = False, False
+    device = user_device_notify(invite.receiver.user, f"Organization Invitation",
                        f"You've been invited to be a member of {invite.management.get_name} at {PUBNAME}.", invite.get_link)
-    sendActionEmail(
+    email = sendActionEmail(
         to=invite.receiver.getEmail(),
         username=invite.receiver.getFName(),
         subject=f"Organization Invitation",
@@ -67,6 +68,7 @@ def managementInvitationSent(invite: ManagementInvitation) -> str:
         footer=f"Visit the above link to decide whether you'd like to join the organization at {PUBNAME}.",
         conclusion=f"We recommed you to visit the link and make you decision there. You can block the user if this is a spam."
     )
+    return device, email
 
 
 def managementInvitationAccepted(invite: ManagementInvitation) -> str:
@@ -80,11 +82,12 @@ def managementInvitationAccepted(invite: ManagementInvitation) -> str:
     """
     if not invite.resolved:
         return False
+    device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=invite.receiver.user, device_notification__notification__code=NotificationCode.MANAGEMENT_INVITATION_ACCEPTED).exists():
-        user_device_notify(invite.receiver.user, f"Organization Invitation Accepted",
+        device = user_device_notify(invite.receiver.user, f"Organization Invitation Accepted",
                            f"You've accepted the membership of {invite.management.get_name} organization at {PUBNAME}.", invite.management.get_link)
     if EmailNotificationSubscriber.objects.filter(user=invite.receiver.user, email_notification__notification__code=NotificationCode.MANAGEMENT_INVITATION_ACCEPTED).exists():
-        sendActionEmail(
+        email = sendActionEmail(
             to=invite.receiver.getEmail(),
             username=invite.receiver.getFName(),
             subject=f"Organization Invitation Accepted",
@@ -96,6 +99,7 @@ def managementInvitationAccepted(invite: ManagementInvitation) -> str:
             footer=f"Now you'll get collective growth and perks from your organization on {PUBNAME}, among other benefits.",
             conclusion=f"This email was sent because you accepted an organization's membership invitation."
         )
+    return device, email
 
 
 def managementPersonRemoved(mgm: Management, person: Profile) -> str:
@@ -108,11 +112,11 @@ def managementPersonRemoved(mgm: Management, person: Profile) -> str:
     Returns:
         str: Task ID of the email
     """
-
-    user_device_notify(person.user, f"Organization Membership Terminated",
+    device, email = False, False
+    device = user_device_notify(person.user, f"Organization Membership Terminated",
                        f"You've been detached from {mgm.get_name} organization at {PUBNAME}.")
 
-    sendAlertEmail(
+    email = sendAlertEmail(
         to=person.getEmail(),
         username=person.getFName(),
         subject=f"Organization Membership Terminated",
@@ -120,6 +124,7 @@ def managementPersonRemoved(mgm: Management, person: Profile) -> str:
         footer=f"Either this was your action, or the manager itself. Contact them if there's a mistake.",
         conclusion=f"This email was sent because your membership has been terminated from the organization in Knotters."
     )
+    return device, email
 
 
 def newContactRequestAlert(contactRequest: ContactRequest) -> str:
