@@ -32,7 +32,6 @@ def emailUpdateAlert(user: User, oldEmail: str, newEmail: str) -> str:
                            f"This is to inform you that your {PUBNAME} primary email address was changed from {oldEmail} to {newEmail}, recently."
                            )
 
-    if EmailNotificationSubscriber.objects.filter(user=user, email_notification__notification__code=NotificationCode.EMAIL_UPDATE).    exists():
         email = sendAlertEmail(to=oldEmail, username=user.first_name, subject='Primary Email Address Changed',
                        header=f"This is to inform you that your {PUBNAME} primary email address was changed from {oldEmail} to {newEmail}, recently.",
                        footer="If you acknowledge this action, then this email can be ignored safely.",
