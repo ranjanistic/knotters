@@ -1,4 +1,5 @@
 from datetime import timedelta
+from distutils.log import error
 from uuid import UUID
 
 from django.conf import settings
@@ -23,7 +24,7 @@ from main.exceptions import InvalidUserOrProfile
 from main.methods import (addMethodToAsyncQueue, base64ToFile,
                           base64ToImageFile, errorLog, renderString,
                           respondJson, respondRedirect)
-from main.strings import URL, Action, Code, Message, Template, setURLAlerts
+from main.strings import URL, Action, Code, Message, Moderation, Template, setURLAlerts
 from management.models import GhMarketApp, ReportCategory
 from moderation.methods import (assignModeratorToObject,
                                 requestModerationForCoreProject,
@@ -55,6 +56,7 @@ from .models import (AppRepository, Asset, BaseProject,
 from .receivers import *
 from main.constants import NotificationCode
 from auth2.models import EmailNotificationSubscriber
+from moderation.models import Moderation as ModerationModel
 
 
 @require_GET
@@ -3164,7 +3166,12 @@ def projectCocreatorManage(request: WSGIRequest, projectID: UUID) -> JsonRespons
 def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
     """To leave moderatorship without transferring projects"""
     try:
-        profile:Profile = request.user.profile
+        profile: Profile = request.user.profile
+        moderation: ModerationModel = ModerationModel.objects.get(
+            moderator=profile)
+
+        if moderation.isPending():
+            return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
         profile.is_moderator = 0
         profile.save()
         return redirect(profile.getLink())

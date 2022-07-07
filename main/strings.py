@@ -322,6 +322,10 @@ class Message():
     PENDING_MODERATIONS_EXIST = _(
         "Pending unresolved moderation requests exist.")
 
+    RESOLVE_PENDING = _(
+        "Please resolve your pending projects first."
+    )
+
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
