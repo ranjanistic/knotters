@@ -818,6 +818,14 @@ class Profile(models.Model):
         self.save()
         return True
 
+    def mod_isPending(self):
+        from moderation.models import Moderation
+        return Moderation.objects.filter(moderator=self, resolved=False).exists()
+    
+    def mod_isApproved(self):
+        from moderation.models import Moderation
+        return Moderation.objects.filter(moderator=self, status=Code.APPROVED).exists()
+
     def makeMentor(self):
         """Makes the user a mentor, if possible.
 

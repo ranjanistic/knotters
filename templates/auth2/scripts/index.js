@@ -433,11 +433,46 @@ initializeTabsView({
                     e.target.value = nickname;
                 };
                 const leaveModDialog = async () => {
+                    if ("{{request.user.profile.mod_isPending}}"=="True")
+                    {
+                        await Swal.fire({
+                            title: "Can't Leave Moderation",
+                            html: `<h5>You have pending moderations. Please resolve them first</h5>`,
+                            showConfirmButton: true,
+                            showDenyButton: false,
+                            showCancelButton: true,
+                            cancelButtonText: "Go back",
+                            confirmButtonText: "Take me to moderation tab",
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                location.replace("{{request.user.profile.getLink}}")
+                            }
+                        })
+                        return
+                    }
+                    if("{{request.user.profile.mod_isApproved}}"=="True")
+                    {
+                        await Swal.fire({
+                            title: "Can't Leave Moderation",
+                            html: `<h5>You have approved moderations. You need to transfer them before leaving moderation</h5>
+                            <input type="text" placeholder="Moderator mail" maxlength="70" name="moderator"/>`,
+                            showConfirmButton: true,
+                            showDenyButton: false,
+                            showCancelButton: true,
+                            cancelButtonText: "Go back",
+                            confirmButtonText: "Send Email",
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                location.replace("{{request.user.profile.getLink}}")
+                            }
+                        })
+                        return
+                    }
                     await Swal.fire({
                         title: "Leave Moderation",
                         html: `<h5>${STRING.you_sure_to} ${NegativeText(
                             "leave"
-                        )} Moderatorship?<br/></h5>`,
+                        )} Moderatorship?<br/>This action is irreversible. Proceed with caution.</h5>`,
                         showConfirmButton: false,
                         showDenyButton: true,
                         showCancelButton: true,
@@ -455,7 +490,7 @@ initializeTabsView({
                             });
                             if (data && data.code === code.OK) {
                                 message(STRING.acc_deactivated);
-                                return await logOut();
+                                return
                             }
                             loaders(false);
                             error(data.error);

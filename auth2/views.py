@@ -565,7 +565,8 @@ def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
         pending = list(filter(lambda x : x.isPending(), moderation))
         approved = list(filter(lambda x : x.isApproved(), moderation))
         if len(pending)>0:
-            return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
+            #return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
+            return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
         if len(approved)>0:
             #return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
             return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
