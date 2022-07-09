@@ -1970,7 +1970,7 @@ class CoreContributor(models.Model):
     about: str = models.CharField(max_length=500, null=True, blank=True)
     """about (CharField): The about of the developer"""
     picture: str = models.ImageField(
-        upload_to=displayMentorImagePath, default=defaultImagePath, null=True, blank=True)
+        upload_to=displayContributorImagePath, default=defaultImagePath, null=True, blank=True)
     """picture (ImageField): The picture of the developer"""
     website: datetime = models.URLField(max_length=500, null=True, blank=True)
     """website (URLField): The website of the display mentor"""
