@@ -697,6 +697,8 @@ class URL():
 
         def notificationToggleDevice(self, notifID):
             return setPathParams(self.NOTIFICATION_TOGGLE_DEVICE, notifID)
+        
+        LEAVE_MODERATORSHIP = 'leavemod'
 
         def getURLSForClient(self) -> dict:
             URLS = dict()
@@ -1191,8 +1193,6 @@ class URL():
         VIEW_COCREATOR_INVITE = 'invitation/cocreatorship/<str:inviteID>'
         COCREATOR_INVITE_ACT = 'invitation/action/cocreatorship/<str:inviteID>'
         MANAGE_PROJECT_COCREATOR = 'cocreator/manage/<str:projectID>'
-
-        LEAVE_MODERATORSHIP = 'leavemod'
 
         def inviteProjectCocreator(self, projectID):
             return setPathParams(self.INVITE_PROJECT_COCREATOR, projectID)

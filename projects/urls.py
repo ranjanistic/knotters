@@ -86,7 +86,4 @@ urlpatterns = [
     path(URL.Projects.VIEW_COCREATOR_INVITE, projectCocreatorInvite),
     path(URL.Projects.COCREATOR_INVITE_ACT, projectCocreatorInviteAction),
     path(URL.Projects.MANAGE_PROJECT_COCREATOR, projectCocreatorManage),
-
-    # Moderatorship to normal profile
-    path(URL.Projects.LEAVE_MODERATORSHIP, leaveModeratorship),
 ]

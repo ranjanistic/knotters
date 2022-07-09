@@ -56,7 +56,6 @@ from .models import (AppRepository, Asset, BaseProject,
 from .receivers import *
 from main.constants import NotificationCode
 from auth2.models import EmailNotificationSubscriber
-from moderation.models import Moderation as ModerationModel
 
 
 @require_GET
@@ -3157,24 +3156,6 @@ def projectCocreatorManage(request: WSGIRequest, projectID: UUID) -> JsonRespons
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, KeyError, InvalidUserOrProfile):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-    except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-
-
-@normal_profile_required
-def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
-    """To leave moderatorship without transferring projects"""
-    try:
-        profile: Profile = request.user.profile
-        moderation: ModerationModel = ModerationModel.objects.get(
-            moderator=profile)
-
-        if moderation.isPending():
-            return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
-        profile.is_moderator = 0
-        profile.save()
-        return redirect(profile.getLink())
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

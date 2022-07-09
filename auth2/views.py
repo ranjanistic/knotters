@@ -23,6 +23,7 @@ from .receivers import *
 from main.strings import URL
 from main.methods import respondRedirect
 from auth2.apps import APPNAME
+from moderation.models import Moderation
 
 
 @normal_profile_required
@@ -550,6 +551,28 @@ def validateField(request: WSGIRequest) -> JsonResponse:
         else:
             return respondJson(Code.OK)
 
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
+    """To leave moderatorship without transferring projects"""
+    try:
+        profile: Profile = request.user.profile
+        moderation = Moderation.objects.filter(
+            moderator=profile)
+        pending = list(filter(lambda x : x.isPending(), moderation))
+        approved = list(filter(lambda x : x.isApproved(), moderation))
+        if len(pending)>0:
+            return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
+        if len(approved)>0:
+            #return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
+            return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
+        profile.is_moderator = 0
+        profile.save()
+        # return redirect(profile.getLink())
+        return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

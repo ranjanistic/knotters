@@ -432,6 +432,39 @@ initializeTabsView({
                     if (!nickname) return;
                     e.target.value = nickname;
                 };
+                const leaveModDialog = async () => {
+                    await Swal.fire({
+                        title: "Leave Moderation",
+                        html: `<h5>${STRING.you_sure_to} ${NegativeText(
+                            "leave"
+                        )} Moderatorship?<br/></h5>`,
+                        showConfirmButton: false,
+                        showDenyButton: true,
+                        showCancelButton: true,
+                        denyButtonText:
+                            Icon("toggle_off") +
+                            " " +
+                            "Leave Moderatorship",
+                        cancelButtonText: STRING.no_go_back,
+                    }).then(async (result) => {
+                        if (result.isDenied) {
+                            // message(STRING.deactivating_acc);
+                            // loaders(true);
+                            const data = await getRequest2({
+                                path: URLS.LEAVE_MODERATORSHIP
+                            });
+                            if (data && data.code === code.OK) {
+                                message(STRING.acc_deactivated);
+                                return await logOut();
+                            }
+                            loaders(false);
+                            error(data.error);
+                        }
+                    });
+                };
+                getElement("leavemod").onclick = async (_) => {
+                    leaveModDialog();
+                };
             }
             break;
         }
