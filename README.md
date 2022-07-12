@@ -73,6 +73,13 @@ Set `STATIC_ROOT` in [`main/.env`](main/.env) and [`main/.env.testing`](main/.en
 Make sure whichever path you set is not restricted for server by any directory permissions.
 Also make sure that you DO NOT set the `STATIC_ROOT` as path to the `./static` folder in this project's directory in any way.
 
+For example, if you set `STATIC_ROOT` as `/var/www/knotters/static/`, then run
+
+```bash
+sudo mkdir -p /var/www/knotters/static/
+sudo chown -R <user>:<user> /var/www/knotters/static/
+```
+
 Then, use the following to load static files.
 
 ```bash
