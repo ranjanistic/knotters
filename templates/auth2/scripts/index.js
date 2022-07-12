@@ -445,7 +445,9 @@ initializeTabsView({
                             confirmButtonText: "Take me to moderation tab",
                         }).then(async (result) => {
                             if (result.isConfirmed) {
-                                location.replace("{{request.user.profile.getLink}}")
+                                relocate({path : "{{request.user.profile.getLink}}", query : {
+                                    tab : 4
+                                }})
                             }
                         })
                         return
@@ -453,17 +455,21 @@ initializeTabsView({
                     if("{{request.user.profile.mod_isApproved}}"=="True")
                     {
                         await Swal.fire({
-                            title: "Can't Leave Moderation",
-                            html: `<h5>You have approved moderations. You need to transfer them before leaving moderation</h5>
-                            <input type="text" placeholder="Moderator mail" maxlength="70" name="moderator"/>`,
+                            title: `${NegativeText("Can't Leave Moderation")}`,
+                            html: `<h5>You have approved moderations. You need to transfer them before leaving moderation.<br/><br/>Please enter moderator mail so that we can transfer your approved projects.<br/><br/>You can also click "Go back" and transfer projects individually.</h5>
+                            <br/>
+                            <input id="moderator_mail" type="email" placeholder="Moderator mail" maxlength="70" name="moderator"/>`,
                             showConfirmButton: true,
                             showDenyButton: false,
                             showCancelButton: true,
                             cancelButtonText: "Go back",
                             confirmButtonText: "Send Email",
+                            preConfirm:function(){
+                                mail = document.getElementById('moderator_mail').value
+                            }
                         }).then(async (result) => {
                             if (result.isConfirmed) {
-                                location.replace("{{request.user.profile.getLink}}")
+                                message(mail)
                             }
                         })
                         return

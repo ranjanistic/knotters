@@ -342,6 +342,6 @@
 
 {% block scripts %}
 <script nonce="{{request.csp_nonce}}" src="{% static 'chartjs/chart.min.js' %}"></script>
-<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{person.id}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{person.id}}&tab={{request.GET.tab}}"></script>
 <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/people/profile.js' %}" type="text/javascript"></script>
 {% endblock %}

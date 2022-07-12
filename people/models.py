@@ -401,9 +401,12 @@ class Profile(models.Model):
 
     is_moderator: bool = models.BooleanField(default=False)
     """is_moderator (BooleanField): Whether the user is a moderator."""
+    is_mod_paused: bool = models.BooleanField(default=False)
+    """is_moderator (BooleanField): Whether the user's moderation is paused."""
     is_mentor: bool = models.BooleanField(default=False)
     """is_mentor (BooleanField): Whether the user is a mentor."""
-
+    is_mentor_paused: bool = models.BooleanField(default=False)
+    """is_mentor (BooleanField): Whether the user's mentorship is paused."""
     is_active: bool = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     """is_active (BooleanField): Whether the account is active. This is different from the user's is_active field."""
