@@ -19,15 +19,15 @@
         <strong class="text-medium"><span class="pallete-slab tertiary">{% trans " Thank you for contributing and making what Knotters is today" %}</span></strong>
     </div>
     <div class="w3-row">
-        {% for dmentor in dmentors %}
+        {% for contributor in contributors %}
         <div class="w3-col w3-quarter w3-padding-small"> 
-            <a href="{{dmentor.get_link|or:URLS.PEOPLE}}" {% if dmentor.get_link %}target="_blank" rel="noreferrer"
+            <a href="{{contributor.get_link|or:URLS.PEOPLE}}" {% if contributor.get_link %}target="_blank" rel="noreferrer"
                 {% endif %}>
                 <div class="pallete w3-center no-pad">
-                    <img class="primary border-joy" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" loading="lazy" />
+                    <img class="primary border-joy" src="{{ contributor.get_DP }}" alt="{{ contributor.name }}" loading="lazy" />
                     <div class="w3-row w3-padding">
-                        <h6>{{ dmentor.get_name }}</h6>
-                        <span>{{ dmentor.get_about }}</span>
+                        <h6>{{ contributor.get_name }}</h6>
+                        <span>{{ contributor.get_about }}</span>
                     </div>
                     <br />
                 </div>

@@ -578,10 +578,16 @@ def thankyou(request: WSGIRequest) -> HttpResponse:
         JsonResponse: the response json with main.strings.Code.OK if request succeeds, else main.strings.Code.NO.
 
     """
-    contributors = CoreContributor.objects.filter(
-                hidden=False).order_by("-createdOn")
-    print(list(map(lambda e: e.about, contributors)))
-    return renderView(request, Template.THANKYOU, dict(dmentors=contributors))
+    cachekey = f"thankyou_{type}{request.LANGUAGE_CODE}"
+    contributors = cache.get(cachekey, [])
+    count = len(contributors)
+    if not count:
+        contributors = CoreContributor.objects.filter(
+            hidden=False).order_by("-createdOn")
+        count = len(contributors)
+    if count:
+        cache.set(cachekey, contributors, settings.CACHE_INSTANT)
+    return renderView(request, Template.THANKYOU, dict(contributors=contributors))
 
 
 @require_GET
