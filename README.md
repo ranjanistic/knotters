@@ -37,6 +37,18 @@ After setting up redis, add a user&password pair in acl section in your redis co
 
 Restart redis after any changes to its configuration.
 
+Make sure mongodb is running, using
+
+```bash
+mongosh "mongodb://localhost:27017/"
+```
+Make sure redis is running using
+
+```bash
+redis-cli
+127.0.0.1:6379> auth <user> <password>
+```
+
 ### Environment
 
 ```bash
