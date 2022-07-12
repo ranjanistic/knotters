@@ -588,6 +588,8 @@ class URL():
 
     VERIFY_CAPTCHA = 'captcha/verify'
     DONATE = 'donate/'
+    
+    THANKYOU = 'thankyou/'
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:targetID>/'
     VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
@@ -1466,6 +1468,13 @@ class Template():
         return f'{self.VIEW_SNAPSHOT}.html'
 
     DONATION = "donation"
+
+    THANKYOU = "thankyou"
+
+    @property
+    def thankyou(self):
+        return f'{self.THANKYOU}.html'
+    
 
     @property
     def donation(self):

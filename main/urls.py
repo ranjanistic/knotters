@@ -93,6 +93,7 @@ urlpatterns = [
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template),
     path(ADMINPATH, admin.site.urls),
+    path(URL.THANKYOU, thankyou),
 ]
 
 if not ISPRODUCTION:
