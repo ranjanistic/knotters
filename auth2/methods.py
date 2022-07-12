@@ -1,15 +1,22 @@
+from xmlrpc.client import Boolean
 from compete.models import Competition
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.http.response import HttpResponse
+from datetime import timedelta
 from django.utils import timezone
-from main.methods import errorLog, renderString, renderView
-from main.strings import Auth2, Code
+from main.methods import (errorLog, renderString, renderView, addMethodToAsyncQueue, base64ToFile,
+                          base64ToImageFile, errorLog, renderString,
+                          respondJson, respondRedirect)
+from main.strings import Auth2, Code, Message
 from people.models import Profile, User
-from projects.models import CoreProject, FreeProject, FreeRepository, Project
-
+from projects.models import CoreProject, FreeProject, FreeRepository, Project, LeaveModerationTransferInvitation
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.http import JsonResponse
+from projects.mailers import projectModTransferInvitation
 from .apps import APPNAME
 from .models import DeviceNotification, EmailNotification, Notification
+from main.exceptions import InvalidUserOrProfile
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -120,7 +127,8 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
         if predprofile.hasPredecessors():
             predprofile.predecessors().update(successor=successor)
 
-        comps = Competition.objects.filter(creator=predecessor.profile, is_draft=False)
+        comps = Competition.objects.filter(
+            creator=predecessor.profile, is_draft=False)
         cprojs = CoreProject.objects.filter(
             creator=predecessor.profile, trashed=False, status__in={Code.APPROVED, Code.REJECTED})
         if len(comps) or len(cprojs):
@@ -131,7 +139,7 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
             else:
                 comps.update(creator=succprofile)
                 cprojs.update(migrated=True, migrated_by=predprofile,
-                                migrated_on=timezone.now(), creator=succprofile)
+                              migrated_on=timezone.now(), creator=succprofile)
 
         FreeRepository.objects.filter(
             free_project__creator=predecessor.profile).delete()
@@ -149,6 +157,59 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
         Competition.objects.filter(
             creator=predecessor.profile, is_draft=True).delete()
         return True
+    except Exception as e:
+        errorLog(e)
+        return False
+
+
+def handleLeaveModInvitation(request: WSGIRequest, project, email) -> Boolean:
+    """To handle Leave moderatorship invitation creation/deletion of a verified project
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object
+
+
+    Returns:
+        Boolean:  Returns true if task successful, or false
+    """
+    try:
+        if (request.user.email == email) or (email in request.user.emails()):
+            raise ObjectDoesNotExist(email)
+        if project.moderator() != request.user.profile:
+            raise ObjectDoesNotExist(request.user.profile)
+        if not project.can_invite_mod():
+            raise ObjectDoesNotExist("cannot invite mod: ", project)
+        receiver = Profile.objects.get(
+            user__email=email, is_moderator=True, is_mod_paused=False, suspended=False, is_active=True, to_be_zombie=False)
+        if not project.can_invite_profile(receiver):
+            raise InvalidUserOrProfile(receiver)
+
+        if LeaveModerationTransferInvitation.objects.filter(baseproject=project.base(), receiver=receiver).exists():
+            return False
+        inv, created = LeaveModerationTransferInvitation.objects.get_or_create(
+            project=project,
+            sender=request.user.profile,
+            resolved=False,
+            defaults=dict(
+                receiver=receiver,
+                resolved=False
+            )
+        )
+        inv: LeaveModerationTransferInvitation
+        alert = True
+        if not created:
+            alert = False
+            if inv.receiver != receiver:
+                inv.receiver = receiver
+                inv.expiresOn = timezone.now() + timedelta(days=1)
+                inv.save()
+                alert = True
+        if alert:
+            projectModTransferInvitation(inv)
+    except (ObjectDoesNotExist, InvalidUserOrProfile):
+        return False
     except Exception as e:
         errorLog(e)
         return False

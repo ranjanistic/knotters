@@ -2388,7 +2388,7 @@ def handleVerModInvitation(request: WSGIRequest) -> JsonResponse:
             if not project.can_invite_mod():
                 raise ObjectDoesNotExist("cannot invite mod: ", project)
             receiver = Profile.objects.get(
-                user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
+                user__email=email, is_moderator=True, is_mod_paused = False, suspended=False, is_active=True, to_be_zombie=False)
             if not project.can_invite_profile(receiver):
                 raise InvalidUserOrProfile(receiver)
 

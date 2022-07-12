@@ -1,3 +1,4 @@
+import email
 from main.strings import url
 from uuid import UUID
 from re import sub as re_sub
@@ -16,7 +17,7 @@ from people.models import Profile, User
 
 from .mailers import (accountInactiveAlert, accountReactiveAlert, assetMigrationProblem,
                       successorAccepted, successorDeclined, successorInvite)
-from .methods import get_auth_section_html, migrateUserAssets, renderer
+from .methods import get_auth_section_html, migrateUserAssets, renderer, handleLeaveModInvitation
 from .models import DeviceNotification, EmailNotification
 from .receivers import *
 
@@ -525,7 +526,8 @@ def nicknameEdit(request: WSGIRequest):
     try:
         nickname = request.POST['nickname']
         nickname = re_sub(r'[^a-z0-9\-]', "", nickname[:20])
-        nickname = "-".join(list(filter(lambda c: c, nickname.split('-')))).lower()
+        nickname = "-".join(list(filter(lambda c: c,
+                            nickname.split('-')))).lower()
         if Profile.objects.filter(nickname__iexact=nickname).exists():
             return respondRedirect(APPNAME, alert=Message.NICKNAME_ALREADY_TAKEN)
         else:
@@ -556,24 +558,21 @@ def validateField(request: WSGIRequest) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
+@ require_JSON
 def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
     """To leave moderatorship without transferring projects"""
     try:
         profile: Profile = request.user.profile
         moderation = Moderation.objects.filter(
             moderator=profile)
-        pending = list(filter(lambda x : x.isPending(), moderation))
-        approved = list(filter(lambda x : x.isApproved(), moderation))
-        if len(pending)>0:
-            #return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
-            return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
-        if len(approved)>0:
-            #return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
-            return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
-        profile.is_moderator = 0
-        profile.save()
-        # return redirect(profile.getLink())
-        return respondJson(Code.OK)
+        mailId = request.POST["email"]
+        if Profile.objects.filter(email=mailId, is_moderator = True, is_paused = False).exists():
+            approved = list(filter(lambda x: x.isApproved(), moderation))
+            map(lambda x: handleLeaveModInvitation(
+            request, x.project, mailId), approved)
+        else :
+            respondJson(Code.NO, error=Message.INVALID_MODERATOR)
+        # return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

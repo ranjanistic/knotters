@@ -470,6 +470,12 @@ initializeTabsView({
                         }).then(async (result) => {
                             if (result.isConfirmed) {
                                 message(mail)
+                                const data = await postRequest2({
+                                path: URLS.LEAVE_MODERATORSHIP,
+                                data: {
+                                    email: mail,
+                                },
+                            });
                             }
                         })
                         return
