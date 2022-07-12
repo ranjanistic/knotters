@@ -564,7 +564,7 @@ def donation(request: WSGIRequest) -> HttpResponse:
         return renderView(request, Template.DONATION)
 
 
-@decode_JSON
+@require_GET
 def thankyou(request: WSGIRequest) -> HttpResponse:
     """To render the donation page and handle all donation requests.
 
@@ -578,20 +578,10 @@ def thankyou(request: WSGIRequest) -> HttpResponse:
         JsonResponse: the response json with main.strings.Code.OK if request succeeds, else main.strings.Code.NO.
 
     """
-    cachekey = f"thankyou_{type}{request.LANGUAGE_CODE}"
-    if request.method == "POST":
-        return respondJson(Code.NO)
-    else:
-        contributors = cache.get(cachekey, [])
-        count = len(contributors)
-        if not count:
-            contributors = CoreContributor.objects.filter(
+    contributors = CoreContributor.objects.filter(
                 hidden=False).order_by("-createdOn")
-            count = len(contributors)
-        if count:
-            cache.set(cachekey, contributors, settings.CACHE_MINI)
-        print(contributors)
-        return renderView(request, Template.THANKYOU, dict(dmentors=contributors, count=count))
+    print(list(map(lambda e: e.about, contributors)))
+    return renderView(request, Template.THANKYOU, dict(dmentors=contributors))
 
 
 @require_GET
@@ -1121,6 +1111,7 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.BROWSER}"),
                 setPathParams(f"/{URL.SCRIPTS}"),
                 setPathParams(f"/{URL.SCRIPTS_SUBAPP}"),
+                setPathParams(f"/{URL.THANKYOU}"),
             ])
         )))
         return context

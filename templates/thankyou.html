@@ -4,56 +4,39 @@
 {% load tz %}
 {% load cache %}
 {% load custom_tags %}
+{% block title %}
+{% trans "Thank You" %}
+{% endblock %}
+{% block nav_text %}
+{% trans "Thank You" %}
+{% endblock %}
 {% block content %}
 
-<h5>{{count}}</h5>
-{% if count %}
-<div class="w3-row secondary" style="background-image: url('{{ICON_SHADOW}}');">
-    <div class="w3-row" style="padding:16px 4px">
-        <h5 class="w3-center"><span class="pallete-slab tertiary">{% trans "Contributors" %}</span></h5>
+
+<div class="w3-row tertiary" style="background-image: url('{{ICON_SHADOW}}');">
+    <div class="w3-row w3-center" style="padding:16px 4px">
+        <h3><span class="pallete-slab tertiary">{% trans " Core Contributors" %}</span></h3>
+        <strong class="text-medium"><span class="pallete-slab tertiary">{% trans " Thank you for contributing and making what Knotters is today" %}</span></strong>
     </div>
-    <div class="w3-hide-medium w3-hide-small swiper-container swiper-browser">
-        <div class="swiper-wrapper swiper-wrap">
-            {% for dmentor in dmentors %}
-            <div class="swiper-slide w3-animate-zoom">
-                <a href="{{dmentor.get_link|or:URLS.PEOPLE}}" {% if dmentor.get_link %}target="_blank" rel="noreferrer"
-                    {% endif %}>
-                    <div class="pallete w3-center no-pad">
-                        <img class="primary" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" loading="lazy" />
-                        <div class="w3-row w3-padding">
-                            <h6>{{ dmentor.get_name }}</h6>
-                            <span>{{ dmentor.get_about }}</span>
-                        </div>
-                        <br />
+    <div class="w3-row">
+        {% for dmentor in dmentors %}
+        <div class="w3-col w3-quarter w3-padding-small"> 
+            <a href="{{dmentor.get_link|or:URLS.PEOPLE}}" {% if dmentor.get_link %}target="_blank" rel="noreferrer"
+                {% endif %}>
+                <div class="pallete w3-center no-pad">
+                    <img class="primary border-joy" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" loading="lazy" />
+                    <div class="w3-row w3-padding">
+                        <h6>{{ dmentor.get_name }}</h6>
+                        <span>{{ dmentor.get_about }}</span>
                     </div>
-                </a>
-            </div>
-            {% endfor %}
+                    <br />
+                </div>
+            </a>
         </div>
-    </div>
-    <div class="w3-hide-large  w3-row">
-        <div class="swiper-wrap_i">
-            {% for dmentor in dmentors %}
-            <div class="w3-col">
-                <a href="{{dmentor.get_link|or:URLS.PEOPLE}}" {% if dmentor.get_link %}target="_blank" rel="noreferrer"
-                    {% endif %}>
-                    <div class="pallete pallete_i w3-center" style="max-height:540px;height:auto;">
-                        <img class="primary" src="{{ dmentor.get_DP }}" alt="{{ dmentor.name }}" loading="lazy" />
-                        <div class="w3-row w3-padding">
-                            <h6>{{ dmentor.get_name }}</h6>
-                            <span>{{ dmentor.get_about }}</span>
-                        </div>
-                        <br />
-                    </div>
-                </a>
-            </div>
-            {% endfor %}
-        </div>
+        {% endfor %}
     </div>
     <br />
 </div>
-{% endif %}
-
 {% endblock %}
 
 {% block scripts %}

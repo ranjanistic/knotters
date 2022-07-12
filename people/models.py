@@ -1996,15 +1996,19 @@ class CoreContributor(models.Model):
 
     @property
     def get_name(self) -> str:
+        if self.name:
+            return self.name
         if self.profile:
             return self.profile.getName()
-        return self.name
+        return "Core contributor"
 
     @property
     def get_about(self) -> str:
+        if self.about:
+            return self.about
         if self.profile:
             return self.profile.getBio()
-        return self.about
+        return "Contributed to Knotters"
 
     @property
     def get_link(self) -> str:
