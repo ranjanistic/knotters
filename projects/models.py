@@ -2791,22 +2791,16 @@ class CoreProjectVerificationRequest(Invitation):
 
 class LeaveModerationTransferInvitation(Invitation):
     """Model for verified project moderatorship transfer invitation record"""
-    project: Project = models.OneToOneField(
-        Project, on_delete=models.CASCADE, related_name='mod_invitation_verifiedproject')
-    """project (OneToOneField<Project>): verified project of which moderatorship is being transferred"""
     sender: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
-                                        related_name='mod_verifiedtransfer_invitation_sender')
+                                        related_name='mod_leave_verifiedtransfer_invitation_sender')
     """sender (ForeignKey<Profile>): sender of the invitation"""
     receiver: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
-                                          related_name='mod_verifiedtransfer_invitation_receiver')
+                                          related_name='mod_leave_verifiedtransfer_invitation_receiver')
     """receiver (ForeignKey<Profile>): receiver of the invitation"""
-
-    class Meta:
-        unique_together = ('sender', 'receiver', 'project')
 
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the invitation view, used by receiver via GET method"""
-        return f"{url.getRoot(APPNAME)}{url.projects.verifiedModTransInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+        return f"{url.getRoot(APPNAME)}{url.projects.leaveModInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
 
     @property
     def get_link(self) -> str:
@@ -2816,7 +2810,7 @@ class LeaveModerationTransferInvitation(Invitation):
     @property
     def get_act_link(self) -> str:
         """Returns the link to the accept/decline invitation, used by receiver via POST method"""
-        return f"{url.getRoot(APPNAME)}{url.projects.verifiedModTransInviteAct(self.get_id)}"
+        return f"{url.getRoot(APPNAME)}{url.projects.leaveModInviteAction(self.get_id)}"
 
     def accept(self) -> bool:
         """Accepts the invitation and transfers the moderatorship"""
@@ -2825,11 +2819,12 @@ class LeaveModerationTransferInvitation(Invitation):
         if self.resolved:
             return False
         self.resolve()
-        done = self.project.transfer_moderation_to(self.receiver)
+        from .methods import transfer_approved_projects
+        done = transfer_approved_projects(self.sender, self.receiver)
         if not done:
             self.unresolve()
         return done
 
     def decline(self) -> bool:
         """Declines the invitation"""
-        return super(ProjectModerationTransferInvitation, self).decline()
+        return super(self).decline()

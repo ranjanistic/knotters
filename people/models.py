@@ -822,10 +822,12 @@ class Profile(models.Model):
         return True
 
     def mod_isPending(self):
+        """Returns True if moderator has pending modeartions"""
         from moderation.models import Moderation
         return Moderation.objects.filter(moderator=self, resolved=False).exists()
     
     def mod_isApproved(self):
+        """Returns True if moderator has approved modeartions"""
         from moderation.models import Moderation
         return Moderation.objects.filter(moderator=self, status=Code.APPROVED).exists()
 

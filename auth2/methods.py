@@ -10,7 +10,7 @@ from main.methods import (errorLog, renderString, renderView, addMethodToAsyncQu
                           respondJson, respondRedirect)
 from main.strings import Auth2, Code, Message
 from people.models import Profile, User
-from projects.models import CoreProject, FreeProject, FreeRepository, Project, LeaveModerationTransferInvitation
+from projects.models import CoreProject, FreeProject, FreeRepository, Project
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import JsonResponse
 from projects.mailers import projectModTransferInvitation
@@ -157,59 +157,6 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
         Competition.objects.filter(
             creator=predecessor.profile, is_draft=True).delete()
         return True
-    except Exception as e:
-        errorLog(e)
-        return False
-
-
-def handleLeaveModInvitation(request: WSGIRequest, project, email) -> Boolean:
-    """To handle Leave moderatorship invitation creation/deletion of a verified project
-
-    METHODS: POST
-
-    Args:
-        request (WSGIRequest): The request object
-
-
-    Returns:
-        Boolean:  Returns true if task successful, or false
-    """
-    try:
-        if (request.user.email == email) or (email in request.user.emails()):
-            raise ObjectDoesNotExist(email)
-        if project.moderator() != request.user.profile:
-            raise ObjectDoesNotExist(request.user.profile)
-        if not project.can_invite_mod():
-            raise ObjectDoesNotExist("cannot invite mod: ", project)
-        receiver = Profile.objects.get(
-            user__email=email, is_moderator=True, is_mod_paused=False, suspended=False, is_active=True, to_be_zombie=False)
-        if not project.can_invite_profile(receiver):
-            raise InvalidUserOrProfile(receiver)
-
-        if LeaveModerationTransferInvitation.objects.filter(baseproject=project.base(), receiver=receiver).exists():
-            return False
-        inv, created = LeaveModerationTransferInvitation.objects.get_or_create(
-            project=project,
-            sender=request.user.profile,
-            resolved=False,
-            defaults=dict(
-                receiver=receiver,
-                resolved=False
-            )
-        )
-        inv: LeaveModerationTransferInvitation
-        alert = True
-        if not created:
-            alert = False
-            if inv.receiver != receiver:
-                inv.receiver = receiver
-                inv.expiresOn = timezone.now() + timedelta(days=1)
-                inv.save()
-                alert = True
-        if alert:
-            projectModTransferInvitation(inv)
-    except (ObjectDoesNotExist, InvalidUserOrProfile):
-        return False
     except Exception as e:
         errorLog(e)
         return False

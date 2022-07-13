@@ -1,0 +1,15 @@
+{% extends 'projects/invitation.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block invite_body %}
+<div class="w3-row ">
+    <div class="w3-center"><i class="w3-jumbo">widgets</i></div>
+    <h4 class="w3-center"><a href="{{invitation.sender.get_link}}" target="_blank"><button class="primary"><img src="{{invitation.sender.get_dp}}" class="circle" width="25">&nbsp;{{invitation.sender.getName}}</button></a>
+    is leaving moderation and wants to transfer the moderatorship of his approved projects to you.</h4>
+    <br/><br/>
+</div>
+{% endblock %}

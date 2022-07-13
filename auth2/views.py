@@ -17,7 +17,7 @@ from people.models import Profile, User
 
 from .mailers import (accountInactiveAlert, accountReactiveAlert, assetMigrationProblem,
                       successorAccepted, successorDeclined, successorInvite)
-from .methods import get_auth_section_html, migrateUserAssets, renderer, handleLeaveModInvitation
+from .methods import get_auth_section_html, migrateUserAssets, renderer
 from .models import DeviceNotification, EmailNotification
 from .receivers import *
 
@@ -540,7 +540,7 @@ def nicknameEdit(request: WSGIRequest):
         return respondRedirect(APPNAME, alert=Message.SUBMISSION_ERROR)
 
 
-@ require_JSON
+@require_JSON
 def validateField(request: WSGIRequest) -> JsonResponse:
 
     try:
@@ -558,21 +558,19 @@ def validateField(request: WSGIRequest) -> JsonResponse:
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
-@ require_JSON
+@require_GET
 def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
-    """To leave moderatorship without transferring projects"""
+    """To leave moderatorship"""
     try:
         profile: Profile = request.user.profile
         moderation = Moderation.objects.filter(
             moderator=profile)
-        mailId = request.POST["email"]
-        if Profile.objects.filter(email=mailId, is_moderator = True, is_paused = False).exists():
-            approved = list(filter(lambda x: x.isApproved(), moderation))
-            map(lambda x: handleLeaveModInvitation(
-            request, x.project, mailId), approved)
-        else :
-            respondJson(Code.NO, error=Message.INVALID_MODERATOR)
-        # return redirect(profile.getLink(error=Message.RESOLVE_PENDING))
+        pending = list(filter(lambda x: x.isPending(), moderation))
+        approved = list(filter(lambda x: x.isApproved(), moderation))
+        if(len(pending)>0 or len(approved)>0):
+            return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
+        profile.is_moderator = False
+        return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

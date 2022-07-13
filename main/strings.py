@@ -323,7 +323,7 @@ class Message():
         "Pending unresolved moderation requests exist.")
 
     RESOLVE_PENDING = _(
-        "Please resolve your pending projects first."
+        "Please resolve your pending/approved projects first."
     )
 
     def isValid(self, message: str) -> bool:
@@ -1135,6 +1135,7 @@ class URL():
         INVITE_PROJECT_OWNER = 'invite/ownership/'
         INVITE_VERPROJECT_MOD = 'invite/ownership/1'
         INVITE_COREPROJECT_MOD = 'invite/ownership/2'
+        INVITE_LEAVE_MOD = 'invite/leavemod'
 
         PROJECT_TRANS_INVITE = 'invitation/transfer/<str:inviteID>'
 
@@ -1186,6 +1187,16 @@ class URL():
         def coreDeletionRequestAct(self, inviteID):
             return setPathParams(self.CORE_DEL_REQUEST_ACT, inviteID)
 
+        LEAVE_MOD_INVITE = 'invitation/leavemod/<str:inviteID>'
+
+        def leaveModInvite(self, inviteID):
+            return setPathParams(self.PROJECT_TRANS_INVITE, inviteID)
+        
+        LEAVE_MOD_INVITE_ACT = 'invitation/action/leavemod/<str:inviteID>'
+
+        def leaveModInviteAction(self, inviteID):
+            return setPathParams(self.PROJECT_TRANS_INVITE_ACT, inviteID)
+        
         FREE_VERIFICATION_REQUEST = 'request/verification/0'
         CORE_VERIFICATION_REQUEST = 'request/verification/2'
 
@@ -1954,6 +1965,12 @@ class Template():
         @property
         def verdelinvite(self):
             return f'{self.DIRNAME}/{self.VER_DEL_INVITATION}.html'
+
+        LEAVE_MOD_INVITE = 'leavemodinvite'
+
+        @property
+        def leavemodinvite(self):
+            return f'{self.DIRNAME}/{self.LEAVE_MOD_INVITE}.html'
 
         CORE_DEL_INVITATION = 'coredelinvite'
 

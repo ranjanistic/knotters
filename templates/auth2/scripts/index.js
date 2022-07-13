@@ -436,7 +436,7 @@ initializeTabsView({
                     if ("{{request.user.profile.mod_isPending}}"=="True")
                     {
                         await Swal.fire({
-                            title: "Can't Leave Moderation",
+                            title: `${NegativeText("Can't Leave Moderation")}`,
                             html: `<h5>You have pending moderations. Please resolve them first</h5>`,
                             showConfirmButton: true,
                             showDenyButton: false,
@@ -463,19 +463,30 @@ initializeTabsView({
                             showDenyButton: false,
                             showCancelButton: true,
                             cancelButtonText: "Go back",
-                            confirmButtonText: "Send Email",
+                            confirmButtonText: "Transfer Projects",
                             preConfirm:function(){
                                 mail = document.getElementById('moderator_mail').value
                             }
                         }).then(async (result) => {
                             if (result.isConfirmed) {
-                                message(mail)
                                 const data = await postRequest2({
-                                path: URLS.LEAVE_MODERATORSHIP,
+                                path: URLS.Projects.INVITE_LEAVE_MOD,
                                 data: {
                                     email: mail,
                                 },
                             });
+                            if (data && data.code === code.OK) {
+                                await Swal.fire({
+                                    title: "Transfer Invite Sent",
+                                    html: `<h5>Transfer invite has been sent and your moderation status is paused. You moderation status will be revoked automatically if the invite is accepted otherwise you will have to transfer your projects to some other moderator.</h5>`,
+                                    showConfirmButton: true,
+                                    showDenyButton: false,
+                                    showCancelButton: false,
+                                    confirmButtonText: "Okay",
+                                })
+                                return
+                            }
+                            error(data.error);
                             }
                         })
                         return
@@ -495,13 +506,13 @@ initializeTabsView({
                         cancelButtonText: STRING.no_go_back,
                     }).then(async (result) => {
                         if (result.isDenied) {
-                            // message(STRING.deactivating_acc);
-                            // loaders(true);
+                            message("Leaving Moderation");
+                            loaders(true);
                             const data = await getRequest2({
                                 path: URLS.LEAVE_MODERATORSHIP
                             });
                             if (data && data.code === code.OK) {
-                                message(STRING.acc_deactivated);
+                                message("Your Moderatorship has been revoked");
                                 return
                             }
                             loaders(false);

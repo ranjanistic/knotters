@@ -52,7 +52,7 @@ from .models import (AppRepository, Asset, BaseProject,
                      Project, ProjectHookRecord,
                      ProjectModerationTransferInvitation, ProjectSocial,
                      ProjectTag, ProjectTopic, ProjectTransferInvitation,
-                     Snapshot, Tag, VerProjectDeletionRequest)
+                     Snapshot, Tag, VerProjectDeletionRequest, LeaveModerationTransferInvitation)
 from .receivers import *
 from main.constants import NotificationCode
 from auth2.models import EmailNotificationSubscriber
@@ -3159,3 +3159,73 @@ def projectCocreatorManage(request: WSGIRequest, projectID: UUID) -> JsonRespons
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@moderator_only
+@require_JSON
+def handleLeaveModeration(request : WSGIRequest)-> JsonResponse:
+    try:
+        email = request.POST["email"]
+        sender: Profile = request.user.profile
+        if Profile.objects.filter(user__email=email, is_moderator=True, is_mod_paused=False).exists():
+            receiver = Profile.objects.get(user__email=email)
+            if LeaveModerationTransferInvitation.objects.filter(sender=sender, receiver=receiver).exists():
+                return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+            inv = LeaveModerationTransferInvitation.objects.create(sender=sender, receiver=receiver)
+            sender.is_mod_paused = True
+            return respondJson(Code.OK)
+        else:
+            return respondJson(Code.NO, error=Message.INVALID_MODERATOR)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@moderator_only
+@require_GET
+def leaveModTransferInvite(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
+    """To render the leave moderatorship transfer invitation view
+    """
+    try:
+        invitation: LeaveModerationTransferInvitation = LeaveModerationTransferInvitation.objects.get(
+            id=inviteID,receiver=request.user.profile, expiresOn__gt=timezone.now()
+        )
+        return renderer(request, Template.Projects.LEAVE_MOD_INVITE,
+                        dict(invitation=invitation))
+    except (ObjectDoesNotExist, ValidationError) as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+
+@moderator_only
+@require_POST
+@decode_JSON
+def leaveModTransferInviteAction(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
+    """To handle the leave moderatorship transfer invite action taken by receiver.
+    """
+    try:
+        action = request.POST['action'][:50]
+        invitation: LeaveModerationTransferInvitation = LeaveModerationTransferInvitation.objects.get(
+            id=inviteID, resolved=False,
+            receiver=request.user.profile, expiresOn__gt=timezone.now()
+        )
+        if action == Action.ACCEPT:
+            if invitation.accept():
+                #alert 
+                invitation.sender.is_moderator = False
+                return redirect(request.user.profile.getLink(alert=Message.PROJECT_MOD_TRANSFER_ACCEPTED))
+        elif action == Action.DECLINE:
+            if invitation.decline():
+                #alert
+                return redirect(request.user.profile.getLink(alert=Message.PROJECT_MOD_TRANSFER_DECLINED))
+        else:
+            raise ValidationError(action)
+        return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
+    except (ObjectDoesNotExist, ValidationError, KeyError) as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+

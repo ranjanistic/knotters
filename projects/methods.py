@@ -17,7 +17,7 @@ from main.strings import Code, Event, Message, url
 from management.models import HookRecord
 from people.methods import addTopicToDatabase
 from people.models import Profile
-
+from moderation.models import Moderation
 from .apps import APPNAME
 from .mailers import (sendCoreProjectApprovedNotification,
                       sendProjectApprovedNotification)
@@ -1194,3 +1194,30 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
         return False, f"objectdoesnotexist hook record ID: {hookrecordID}"
     except:
         return False, format_exc()
+
+
+def transfer_approved_projects(sender:Profile, receiver: Profile):
+    """To transfer all approved projects of leaving moderator"""
+    newmoderator = receiver
+    moderations = Moderation.objects.filter(moderator=sender)
+    approved = list(filter(lambda x: x.isApproved(), moderations))
+    for moderation in approved:
+        oldmoderator = sender
+        moderation.moderator = newmoderator
+        moderation.save()
+        try:
+            moderation.project.gh_repo().add_to_collaborators(newmoderator.ghID, permission='maintain')
+            moderation.project.gh_repo().remove_from_collaborators(oldmoderator.ghID)
+        except:
+            pass
+        try:
+            moderation.project.gh_team().add_membership(
+                member=newmoderator.gh_user(),
+                role="maintainer"
+            )
+            moderation.project.gh_team().remove_membership(
+                member=oldmoderator.gh_user()
+            )
+        except:
+            pass
+    return True
