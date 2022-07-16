@@ -583,7 +583,7 @@ def thankyou(request: WSGIRequest) -> HttpResponse:
     count = len(contributors)
     if not count:
         contributors = CoreContributor.objects.filter(
-            hidden=False).order_by("-createdOn")
+            hidden=False).order_by("createdOn")
         count = len(contributors)
     if count:
         cache.set(cachekey, contributors, settings.CACHE_INSTANT)
