@@ -1998,7 +1998,7 @@ class CoreContributor(models.Model):
     def get_about(self) -> str:
         if self.about:
             return self.about
-        if self.profile:
+        if self.profile and self.profile.getBio():
             return self.profile.getBio()
         return "Contributed to Knotters"
 
@@ -2008,7 +2008,7 @@ class CoreContributor(models.Model):
             return self.profile.getLink()
         return self.website
 
-    
+
 
 class ProfileSuccessorInvitation(Invitation):
     """The model for a profile successor invitation"""
