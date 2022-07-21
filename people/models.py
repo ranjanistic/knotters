@@ -526,6 +526,7 @@ class Profile(models.Model):
                     previous.picture.delete(False)
         except:
             pass
+        self.clearCache()
         super(Profile, self).save(*args, **kwargs)
 
     def is_manager(self) -> bool:
@@ -1703,6 +1704,7 @@ class Profile(models.Model):
         return profile_url
 
     def clearCache(self):
+        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}", f"{Profile.MODEL_CACHE_KEY}_{self.nickname}"])
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
 
 
