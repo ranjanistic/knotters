@@ -586,7 +586,7 @@ class Profile(models.Model):
             self.save()
         return self.nickname
 
-    def get_cache_one(*args, nickname=None, userID=None, throw=False) -> "Profile":
+    def get_cache_one(*args, nickname=None, userID=None, throw=False, is_active=True) -> "Profile":
         """Returns the profile instance of the nickname or userID, preferably from cache.
 
         Args:
@@ -606,17 +606,17 @@ class Profile(models.Model):
             if nickname:
                 if throw:
                     profile: Profile = Profile.objects.get(
-                        nickname=nickname, to_be_zombie=False, is_active=True)
+                        nickname=nickname, to_be_zombie=False, is_active=is_active)
                 else:
                     profile: Profile = Profile.objects.filter(
-                        nickname=nickname, to_be_zombie=False, is_active=True).first()
+                        nickname=nickname, to_be_zombie=False, is_active=is_active).first()
             else:
                 if throw:
                     profile: Profile = Profile.objects.get(
-                        user__id=userID, to_be_zombie=False, is_active=True)
+                        user__id=userID, to_be_zombie=False, is_active=is_active)
                 else:
                     profile: Profile = Profile.objects.filter(
-                        user__id=userID, to_be_zombie=False, is_active=True).first()
+                        user__id=userID, to_be_zombie=False, is_active=is_active).first()
             cache.set(cacheKey, profile, settings.CACHE_SHORT)
         return profile
 

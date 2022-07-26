@@ -70,7 +70,9 @@ def profile(request: WSGIRequest, userID: str) -> HttpResponse:
             data = profileRenderData(request, userID=userID)
         else:
             data = profileRenderData(request, nickname=userID)
+            print("--#######")
         if not data:
+            print("debungg")
             raise ObjectDoesNotExist(userID)
 
         if isuuid:

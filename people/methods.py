@@ -149,10 +149,16 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
         dict: The context data to render a profile page.
     """
     try:
-        profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=True)
+        
+        profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=False, is_active=True)
+        if not profile:
+            profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=True, is_active=False)
+       ## profile: Profile = Profile.objects.get(nickname=nickname,)      #database
+        print(profile)
         authenticated = request.user.is_authenticated
         self: bool = authenticated and request.user.profile == profile
         is_admirer = False
+        
         if not self:
             if profile.suspended:
                 return False
