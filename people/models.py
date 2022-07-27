@@ -526,6 +526,7 @@ class Profile(models.Model):
                     previous.picture.delete(False)
         except:
             pass
+        self.clearCache()
         super(Profile, self).save(*args, **kwargs)
 
     def is_manager(self) -> bool:
@@ -1703,6 +1704,7 @@ class Profile(models.Model):
         return profile_url
 
     def clearCache(self):
+        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}", f"{Profile.MODEL_CACHE_KEY}_{self.nickname}"])
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
 
 
@@ -1996,7 +1998,7 @@ class CoreContributor(models.Model):
     def get_about(self) -> str:
         if self.about:
             return self.about
-        if self.profile:
+        if self.profile and self.profile.getBio():
             return self.profile.getBio()
         return "Contributed to Knotters"
 
@@ -2006,7 +2008,7 @@ class CoreContributor(models.Model):
             return self.profile.getLink()
         return self.website
 
-    
+
 
 class ProfileSuccessorInvitation(Invitation):
     """The model for a profile successor invitation"""

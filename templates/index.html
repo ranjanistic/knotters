@@ -163,9 +163,9 @@
                     <a href="{{URLS.COMPETE}}?tab=1" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">stream</i> Active </li></h3></a>
                     <a href="{{URLS.COMPETE}}?tab=2" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">hourglass_top</i> Upcoming </li></h3></a>
                     <a href="{{URLS.COMPETE}}?tab=3" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">history</i> History </li></h3></a>
-                    <a href="{{URLS.CERT_INDEX}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">qr_code</i> Certification </li></h3></a>
+                    <a href="{{URLS.Compete.CERT_INDEX}}" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">qr_code</i> Certification </li></h3></a>
                     {% comment %} {% if not request.user.profile.is_manager and request.user.is_authenticated %}
-                        <a href="{{URLS.CERT_INDEX}}" class="no-opacity-change" id="acheivements"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">emoji_events</i> Acheivements </li></h3></a>
+                        <a href="{{URLS.Compete.CERT_INDEX}}" class="no-opacity-change" id="acheivements"><h3><li class="pallete secondary text-secondary hover-active"><i class="w3-large material-icons">emoji_events</i> Acheivements </li></h3></a>
                     {% endif %} {% endcomment %}
                 </ul>
             </div>
@@ -176,11 +176,10 @@
                     <a href="{{URLS.PEOPLE}}?search=type:mentor" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><strong class="w3-small w3-round w3-tag active">MNT</strong> Mentors </li></h3></a>
                     <a href="{{URLS.PEOPLE}}?search=type:moderator" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><strong class="w3-small w3-round w3-tag accent">MOD</strong> Moderators </li></h3></a>
                     <a href="{{URLS.PEOPLE}}?search=type:manager" class="no-opacity-change"><h3><li class="pallete secondary text-secondary hover-accent"><strong class="w3-small w3-round w3-tag tertiary positive-text">MGR</strong> Managers </li></h3></a>
-
                 </ul>
             </div>
-            <a href="{{URLS.HOME}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">groups</i>&nbsp;{% trans "About" %} {{APPNAME}}</h2></div></a>  
-            <a href="https://knotters.org/projects/profile/knottrans" target="_blank" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">groups</i>&nbsp;{% trans "Translation Project" %}</h2></div></a>
+            <a href="{{URLS.HOME}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">info</i>&nbsp;{% trans "About" %} {{APPNAME}}</h2></div></a>  
+            <a href="https://knotters.org/projects/profile/knottrans" target="_blank" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">translate</i>&nbsp;{% trans "Translation Project" %}</h2></div></a>
             <div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive accordion"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">checklist</i>&nbsp;Guidelines</h2></div>
             <div class="pallete secondary text-secondary panel">
                 <ul>
@@ -194,23 +193,23 @@
                 </ul>
             </div>
             <div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive contact-request-action"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">perm_phone_msg</i>&nbsp;Contact Us</h2></div>
-            <a href="#0" class="webapp-install-action no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "Web App Installation" %}</h2></div></a>
-            <a href="#0" class="troubleshoot-action no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "Troubleshooting" %}</h2></div></a>
-            <a href="#0" class="report-feedback-action no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "Report" %} &amp; {% trans "Feedback" %}</h2></div></a>
+            <a href="#0" class="webapp-install-action no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">downloading</i>&nbsp;{% trans "App Installation" %}</h2></div></a>
+            <a href="#0" class="troubleshoot-action no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">handyman</i>&nbsp;{% trans "Troubleshooting" %}</h2></div></a>
+            <a href="#0" class="report-feedback-action no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">flag</i>&nbsp;{% trans "Report" %} &amp; {% trans "Feedback" %}</h2></div></a>
             <a href="{{URLS.THANKYOU}}" class="no-opacity-change">
                 <div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive">
-                    <h2 class="w3-left align">{% trans "Thank you" %}</h2>
+                    <h2 class="w3-left align"><i class="w3-xxlarge material-icons">volunteer_activism</i>&nbsp;{% trans "Thank you" %}</h2>
                 </div>
             </a>
-            <a href="{{URLS.BRANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "Brand Resources" %}</h2></div></a>
-            <a href="{{URLS.LANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align">{% trans "The Landing Page" %}</h2></div></a>
+            <a href="{{URLS.BRANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">photo_library</i>&nbsp;{% trans "Brand Resources" %}</h2></div></a>
+            <a href="{{URLS.LANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">flight_land</i>&nbsp;{% trans "The Landing Page" %}</h2></div></a>
             <div class="navigator-share-action w3-row pallete secondary text-secondary hover-primary hover-text-positive" data-title="{{APPNAME}}" data-text="Checkout this page at {{APPNAME}}" data-url="{{request.path}}"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">share</i>&nbsp;{% trans "Share" %}</h2></div>
             <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">copyright</i>&nbsp;{% trans "Copyright" %} {% now "Y" %}</h2></div></a>
             <div class="w3-row secondary text-secondary">
                 <h2 class="w3-center">
                     <form action="{% url "set_language" %}" method="POST" class="secondary no-opacity-change text-secondary">
                         {% csrf_token %}
-                        <select name="language" class="pallete selectLanguage no-opacity-change secondary text-secondary hover-primary hover-text-positive" id="language">
+                        <select name="language" class="pallete selectLanguage no-opacity-change secondary text-secondary hover-primary hover-text-positive" id="language-menu">
                             {% for language in LANGUAGES %}
                                 <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
                             {% endfor %}
@@ -646,7 +645,7 @@
             {% if LANGUAGES|length %}
             <form action="{% url "set_language" %}" method="POST">
                 {% csrf_token %}
-                <select name="language" class="selectLanguage" id="language_lite_footer">
+                <select name="language" class="selectLanguage" id="language-footer-lite">
                 {% for language in LANGUAGES %}
                     <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
                 {% endfor %}
@@ -668,7 +667,7 @@
             {% if LANGUAGES|length %}
             <form action="{% url "set_language" %}" method="POST">
                 {% csrf_token %}
-                <select name="language" class="selectLanguage" id="language">
+                <select name="language" class="selectLanguage" id="language-footer">
                 {% for language in LANGUAGES %}
                     <option class="optionLanguage"  value="{{ language.0 }}" {% if language.0 == LANGUAGE_CODE %}selected="selected"{% endif %}>{{ language.1 }}</option>
                 {% endfor %}

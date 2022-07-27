@@ -59,11 +59,27 @@ Check values in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.tes
 
 ### Dependencies
 
-Create a python virtual environment by following the [steps here](https://docs.python.org/3/tutorial/venv.html).
+```bash
+pip install wheel
+```
+
+Create a python virtual environment
+
+```bash
+cd ..
+python3 -m venv knottersenv
+```
+
+Activate it
+
+```bash
+source knottersenv/bin/activate
+```
 
 Then install dependencies
 
 ```bash
+cd knotters
 pip install -r requirements.txt
 ```
 
