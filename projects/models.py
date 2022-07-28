@@ -22,6 +22,7 @@ from people.models import Profile, Topic
 
 from .apps import APPNAME
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 class Tag(models.Model):
     """A tag model"""
@@ -349,7 +350,9 @@ class BaseProject(models.Model):
     archive_forward_link: str = models.URLField(
         max_length=500, null=True, blank=True)
     """archive_forward_link (URLField): The forward link for people to visit if project is archived (optional)"""
-
+    raters = models.ManyToManyField(Profile, through="ProjectUserRating", default=[], related_name='project_user_rating')
+    """raters (ManyToManyField<Profile>): The raters of the project and their rating"""
+    
     def __str__(self):
         return self.name
 
@@ -2419,7 +2422,22 @@ class ProjectAdmirer(models.Model):
         BaseProject, on_delete=models.CASCADE, related_name='admired_baseproject')
     """base_project (ForeignKey<BaseProject>): base project which was admired"""
 
+class ProjectUserRating(models.Model):
+    """Model for relation between a rater and a project"""
+    class Meta:
+        unique_together = ('profile', 'base_project')
 
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='project_rater_profile')
+    """profile (ForeignKey<Profile>): profile who rated the project"""
+    base_project: BaseProject = models.ForeignKey(
+        BaseProject, on_delete=models.CASCADE, related_name='rated_baseproject')
+    """base_project (ForeignKey<BaseProject>): base project which was rated"""
+    score: float = models.FloatField(default=0, validators=[MinValueValidator(0.0), MaxValueValidator(10.0)])
+    
+    
 class SnapshotAdmirer(models.Model):
     """Model for relation between an admirer and a snapshot"""
     class Meta:

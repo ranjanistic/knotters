@@ -1193,7 +1193,12 @@ class URL():
 
         def manageProjectCocreator(self, projectID):
             return setPathParams(self.MANAGE_PROJECT_COCREATOR, projectID)
-
+        
+        PROJECT_RATING_SUBMIT = 'rating/submit/<str:projectID>'
+        
+        def projectRatingSubmit(self, projectID):
+            return setPathParams(self.PROJECT_RATING_SUBMIT, projectID)
+        
         def getURLSForClient(self) -> dict:
             URLS = dict()
 

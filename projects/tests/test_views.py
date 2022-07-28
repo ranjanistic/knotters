@@ -10,13 +10,13 @@ from django.http.response import HttpResponseNotFound, HttpResponseRedirect, Htt
 from django.test import Client, TestCase, tag
 from main.env import BOTMAIL
 from main.strings import Action, Code, Message, template, url
-from main.tests.utils import authroot, getRandomStr
+from main.tests.utils import authroot, getRandomStr, getRandomInt,getRandomFloat
 from moderation.methods import assignModeratorToCoreProject, assignModeratorToObject
 from moderation.models import Moderation
 from people.models import Profile, Topic, User
 from people.tests.utils import getTestTopicsInst
 from projects.apps import APPNAME
-from projects.models import Category, CoreProject, CoreProjectDeletionRequest, FreeProject, License, Project, Tag, VerProjectDeletionRequest, defaultImagePath
+from projects.models import Category, CoreProject, CoreProjectDeletionRequest, FreeProject, License, Project, Tag, VerProjectDeletionRequest, ProjectUserRating , defaultImagePath
 
 from .utils import (getLicDesc, getLicName, getProjCategory, getProjDesc,
                     getProjName, getProjRepo, getTestTags, getTestTagsInst,
@@ -605,3 +605,41 @@ class TestViews(TestCase):
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertEqual(project.total_cocreator_invitations(), 0)
         self.assertEqual(project.total_cocreators(), 0)
+    
+    @tag('rating')
+    def test_submitProjectRating(self):
+        client = Client()
+        resp = client.post(authroot(url.auth.LOGIN), dict(
+            login=self.email, password=self.password), follow=True)
+        project: Project = Project.objects.create(name=getProjName(
+        ), creator=self.profile, status=Code.APPROVED, reponame=getProjRepo(), category=self.category, license=self.license)
+        resp = client.post(follow=True, path=root(
+            url.projects.projectRatingSubmit(project.getID())))
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
+        
+        resp = client.post(follow=True, path=root(
+            url.projects.projectRatingSubmit(project.getID())), data=dict(action =Action.CREATE ))
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
+        
+        score = getRandomFloat(11.0)
+        resp = client.post(follow=True, path=root(
+            url.projects.projectRatingSubmit(project.getID())), data=dict(action =Action.CREATE , score=score))
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
+        
+        score = getRandomFloat(0.5,4.0)
+        resp = client.post(follow=True, path=root(
+            url.projects.projectRatingSubmit(project.getID())), data=dict(action =Action.CREATE , score=score))
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertTrue(ProjectUserRating.objects.filter(profile=self.profile, base_project=project, score=score).exists())
+        
+        score = getRandomFloat(4.0,10.0)
+        resp = client.post(follow=True, path=root(
+            url.projects.projectRatingSubmit(project.getID())), data=dict(action =Action.CREATE , score=score))
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        self.assertTrue(ProjectUserRating.objects.filter(profile=self.profile, base_project=project, score=score).exists())
+        
