@@ -480,7 +480,7 @@ class Profile(models.Model):
         return None if self.is_zombie else self.user.get_id
 
     def KNOTBOT() -> "Profile":
-        """Returns the profile of the knottersbot. 
+        """Returns the profile of the knottersbot.
         This is not specific to a user, but is a global profile.
         """
         cacheKey = 'profile_knottersbot'
@@ -598,13 +598,11 @@ class Profile(models.Model):
         Returns:
             Profile: The profile instance of the nickname or userID.
         """
-        if not is_active:
-            profile=None
-        else:    
-            if nickname:
-                cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}_{is_active}"
-            else:
-                cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}_{is_active}"
+
+        if nickname:
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}_{is_active}"
+        else:
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}_{is_active}"
             profile: Profile = cache.get(cacheKey, None)
             print("Khusi is a ", profile, cacheKey)
         if not profile:
@@ -1710,11 +1708,12 @@ class Profile(models.Model):
     def clearCache(self):
         cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}",
                           f"{Profile.MODEL_CACHE_KEY}_{self.nickname}",
-                          f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{True}",f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{False}",
-                          f"{Profile.MODEL_CACHE_KEY}_{self.id}_{False}",
-                          f"{Profile.MODEL_CACHE_KEY}_{self.id}_{True}"
-                          ])
-                          
+                          f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{True}", f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{False}",
+                          f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{True}", f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{False}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{False}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{True}"
+                           ])
+
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
 
 
