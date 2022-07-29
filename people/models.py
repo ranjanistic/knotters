@@ -598,11 +598,15 @@ class Profile(models.Model):
         Returns:
             Profile: The profile instance of the nickname or userID.
         """
-        if nickname:
-            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}"
-        else:
-            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}"
-        profile: Profile = cache.get(cacheKey, None)
+        if not is_active:
+            profile=None
+        else:    
+            if nickname:
+                cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}_{is_active}"
+            else:
+                cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}_{is_active}"
+            profile: Profile = cache.get(cacheKey, None)
+            print("Khusi is a ", profile, cacheKey)
         if not profile:
             if nickname:
                 if throw:
@@ -1399,7 +1403,7 @@ class Profile(models.Model):
 
     def xpTarget(self) -> int:
         """Returns the user's next XP target"""
-        if  self.milestone_count == None:
+        if self.milestone_count == None:
             self.milestone_count = 0
         return 50*(1+pow(self.milestone_count, 2))
 
@@ -1704,7 +1708,13 @@ class Profile(models.Model):
         return profile_url
 
     def clearCache(self):
-        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}", f"{Profile.MODEL_CACHE_KEY}_{self.nickname}"])
+        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}",
+                          f"{Profile.MODEL_CACHE_KEY}_{self.nickname}",
+                          f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{True}",f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{False}",
+                          f"{Profile.MODEL_CACHE_KEY}_{self.id}_{False}",
+                          f"{Profile.MODEL_CACHE_KEY}_{self.id}_{True}"
+                          ])
+                          
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
 
 
@@ -2007,7 +2017,6 @@ class CoreContributor(models.Model):
         if self.profile:
             return self.profile.getLink()
         return self.website
-
 
 
 class ProfileSuccessorInvitation(Invitation):

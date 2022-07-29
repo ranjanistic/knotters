@@ -152,7 +152,8 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
         
         profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=False, is_active=True)
         if not profile:
-            profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=True, is_active=False)
+            print("I am cons")
+            profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=False, is_active=False)
        ## profile: Profile = Profile.objects.get(nickname=nickname,)      #database
         print(profile)
         authenticated = request.user.is_authenticated
@@ -161,6 +162,8 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
         
         if not self:
             if profile.suspended:
+                return False
+            if not  profile.is_active:
                 return False
             if authenticated:
                 if profile.isBlocked(request.user):
