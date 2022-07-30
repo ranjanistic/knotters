@@ -23,7 +23,6 @@ const mgmID = "{{person.profile.manager_id}}";
 
 {% if person.profile.is_active %}
     {% if self %}
-    console.log("hhhhhh")
 getElement("sociallinks-add").onclick = (_) => {
     const parent = getElement("edit-sociallinks-inputs");
     if (parent.childElementCount === 5)
@@ -38,7 +37,6 @@ getElement("sociallinks-add").onclick = (_) => {
 
 
         {% if is_manager and has_ghID %}
-        console.log("hello")
 getElement("link-gh-org-mgm").onclick = (_) => {
     Swal.fire({
         title: "Link GitHub organization",
@@ -128,7 +126,6 @@ getElement("show-admirations").onclick = async (_) => {
 };
 {% elif not person.profile.is_active %}
 try {
-    console.log("hhhhhh")
     getElement("reactivateaccount").onclick = async () => {
         loaders();
         message("Reactivating your account...");

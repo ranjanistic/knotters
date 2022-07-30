@@ -152,10 +152,7 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
         
         profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=False, is_active=True)
         if not profile:
-            print("I am cons")
             profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=False, is_active=False)
-       ## profile: Profile = Profile.objects.get(nickname=nickname,)      #database
-        print(profile)
         authenticated = request.user.is_authenticated
         self: bool = authenticated and request.user.profile == profile
         is_admirer = False
