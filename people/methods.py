@@ -162,6 +162,8 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
         if not self:
             if profile.suspended:
                 return False
+            if not profile.is_active:
+                 return False
             if authenticated:
                 if profile.isBlocked(request.user):
                     return False

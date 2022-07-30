@@ -21,8 +21,9 @@ const tabindex =
 const mgmID = "{{person.profile.manager_id}}";
 {% endif %}
 
-{% if person.profile.is_active and not person.profile.suspended %}
+{% if person.profile.is_active %}
     {% if self %}
+    console.log("hhhhhh")
 getElement("sociallinks-add").onclick = (_) => {
     const parent = getElement("edit-sociallinks-inputs");
     if (parent.childElementCount === 5)
@@ -37,6 +38,7 @@ getElement("sociallinks-add").onclick = (_) => {
 
 
         {% if is_manager and has_ghID %}
+        console.log("hello")
 getElement("link-gh-org-mgm").onclick = (_) => {
     Swal.fire({
         title: "Link GitHub organization",
