@@ -480,7 +480,7 @@ class Profile(models.Model):
         return None if self.is_zombie else self.user.get_id
 
     def KNOTBOT() -> "Profile":
-        """Returns the profile of the knottersbot. 
+        """Returns the profile of the knottersbot.
         This is not specific to a user, but is a global profile.
         """
         cacheKey = 'profile_knottersbot'
@@ -598,6 +598,7 @@ class Profile(models.Model):
         Returns:
             Profile: The profile instance of the nickname or userID.
         """
+
         if nickname:
             cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}_{is_active}"
         else:
@@ -1399,7 +1400,7 @@ class Profile(models.Model):
 
     def xpTarget(self) -> int:
         """Returns the user's next XP target"""
-        if  self.milestone_count == None:
+        if self.milestone_count == None:
             self.milestone_count = 0
         return 50*(1+pow(self.milestone_count, 2))
 
@@ -2013,7 +2014,6 @@ class CoreContributor(models.Model):
         if self.profile:
             return self.profile.getLink()
         return self.website
-
 
 
 class ProfileSuccessorInvitation(Invitation):
