@@ -32,8 +32,11 @@ For setting up redis first time locally, check [these steps](https://www.digital
 
 For WSL users, commands like `systemctl` may not be present, therefore proceed accordingly. (E.g. use `service` command for `systemctl`)
 
-After setting up redis, add a user&password pair in acl section in your redis configuration file (typically at /etc/redis/redis.conf) will access to allkeys and allcommands.
-`requirepass` in redis is no longer being used.
+After setting up redis, add a user&password pair in acl section in your redis configuration file (typically at /etc/redis/redis.conf), by adding the following line in it
+
+```conf
+user <username> on ><password> allkeys allcommands
+```
 
 Restart redis after any changes to its configuration.
 
@@ -41,6 +44,8 @@ Make sure mongodb is running, using
 
 ```bash
 mongosh "mongodb://localhost:27017/"
+...
+test>
 ```
 Make sure redis is running using
 
@@ -52,6 +57,11 @@ redis-cli
 ### Environment
 
 ```bash
+cd ~
+mkdir Knotters
+cd ~/Knotters
+git clone <repo-clone-url>
+cd ~/Knotters/knotters
 python3 setup.py
 ```
 
@@ -66,20 +76,20 @@ pip install wheel
 Create a python virtual environment
 
 ```bash
-cd ..
+cd ~/Knotters
 python3 -m venv knottersenv
 ```
 
 Activate it
 
 ```bash
-source knottersenv/bin/activate
+source ~/Knotters/knottersenv/bin/activate
 ```
 
 Then install dependencies
 
 ```bash
-cd knotters
+cd ~/Knotters/knotters
 pip install -r requirements.txt
 ```
 
@@ -93,7 +103,7 @@ For example, if you set `STATIC_ROOT` as `/var/www/knotters/static/`, then run
 
 ```bash
 sudo mkdir -p /var/www/knotters/static/
-sudo chown -R <user>:<user> /var/www/knotters/static/
+sudo chown -R <user>:<user> /var/www/knotters/
 ```
 
 Then, use the following to load static files.
@@ -108,7 +118,7 @@ This will prevent tests from failing which depend on the presence of static file
 You can also run the follwing to compress the collected static files at your `STATIC_ROOT`, although it is not neccessary for development/testing process.
 
 ```bash
-python3 manage.py preparestatics /any/path/to/generate/errors/directory/
+python3 manage.py preparestatics /var/www/knotters/errors/
 ```
 
 ### Database Setup
@@ -177,9 +187,9 @@ Then, create another superuser account for yourself, using the same above comman
 Change your working branch (always create any new branch from `branch:beta`)
 
 ```bash
-git pull
 git checkout beta
-git checkout -b your-branch-name
+git pull
+git checkout -b <your-branch-name>
 git status
 ```
 
@@ -216,7 +226,7 @@ python3 manage.py test
 ```
 
 ```bash
-python3 manage.py test <appname>
+python3 manage.py test <module-name>
 ```
 
 ```bash
