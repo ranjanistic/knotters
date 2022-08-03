@@ -1067,7 +1067,7 @@ class BaseProject(models.Model):
             rating_list=ProjectUserRating.objects.filter(base_project=self)
             num_of_ratings=len(rating_list)
             if (num_of_ratings==0):
-                return num_of_ratings
+                return 0.0
             total_sum=0
             for rating in rating_list:
                 total_sum += rating.score
