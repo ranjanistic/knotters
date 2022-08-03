@@ -106,11 +106,14 @@ def freeProfileData(request, nickname: str = None, projectID: UUID = None) -> di
             request.user.profile)
         iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
             user=request.user).exists()
+        isRater = False if not request.user.is_authenticated else project.is_rated_by(
+            profile=request.user.profile)
         return dict(
             project=project,
             iscreator=iscreator,
             isAdmirer=isAdmirer,
-            iscocreator=iscocreator
+            iscocreator=iscocreator,
+            isRater = isRater
         )
     except (ObjectDoesNotExist, ValidationError):
         pass
@@ -159,12 +162,15 @@ def verifiedProfileData(request, reponame: str = None, projectID: UUID = None) -
             request.user.profile)
         iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
             user=request.user).exists()
+        isRater = False if not request.user.is_authenticated else project.is_rated_by(
+            profile=request.user.profile)
         return dict(
             project=project,
             iscreator=iscreator,
             ismoderator=ismoderator,
             isAdmirer=isAdmirer,
-            iscocreator=iscocreator
+            iscocreator=iscocreator,
+            isRater = isRater
         )
     except (ObjectDoesNotExist, ValidationError):
         pass
@@ -213,13 +219,63 @@ def coreProfileData(request, codename: str = None, projectID: UUID = None) -> di
             request.user.profile)
         iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
             user=request.user).exists()
-
+        isRater = False if not request.user.is_authenticated else project.is_rated_by(
+            profile=request.user.profile)
         return dict(
             project=project,
             iscreator=iscreator,
             ismoderator=ismoderator,
             isAdmirer=isAdmirer,
-            iscocreator=iscocreator
+            iscocreator=iscocreator,
+            isRater = isRater
+        )
+    except (ObjectDoesNotExist, ValidationError):
+        pass
+    except Exception as e:
+        errorLog(e)
+        pass
+    return False
+
+def baseProfileData(request, projectID: UUID = None) -> dict:
+    """Returns the context data to render a base project profile page.
+
+    Args:
+        request (WSGIRequest): The request object.
+        codename (str, optional): The codename of the project. Defaults to None.
+        projectID (UUID, optional): The id of the project. Defaults to None.
+
+    NOTE: Only one of the projectID or codename are allowed to be None. If codename is provided, it will be preferred.
+
+    Returns:
+        dict: The context data to render a core project profile page.
+    """
+    try:
+        cacheKey = f"{APPNAME}_base_project"
+        
+        cacheKey = f"{cacheKey}_{projectID}"
+        project: BaseProject = cache.get(cacheKey, None)
+        if not project:
+            project: BaseProject = BaseProject.objects.get(
+                id=projectID, trashed=False)
+            cache.set(cacheKey, project, settings.CACHE_INSTANT)
+
+        iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
+        # ismoderator = False if not request.user.is_authenticated else project.moderator(
+        # ) == request.user.profile
+        if project.suspended and not (iscreator):
+            raise ObjectDoesNotExist('suspended', project)
+        isAdmirer = request.user.is_authenticated and project.isAdmirer(
+            request.user.profile)
+        iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
+            user=request.user).exists()
+        userRatingScore = 0 if not request.user.is_authenticated else project.rating_by_user(profile=request.user.profile)
+        return dict(
+            project=project,
+            iscreator=iscreator,
+            # ismoderator=ismoderator,
+            isAdmirer=isAdmirer,
+            iscocreator=iscocreator,
+            userRatingScore=userRatingScore
         )
     except (ObjectDoesNotExist, ValidationError):
         pass

@@ -86,4 +86,6 @@ urlpatterns = [
     path(URL.Projects.VIEW_COCREATOR_INVITE, projectCocreatorInvite),
     path(URL.Projects.COCREATOR_INVITE_ACT, projectCocreatorInviteAction),
     path(URL.Projects.MANAGE_PROJECT_COCREATOR, projectCocreatorManage),
+    # Project Raters
+    path(URL.Projects.PROJECT_RATING_SUBMIT, submitProjectRating)
 ]

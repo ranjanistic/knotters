@@ -1,0 +1,32 @@
+.rate > input[type="checkbox"]{
+    display: none;
+}
+.rate {
+    display: inline-block;
+    border: 0;
+}
+
+.rate > label{
+    float: left;
+    
+}
+
+.rate > label:before{
+    display:inline-block;
+    font-size: 1.8rem;
+    font-family: FontAwesome;
+    content:"\f005";
+    margin:0;
+    padding: 0.3rem 0.2rem;
+    cursor:pointer;
+}
+/* Half star */ 
+.rate .half:before{
+    content: "\f089";
+    position: absolute;
+    padding-right: 0;
+}
+
+.rate > label.selected {
+    color: var(--accent);
+}

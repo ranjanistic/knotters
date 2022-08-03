@@ -41,7 +41,7 @@ from people.models import (CoreMember, DisplayMentor, CoreContributor, GHMarketP
                            Profile, Topic)
 from projects.methods import coreProfileData, freeProfileData
 from projects.methods import rendererstr as projectsRendererstr
-from projects.methods import verifiedProfileData
+from projects.methods import verifiedProfileData, baseProfileData
 from projects.models import (BaseProject, CoreProject, FreeProject, LegalDoc,
                              Project, Snapshot)
 from ratelimit.decorators import ratelimit
@@ -644,6 +644,8 @@ def scripts_subapp(request: WSGIRequest, subapp: str, script: str) -> HttpRespon
             data = verifiedProfileData(request, projectID=projectID)
         elif script == Template.Script.TWO:
             data = coreProfileData(request, projectID=projectID)
+        elif script == Template.Script.PROFILE:
+            data = baseProfileData(request, projectID=projectID)
     elif subapp == COMPETE:
         compID = request.GET.get('id', None)
         if script == Template.Script.PROFILE:
