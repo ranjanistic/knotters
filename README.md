@@ -221,6 +221,8 @@ This should fix the issue for you.
 
 Make sure that [`main/.env.testing`](main/.env.testing) is set appropriately.
 
+**NOTE: BEFORE RUNNUNG TESTS, PLEASE REMOVE ALL REDIS RELATED VALUES FROM YOUR `.env.testing` FILE.**
+
 ```bash
 python3 manage.py test
 ```
@@ -231,6 +233,10 @@ python3 manage.py test <module-name>
 
 ```bash
 python3 manage.py test --tag=<tagname>
+```
+
+```bash
+python3 manage.py test --parallel --verbosity=2
 ```
 
 For coverage report of tests
