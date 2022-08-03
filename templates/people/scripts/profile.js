@@ -21,8 +21,8 @@ const tabindex =
 const mgmID = "{{person.profile.manager_id}}";
 {% endif %}
 
-{% if person.profile.is_active and not person.profile.suspended %}
-{% if self %}
+{% if person.profile.is_active %}
+    {% if self %}
 getElement("sociallinks-add").onclick = (_) => {
     const parent = getElement("edit-sociallinks-inputs");
     if (parent.childElementCount === 5)
@@ -34,24 +34,9 @@ getElement("sociallinks-add").onclick = (_) => {
           `;
     parent.insertBefore(newChild, parent.childNodes[0]);
 };
-try {
-    getElement("reactivateaccount").onclick = async () => {
-        loaders();
-        message("Reactivating your account...");
-        const data = await postRequest(URLS.Auth.ACCOUNTACTIVATION, {
-            activate: true,
-        });
-        if (data.code === code.OK) {
-            success(`{% trans "Your account has been reactivated" %}`);
-            return await logOut();
-        }
-        subLoader(false);
-        loader(false);
-        error(data.error);
-    };
-} catch {}
 
-{% if is_manager and has_ghID %}
+
+        {% if is_manager and has_ghID %}
 getElement("link-gh-org-mgm").onclick = (_) => {
     Swal.fire({
         title: "Link GitHub organization",
@@ -103,9 +88,9 @@ getElement("link-gh-org-mgm").onclick = (_) => {
         }
     });
 };
-{% endif %}
-{% else %}
-{% if request.user.is_authenticated %}
+        {% endif %}
+    {% else %}
+        {% if request.user.is_authenticated %}
 getElement("block-account").onclick = async () => {
     blockUserView({
         userID,
@@ -123,14 +108,14 @@ getElement("report-account").onclick = async () => {
         URLS.REPORT_CATEGORIES
     );
 };
-{% if request.GET.admire == '1' and not is_admirer %}
+            {% if request.GET.admire == '1' and not is_admirer %}
 getElement("toggle-admiration").click();
-{% endif %}
-{% if request.GET.admire == '0' and is_admirer %}
+            {% endif %}
+            {% if request.GET.admire == '0' and is_admirer %}
 getElement("toggle-admiration").click();
-{% endif %}
-{% endif %}
-{% endif %}
+            {% endif %}
+        {% endif %}
+    {% endif %}
 getElement("show-admirations").onclick = async (_) => {
     Swal.fire({
         html: await getRequest2({
@@ -139,4 +124,22 @@ getElement("show-admirations").onclick = async (_) => {
         title: "<h4 class='positive-text'>Admirers</h4>",
     });
 };
+{% elif not person.profile.is_active %}
+try {
+    getElement("reactivateaccount").onclick = async () => {
+        loaders();
+        message("Reactivating your account...");
+        const data = await postRequest(URLS.Auth.ACCOUNTACTIVATION, {
+            activate: true,
+        });
+        if (data.code === code.OK) {
+            success(`{% trans "Your account has been reactivated" %}`);
+            return await logOut();
+        }
+        subLoader(false);
+        loader(false);
+        error(data.error);
+    };
+} catch {}
 {% endif %}
+

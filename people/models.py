@@ -480,7 +480,7 @@ class Profile(models.Model):
         return None if self.is_zombie else self.user.get_id
 
     def KNOTBOT() -> "Profile":
-        """Returns the profile of the knottersbot. 
+        """Returns the profile of the knottersbot.
         This is not specific to a user, but is a global profile.
         """
         cacheKey = 'profile_knottersbot'
@@ -587,7 +587,7 @@ class Profile(models.Model):
             self.save()
         return self.nickname
 
-    def get_cache_one(*args, nickname=None, userID=None, throw=False) -> "Profile":
+    def get_cache_one(*args, nickname=None, userID=None, throw=False, is_active=True) -> "Profile":
         """Returns the profile instance of the nickname or userID, preferably from cache.
 
         Args:
@@ -598,26 +598,27 @@ class Profile(models.Model):
         Returns:
             Profile: The profile instance of the nickname or userID.
         """
+
         if nickname:
-            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}"
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}_{is_active}"
         else:
-            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}"
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}_{is_active}"
         profile: Profile = cache.get(cacheKey, None)
         if not profile:
             if nickname:
                 if throw:
                     profile: Profile = Profile.objects.get(
-                        nickname=nickname, to_be_zombie=False, is_active=True)
+                        nickname=nickname, to_be_zombie=False, is_active=is_active)
                 else:
                     profile: Profile = Profile.objects.filter(
-                        nickname=nickname, to_be_zombie=False, is_active=True).first()
+                        nickname=nickname, to_be_zombie=False, is_active=is_active).first()
             else:
                 if throw:
                     profile: Profile = Profile.objects.get(
-                        user__id=userID, to_be_zombie=False, is_active=True)
+                        user__id=userID, to_be_zombie=False, is_active=is_active)
                 else:
                     profile: Profile = Profile.objects.filter(
-                        user__id=userID, to_be_zombie=False, is_active=True).first()
+                        user__id=userID, to_be_zombie=False, is_active=is_active).first()
             cache.set(cacheKey, profile, settings.CACHE_SHORT)
         return profile
 
@@ -1399,7 +1400,7 @@ class Profile(models.Model):
 
     def xpTarget(self) -> int:
         """Returns the user's next XP target"""
-        if  self.milestone_count == None:
+        if self.milestone_count == None:
             self.milestone_count = 0
         return 50*(1+pow(self.milestone_count, 2))
 
@@ -1704,7 +1705,13 @@ class Profile(models.Model):
         return profile_url
 
     def clearCache(self):
-        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}", f"{Profile.MODEL_CACHE_KEY}_{self.nickname}"])
+        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}", 
+                           f"{Profile.MODEL_CACHE_KEY}_{self.nickname}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{True}", f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{False}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{True}",f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{False}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{False}", 
+                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{True}"
+                          ])
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
 
 
@@ -2007,7 +2014,6 @@ class CoreContributor(models.Model):
         if self.profile:
             return self.profile.getLink()
         return self.website
-
 
 
 class ProfileSuccessorInvitation(Invitation):

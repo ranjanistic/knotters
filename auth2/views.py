@@ -201,6 +201,8 @@ def accountActivation(request: WSGIRequest) -> JsonResponse:
             user=request.user).update(is_active=is_active)
         if not done:
             return respondJson(Code.NO)
+        else:
+            Profile.objects.get(user=request.user).clearCache()
         if is_active:
             accountReactiveAlert(request.user.profile)
         else:
