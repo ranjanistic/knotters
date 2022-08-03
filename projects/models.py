@@ -395,6 +395,8 @@ class BaseProject(models.Model):
             total_admirations = f'{self.id}_total_admiration'
             project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
+            baseproject_totalratings = f"baseproject_totalratings_{self.id}"
+            baseproject_avgratings = f"baseproject_avgratings_{self.id}"
         return CKEYS()
 
     def homepage_project(*args) -> "BaseProject":
@@ -1043,7 +1045,46 @@ class BaseProject(models.Model):
             Q(query), Q(suspended=False, is_archived=False,
                         trashed=False)).annotate(num_admirers=models.Count('admirers')).order_by('-num_admirers')[:limit]
         ))
-
+            
+    def total_ratings(self):
+        """Returns the total numbers of Rating of the project"""
+        return ProjectUserRating.objects.filter(base_project=self).count()
+    
+    def get_rating_out_of_ten(self):
+        """Returns the Rating out of 10 of the project"""
+        rating_list=ProjectUserRating.objects.filter(base_project=self)
+        num_of_ratings=self.total_ratings()
+        total_sum=0
+        for rating in rating_list:
+            total_sum += rating.score
+        return round(total_sum/(num_of_ratings))
+    
+    def get_avg_rating(self):
+        """Returns the average Rating of the project"""
+        cacheKey = self.CACHE_KEYS.baseproject_avgratings
+        avgrating = cache.get(cacheKey, None)
+        if not avgrating:
+            rating_list=ProjectUserRating.objects.filter(base_project=self)
+            num_of_ratings=len(rating_list)
+            if (num_of_ratings==0):
+                return num_of_ratings
+            total_sum=0
+            for rating in rating_list:
+                total_sum += rating.score
+            avgrating = round(total_sum/(2*num_of_ratings),1)
+            cache.set(cacheKey, avgrating, settings.CACHE_INSTANT)
+        return avgrating
+    
+    def is_rated_by(self, profile):
+        """To check whether user has rated or not"""
+        return ProjectUserRating.objects.filter(base_project=self, profile=profile).exists()
+    def rating_by_user(self,profile):
+        """Returns the Rating of the project by the user"""
+        rating = ProjectUserRating.objects.filter(base_project=self, profile=profile).first()
+        if not rating:
+            return 0
+        return rating.score
+            
 
 class BaseProjectPrimeCollaborator(models.Model):
     """The model for relation between a project and a prime collaborator."""
@@ -1165,7 +1206,9 @@ class Project(BaseProject):
             total_admirations = f'{self.id}_total_admiration'
             project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
-
+            baseproject_totalratings = f"baseproject_totalratings_{self.id}"
+            baseproject_avgratings = f"baseproject_avgratings_{self.id}"
+            
             gh_repo_data = f"gh_repo_data_{self.repo_id}"
             gh_team_data = f"gh_team_data_{self.reponame}"
             base_project = f"baseproject_of_project_{self.id}"
@@ -1557,7 +1600,9 @@ class FreeProject(BaseProject):
             total_admirations = f'{self.id}_total_admiration'
             project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
-
+            baseproject_totalratings = f"baseproject_totalratings_{self.id}"
+            baseproject_avgratings = f"baseproject_avgratings_{self.id}"
+            
             free_repo_exists = f"freeproject_freerepo_exists_{self.id}"
             linked_free_repo = f"freeproject_freerepo_{self.id}"
             base_project = f"baseproject_of_freeproject_{self.id}"
@@ -1835,7 +1880,9 @@ class CoreProject(BaseProject):
             total_admirations = f'{self.id}_total_admiration'
             project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
-
+            baseproject_totalratings = f"baseproject_totalratings_{self.id}"
+            baseproject_avgratings = f"baseproject_avgratings_{self.id}"
+            
             gh_repo_data = f"gh_repo_data_{self.repo_id}"
             gh_team_data = f"gh_team_data_{self.codename}"
             base_project = f"baseproject_of_coreproject_{self.id}"

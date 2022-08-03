@@ -3169,7 +3169,7 @@ def submitProjectRating(request: WSGIRequest, projectID: UUID) -> JsonResponse:
         profile=request.user.profile
         if action == Action.CREATE:
             score: float= float(request.POST['score'])
-            if (0.5 <= score <= 10.0):
+            if (1 <= score <= 10):
                 ProjectUserRating.objects.update_or_create(profile=profile, base_project=project, defaults=dict(score=score),)
             else:
                 raise ValidationError(score)       

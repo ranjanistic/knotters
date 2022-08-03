@@ -1,4 +1,4 @@
-input[type="radio"]{
+.rate > input[type="checkbox"]{
     display: none;
 }
 .rate {
@@ -7,7 +7,7 @@ input[type="radio"]{
 }
 
 .rate > label{
-    float: right;
+    float: left;
     
 }
 
@@ -27,13 +27,6 @@ input[type="radio"]{
     padding-right: 0;
 }
 
-/* Click Hover */
-input:checked ~ label,label:hover ~ label{
-    color: #ffb503;
-}
-
-/* hover highlight */
-input:checked + label:hover, input:checked ~ label:hover, input:checked ~ label:hover ~ label,
-label:hover ~ input:checked ~ label{
-    color: #cc9000;
+.rate > label.selected {
+    color: var(--accent);
 }
