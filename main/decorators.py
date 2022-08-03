@@ -25,8 +25,8 @@ from django.views.decorators.http import require_POST
 from requests import get as getRequest
 
 from .env import ISTESTING
-from .methods import errorLog
-from .strings import Code, Event
+from .methods import errorLog, respondJson
+from .strings import Code, Event, Message
 
 
 def decDec(inner_dec: callable) -> callable:
@@ -149,6 +149,8 @@ def verified_email_required(
             ).exists() and not ISTESTING:
                 # addMethodToAsyncQueue(f"{AUTH2}.mailers.{send_account_verification_email}", request)
                 send_account_verification_email(request)
+                if request.headers.get('X-KNOT-REQ-SCRIPT', False):
+                    return respondJson(Code.NO, error=Message.EMAIL_NOT_VERIFIED)
                 return render(request, "account/verified_email_required.html")
             return view_func(request, *args, **kwargs)
 
