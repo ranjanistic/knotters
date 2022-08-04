@@ -28,6 +28,7 @@ _`python3` (python), `pip` (python package manager) - these cmdlets may vary dep
 
 For setting up mongodb first time locally, check [these steps](https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-18-04-source)
 
+
 For setting up redis first time locally, check [these steps](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04)
 
 For WSL users, commands like `systemctl` may not be present, therefore proceed accordingly. (E.g. use `service` command for `systemctl`)
@@ -191,6 +192,12 @@ git checkout beta
 git pull
 git checkout -b <your-branch-name>
 git status
+```
+
+Activate environment if not activated
+
+```bash
+source ~/Knotters/knottersenv/bin/activate
 ```
 
 Then run the main server process (assuming port 8000 is free)
