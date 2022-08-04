@@ -228,7 +228,7 @@ This should fix the issue for you.
 
 Make sure that [`main/.env.testing`](main/.env.testing) is set appropriately.
 
-**NOTE: BEFORE RUNNUNG TESTS, PLEASE REMOVE ALL REDIS RELATED VALUES FROM YOUR `.env.testing` FILE.**
+**NOTE: BEFORE RUNNING TESTS, PLEASE REMOVE ALL REDIS RELATED VALUES FROM YOUR `main/.env.testing` FILE.**
 
 ```bash
 python3 manage.py test
