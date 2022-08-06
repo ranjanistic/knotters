@@ -12,6 +12,7 @@ from management.apps import APPNAME as MANAGEMENT
 from moderation.apps import APPNAME as MODERATION
 from people.apps import APPNAME as PEOPLE
 from projects.apps import APPNAME as PROJECTS
+from howto.apps import APPNAME as HOWTO
 
 from .env import CDN_URL
 
@@ -378,7 +379,7 @@ class Action():
 
 action = Action()
 
-DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2]
+DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2, HOWTO]
 
 
 class Project():

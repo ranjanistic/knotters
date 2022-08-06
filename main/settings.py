@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'allauth_2fa',
     "webpush",
     "mfa",
+    
     # "corsheaders"
 ] + DIVISIONS
 

@@ -2,7 +2,7 @@ from datetime import datetime
 from operator import truediv
 from re import sub as re_sub
 from time import time
-from uuid import UUID, uuid4
+from uuid import UUID,uuid4
 import math
 
 from allauth.account.models import EmailAddress
