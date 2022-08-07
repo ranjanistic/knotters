@@ -12,6 +12,7 @@ const iscreator = selfProject;
 const iscocreator = "{{iscocreator}}"==='True';
 const isSuspended = "{{project.suspended}}"==='True';
 const projectcolor = getComputedStyle(document.querySelector(':root')).getPropertyValue('--{{project.theme}}').trim().replace('#','');
+const isRater = "{{isRater}}"==='True';
 
 {% if not project.suspended %}
     {% if iscreator %}

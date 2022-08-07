@@ -35,7 +35,10 @@
 {% block nav_text_style %}text-{{project.theme}}{% endblock %}
 {% block nav_back_theme %}primary{% endblock %}
 
-
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'star.css' %}">
+<link rel="stylesheet" href="{% static 'fontawesome/font-awesome.min.css' %}">
+{% endblock %}
 {% block content %}
 <div class="w3-row tertiary">
 <br/>
@@ -118,6 +121,7 @@
 <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.ZERO}}?id={{project.id}}&admire={{request.GET.admire}}&admirers={{request.GET.admirers}}"></script>
 {% endif %}
 {% if project.is_normal %}
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{project.id}}" ></script>
 <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/project/profile.js' %}" ></script>
 {% endif %}
 {% endblock %}
