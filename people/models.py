@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         PermissionsMixin)
 from django.core.cache import cache
+from time import time
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
 from django.db import models

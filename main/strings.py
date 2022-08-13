@@ -1314,6 +1314,15 @@ class URL():
 
     managemnt = Management()
     management = Management()
+    
+    class Howto():
+        DRAFT = 'e/<str:articleID>/draft/'
+        SECTION = 'e/<str:articleID>/section/'
+        DELETE = 'e/<str:articleID>/delete/'
+        EDIT_TOPICS = 'e/<str:articleID>/topics'
+        EDIT_TAGS = 'e/<str:articleID>/tags'
+        SAVE_CHANGES = 'e/<str:articleID>/save'
+        VIEW = '<str:nickname>/'
 
     def getURLSForClient(self) -> dict:
         URLS = dict()
