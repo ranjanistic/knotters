@@ -569,6 +569,7 @@ class URL():
     MANAGEMENT = f'{MANAGEMENT}/'
     FAME_WALL = 'wall-of-fame/'
     REDIRECTOR = 'redirector/'
+    HOWTO = f'{HOWTO}/'
 
     def redirector(self, to='/'):
         return f"{self.REDIRECTOR}?n={to}"
@@ -1476,10 +1477,16 @@ class Template():
     DONATION = "donation"
 
     THANKYOU = "thankyou"
+    
 
     @property
     def thankyou(self):
         return f'{self.THANKYOU}.html'
+    
+    HOWTO ="howto"
+    @property
+    def howto(self):
+        return f'{self.HOWTO}.html'
     
 
     @property
