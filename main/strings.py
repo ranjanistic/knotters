@@ -217,6 +217,7 @@ class Message():
     NO_TAGS_SELECTED = _("No tags selected")
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
     LOGIN_REQUIRED = _("Please login to continue.")
+    ARTICLE_NOT_FOUND =_("Article not found")
 
     RESULT_DECLARED = _("Results declared!")
     RESULT_NOT_DECLARED = _("Results not declared.")

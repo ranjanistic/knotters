@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.urls import path
-from howto import views
+from howto.views import *
+from main.strings import URL
 
 urlpatterns = [
-    path("", views.index),
-    path("<str:nickname>", views.article)
+    path(URL.INDEX, index),
+    path(URL.Howto.DRAFT, draft),
 ]
