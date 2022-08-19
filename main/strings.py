@@ -326,6 +326,10 @@ class Message():
         "Please resolve your pending/approved projects first."
     )
 
+    LEAVE_MODERATION = _(
+        "Your Moderatorship has been revoked. "
+    )
+
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
@@ -1190,12 +1194,12 @@ class URL():
         LEAVE_MOD_INVITE = 'invitation/leavemod/<str:inviteID>'
 
         def leaveModInvite(self, inviteID):
-            return setPathParams(self.PROJECT_TRANS_INVITE, inviteID)
+            return setPathParams(self.LEAVE_MOD_INVITE, inviteID)
         
         LEAVE_MOD_INVITE_ACT = 'invitation/action/leavemod/<str:inviteID>'
 
         def leaveModInviteAction(self, inviteID):
-            return setPathParams(self.PROJECT_TRANS_INVITE_ACT, inviteID)
+            return setPathParams(self.LEAVE_MOD_INVITE_ACT, inviteID)
         
         FREE_VERIFICATION_REQUEST = 'request/verification/0'
         CORE_VERIFICATION_REQUEST = 'request/verification/2'

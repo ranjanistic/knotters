@@ -1199,10 +1199,10 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
 def transfer_approved_projects(sender:Profile, receiver: Profile):
     """To transfer all approved projects of leaving moderator"""
     newmoderator = receiver
+    oldmoderator = sender
     moderations = Moderation.objects.filter(moderator=sender)
     approved = list(filter(lambda x: x.isApproved(), moderations))
     for moderation in approved:
-        oldmoderator = sender
         moderation.moderator = newmoderator
         moderation.save()
         try:

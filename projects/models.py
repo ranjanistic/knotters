@@ -2827,4 +2827,4 @@ class LeaveModerationTransferInvitation(Invitation):
 
     def decline(self) -> bool:
         """Declines the invitation"""
-        return super(self).decline()
+        return super().decline()

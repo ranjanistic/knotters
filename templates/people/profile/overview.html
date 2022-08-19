@@ -25,20 +25,8 @@
                 {% endif %}
                 </div>
             {% endfor %}
-            {% if self %}
-          <div class="pallete w3-center w3-animate-opacity" id="edit-pallete">
-            <form method="POST" action="{{URLS.EXTENDEDBIOEDIT|params:'pallete'}}">
-              {% csrf_token %}
-              <div class="w3-row w3-padding">
-                <textarea type="text" class="wide" placeholder="ExtendedBio" maxlength="300" name="ExtendedBio" >{{ request.user.profile.getExtendedBio }}</textarea><br/>
-              </div>
-              <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
-              <button id="discard-edit-pallete"><i class="material-icons">close</i>Discard</button>
-            </form>
-          </div>
-        {% endif %}
             {% if self and profile.totalTopics > 0 %}<i class="edit-action w3-right" data-edittarget="profiletopics">edit</i>{% endif %}</span>
-            </div>
+        </div>
             {% if self %}
             <div id="edit-profiletopics">
                 <br/>
@@ -61,6 +49,28 @@
                 </form>
             </div>
             {% endif %}
+            </br>
+            <div class="pallete w3-center w3-animate-opacity" id="view-pallete2">
+                <div class="w3-row w3-padding">
+                <h4 class="dead-text">Extended Bio</h4>
+                <span>{{ person.profile.getExtendedBio }}</span>
+                </div>
+                {% if self %}
+                <i class="edit-action w3-right" data-edittarget="pallete2">edit</i>
+                {% endif %}
+            </div>
+            {% if self %}
+          <div class="pallete w3-center w3-animate-opacity" id="edit-pallete2">
+            <form method="POST" action="{{URLS.EXTENDEDBIOEDIT|params:'pallete'}}">
+              {% csrf_token %}
+              <div class="w3-row w3-padding">
+                <textarea type="text" class="wide" placeholder="ExtendedBio" maxlength="300" name="ExtendedBio" >{{ request.user.profile.getExtendedBio }}</textarea><br/>
+              </div>
+              <button id="save-edit-pallete2"><i class="material-icons">done</i>Save</button>
+              <button id="discard-edit-pallete2"><i class="material-icons">close</i>Discard</button>
+            </form>
+          </div>
+        {% endif %}
         </div>
         <div class="w3-col w3-half w3-center w3-padding">
             {% if profile.totalTopics == 0 %}

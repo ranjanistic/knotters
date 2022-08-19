@@ -426,7 +426,7 @@ initializeTabsView({
                     if (data.code !== code.OK) return error(data.error);
                     return success(`'${nickname}' is available!`);
                 };
-                    getElement("nickname").oninput = async (e) => {
+                getElement("nickname").oninput = async (e) => {
                     let nickname = String(e.target.value).toLowerCase().trim();
                     nickname = nickname.replace(/[^a-z0-9\-]/g, "-").split('-').filter((k)=>k.length).join('-');
                     if (!nickname) return;
@@ -478,7 +478,7 @@ initializeTabsView({
                             if (data && data.code === code.OK) {
                                 await Swal.fire({
                                     title: "Transfer Invite Sent",
-                                    html: `<h5>Transfer invite has been sent and your moderation status is paused. You moderation status will be revoked automatically if the invite is accepted otherwise you will have to transfer your projects to some other moderator.</h5>`,
+                                    html: `<h5>Transfer invite has been sent and your moderation status has been paused. You moderation status will be revoked automatically if the invite get accepted otherwise you will have to transfer your projects to some other moderator.</h5>`,
                                     showConfirmButton: true,
                                     showDenyButton: false,
                                     showCancelButton: false,
@@ -507,15 +507,15 @@ initializeTabsView({
                     }).then(async (result) => {
                         if (result.isDenied) {
                             message("Leaving Moderation");
-                            loaders(true);
                             const data = await getRequest2({
                                 path: URLS.LEAVE_MODERATORSHIP
                             });
                             if (data && data.code === code.OK) {
-                                message("Your Moderatorship has been revoked");
+                                relocate({query : {
+                                    s : STRING.leave_moderation
+                                }})
                                 return
                             }
-                            loaders(false);
                             error(data.error);
                         }
                     });

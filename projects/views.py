@@ -3164,6 +3164,9 @@ def projectCocreatorManage(request: WSGIRequest, projectID: UUID) -> JsonRespons
 @moderator_only
 @require_JSON
 def handleLeaveModeration(request : WSGIRequest)-> JsonResponse:
+    """
+    Handle the leave moderation request
+    """
     try:
         email = request.POST["email"]
         sender: Profile = request.user.profile
@@ -3173,6 +3176,8 @@ def handleLeaveModeration(request : WSGIRequest)-> JsonResponse:
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             inv = LeaveModerationTransferInvitation.objects.create(sender=sender, receiver=receiver)
             sender.is_mod_paused = True
+            sender.save()
+            leaveModerationTransferInvitation(inv)
             return respondJson(Code.OK)
         else:
             return respondJson(Code.NO, error=Message.INVALID_MODERATOR)
@@ -3188,7 +3193,8 @@ def leaveModTransferInvite(request: WSGIRequest, inviteID: UUID) -> HttpResponse
     """
     try:
         invitation: LeaveModerationTransferInvitation = LeaveModerationTransferInvitation.objects.get(
-            id=inviteID,receiver=request.user.profile, expiresOn__gt=timezone.now()
+            id=inviteID, receiver=request.user.profile, expiresOn__gt=timezone.now(),
+            resolved=False
         )
         return renderer(request, Template.Projects.LEAVE_MOD_INVITE,
                         dict(invitation=invitation))
@@ -3214,11 +3220,14 @@ def leaveModTransferInviteAction(request: WSGIRequest, inviteID: UUID) -> HttpRe
         if action == Action.ACCEPT:
             if invitation.accept():
                 #alert 
+                leaveModerationAcceptedInvitation(invitation)
                 invitation.sender.is_moderator = False
+                invitation.sender.save()
                 return redirect(request.user.profile.getLink(alert=Message.PROJECT_MOD_TRANSFER_ACCEPTED))
         elif action == Action.DECLINE:
             if invitation.decline():
                 #alert
+                leaveModerationDeclinedInvitation(invitation)
                 return redirect(request.user.profile.getLink(alert=Message.PROJECT_MOD_TRANSFER_DECLINED))
         else:
             raise ValidationError(action)

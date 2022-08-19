@@ -570,6 +570,7 @@ def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
         if(len(pending)>0 or len(approved)>0):
             return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
         profile.is_moderator = False
+        profile.save()
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
