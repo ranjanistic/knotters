@@ -10,18 +10,18 @@
    <div class="w3-col w3-half">
       <h4 class="dead-text">Email addresses</h4>
          <button class="accent mini-window-action" data-url="{% url 'account_email' %}" data-icon="open_in_new">{% trans "Email addresses" %}</button>
-      <div class="pallete w3-center w3-animate-zoom" style="padding: 0" id="view-pallete">
       <h4 class="dead-text">Personal nickname</h4>
+      <div id="view-nickname">
          @{{request.user.profile.get_nickname}} (<a class="click-to-copy">{{SITE}}{{request.user.profile.get_short_link}}</a>)
-      <i class="edit-action w3-right" data-edittarget="pallete">edit</i>
+      <i class="edit-action" data-edittarget="nickname">edit</i>
       </div>
-      <div class="pallete w3-center w3-animate-opacity" id="edit-pallete">
+      <div id="edit-nickname">
       <form method="POST" action="{{URLS.NICKNAMEEDIT}}">
       {% csrf_token %}
-      <input type="text" autocomplete="nickname" autocapitalize placeholder="Your nickname" maxlength="70" required
+      <input class="primary" type="text" autocomplete="nickname" autocapitalize placeholder="Your nickname" maxlength="70" required
        value="{{request.user.profile.get_nickname}}" name="nickname" id="nickname" />
-      <button id="save-edit-pallete"><i class="material-icons">done</i>Save</button>
-      <button id="discard-edit-pallete"><i class="material-icons">close</i>Discard</button>
+      <button id="save-edit-nickname"><i class="material-icons">done</i>Save</button>
+      <button id="discard-edit-nickname"><i class="material-icons">close</i>Discard</button>
       </form>
    </div>
       <h4 class="dead-text">Personal Emoticon</h4>

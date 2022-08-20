@@ -3172,7 +3172,7 @@ def handleLeaveModeration(request : WSGIRequest)-> JsonResponse:
         sender: Profile = request.user.profile
         if Profile.objects.filter(user__email=email, is_moderator=True, is_mod_paused=False).exists():
             receiver = Profile.objects.get(user__email=email)
-            if LeaveModerationTransferInvitation.objects.filter(sender=sender, receiver=receiver).exists():
+            if LeaveModerationTransferInvitation.objects.filter(sender=sender, receiver=receiver, resolved=False).exists():
                 return respondJson(Code.NO, error=Message.ALREADY_INVITED)
             inv = LeaveModerationTransferInvitation.objects.create(sender=sender, receiver=receiver)
             sender.is_mod_paused = True

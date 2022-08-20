@@ -1724,6 +1724,24 @@ class Profile(models.Model):
     def clearCache(self):
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
 
+    def getApprovedModerations(self):
+        from moderation.models import Moderation
+        approved_moderations = Moderation.objects.filter(moderator=self, status=Code.APPROVED, resolved=True, type__in=[ ])
+        return approved_moderations
+
+    def getModProjects(self) -> models.QuerySet:
+        """Returns all projects that are moderated by user.
+
+        Returns:
+            models.QuerySet<Project>: All projects instances that are moderated by user.
+        """
+        cacheKey = f"moderated_projects_{self.id}"
+        moderatedprojects = cache.get(cacheKey, None)
+        if moderatedprojects is None:
+            moderatedprojects = list(map(lambda x: x.project, self.getApprovedModerations()))
+            cache.set(cacheKey, topicprojects, settings.CACHE_SHORT)
+        return topicprojects
+
 
 class ProfileSetting(models.Model):
     """Profile settings model

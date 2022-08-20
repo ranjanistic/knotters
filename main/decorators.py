@@ -200,7 +200,7 @@ def moderator_only(function: callable) -> callable:
     """
     @wraps(function)
     def wrap(request: WSGIRequest, *args, **kwargs):
-        if request.user.profile.is_moderator:
+        if request.user.profile.is_moderator and not request.user.profile.is_mod_paused:
             return function(request, *args, **kwargs)
         else:
             if request.method == Code.GET:

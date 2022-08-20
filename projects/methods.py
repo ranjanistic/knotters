@@ -1196,20 +1196,25 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
         return False, format_exc()
 
 
-def transfer_approved_projects(sender:Profile, receiver: Profile):
+def transfer_approved_project_moderation(sender:Profile, receiver: Profile):
     """To transfer all approved projects of leaving moderator"""
     newmoderator = receiver
     oldmoderator = sender
-    moderations = Moderation.objects.filter(moderator=sender)
-    approved = list(filter(lambda x: x.isApproved(), moderations))
-    for moderation in approved:
-        moderation.moderator = newmoderator
-        moderation.save()
+    approved_moderations = Moderation.objects.filter(moderator=sender, status=Code.APPROVED, resolved=True) #update
+    approved_moderations.update(moderator=newmoderator)
+    addMethodToAsyncQueue(f"{APPNAME}.methods.{transfer_approved_repositories.__name__}", newmoderator, oldmoderator, approved_moderations)
+    return True
+
+
+def transfer_approved_repositories(newmoderator, oldmoderator, approved_moderations):
+    """
+    """
+    for moderation in approved_moderations:
         try:
             moderation.project.gh_repo().add_to_collaborators(newmoderator.ghID, permission='maintain')
             moderation.project.gh_repo().remove_from_collaborators(oldmoderator.ghID)
-        except:
-            pass
+        except Exception as e:
+            errorLog(e)
         try:
             moderation.project.gh_team().add_membership(
                 member=newmoderator.gh_user(),
@@ -1218,6 +1223,6 @@ def transfer_approved_projects(sender:Profile, receiver: Profile):
             moderation.project.gh_team().remove_membership(
                 member=oldmoderator.gh_user()
             )
-        except:
-            pass
+        except Exception as e:
+            errorLog(e)
     return True

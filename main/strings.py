@@ -327,7 +327,7 @@ class Message():
     )
 
     LEAVE_MODERATION = _(
-        "Your Moderatorship has been revoked. "
+        "Your Moderatorship has been revoked."
     )
 
     def isValid(self, message: str) -> bool:
@@ -352,7 +352,6 @@ class Message():
             for key in attrs:
                 validMessages.append(attrs[key].lower())
             cache.set(cacheKey, validMessages, settings.CACHE_MINI)
-
         return message.lower() in validMessages
 
     class Custom():

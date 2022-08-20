@@ -2819,12 +2819,14 @@ class LeaveModerationTransferInvitation(Invitation):
         if self.resolved:
             return False
         self.resolve()
-        from .methods import transfer_approved_projects
-        done = transfer_approved_projects(self.sender, self.receiver)
+        from .methods import transfer_approved_project_moderation
+        done = transfer_approved_project_moderation(self.sender, self.receiver)
         if not done:
             self.unresolve()
         return done
 
     def decline(self) -> bool:
         """Declines the invitation"""
-        return super().decline()
+        if self.resolved:
+            return False
+        return self.delete()
