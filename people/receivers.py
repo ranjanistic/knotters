@@ -63,6 +63,9 @@ def on_user_login(sender, user, request, **kwargs):
 def on_user_signup(request, user: User, **kwargs):
     """On user signup, to update relevant things."""
     try:
+        email = user.get_emailaddresses(True)
+        if len(email)>0:
+            on_email_confirmation(request, email[0])
         accs = SocialAccount.objects.filter(user=user)
         picture = getProfileImageBySocialAccount(accs.first())
         githubID = None
@@ -81,8 +84,9 @@ def on_user_signup(request, user: User, **kwargs):
 @receiver(email_confirmed)
 def on_email_confirmation(request, email_address: EmailAddress, **kwargs):
     """On email confirmation, email notifications are subscribed"""
+    user = User.objects.get(email=email_address)
     if(email_address.primary):
-        list(map(lambda e: e.subscribers.add(request.user),
+        list(map(lambda e: e.subscribers.add(user),
             EmailNotification.objects.all()))
 
 

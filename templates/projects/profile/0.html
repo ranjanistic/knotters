@@ -96,19 +96,37 @@
         {% endif %}
     </div>
     <br/>
-    <div class="w3-row w3-padding-small">
-    <a id="show-admirations"><strong>{{ project.total_admiration }} admirer{{ project.total_admiration|pluralize }}</strong></a>
-    {% if request.user.is_authenticated %}
-        <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
-            {% csrf_token %}
-            <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
-            <button type="submit" class="w3-right {% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration"></button>
-        </form>
-    {% else %}
-        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism"></button></a>
-    {% endif %}
+    <div class="pallete w3-row ">
+        <div class="w3-row w3-padding" >
+            <a id="show-admirations"><strong>{{ project.total_admiration }} admirer{{ project.total_admiration|pluralize }}</strong></a>
+            {% if request.user.is_authenticated %}
+            <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:project.get_id }}">
+                {% csrf_token %}
+                <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
+                <button type="submit" class="w3-right {% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration" ></button>
+            </form>
+            {% else %}
+            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism"></button></a>
+            {% endif %}
+        </div> 
+        {% if request.user.is_authenticated %}
+        <div class="w3-row w3-center trigger-project-rating">
+        {% else %}
+        <div class="w3-row w3-center trigger-login-popup">
+        {% endif %}
+            <span class="text-large">{{ project.get_avg_rating }}</span>
+            <br>
+                <div class="rate">
+                    {% for i in '0123456789'|make_list %}
+                    <input type="checkbox" required/>
+                    <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < project.get_rating_out_of_ten %}selected{% endif %}"></label>
+                    {% endfor %}
+                </div>
+            <br>
+            <span class="text-small">{{ project.total_ratings }} rating{{ project.total_ratings|pluralize }}</span>
+        </div>
     </div>
-    <br/>
+    <br>
 
     {% if not iscreator and request.user.is_authenticated %}
     <div class="w3-row">
@@ -117,7 +135,7 @@
     <br />
     {% endif %}
 
-    <div class="w3-row pallete">
+    <div class="w3-row pallete" >
         <center><h5 class="align"><i>open_in_new</i>&nbsp;Links</h5></center>
         <div class="" id="view-sociallinks">    
             {% if project.socialsites.count %}

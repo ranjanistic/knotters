@@ -350,7 +350,19 @@ Follow are some specific coding guides for this project, can be used as referenc
 
 - Global information such as Knotters social links, documents like privacy policy etc. are kept in database too.
 
+## Begin contribution
+
 You can start contribution by going through the [issues](https://github.com/knottersbot/knotters/issues) and working upon them as per your knowledge.
+Roughly, start as
+
+- Find an issue according to labels (urgent, priority, bug)
+
+- Assign the issue to yourself
+
+- From the development section of the issue, create a new branch for it.
+
+- Checkout the branch locally, and start working.
+  
 In doubt, you can always reach out the maintainers of this project.
 
 ## Recommendations

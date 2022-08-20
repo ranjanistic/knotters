@@ -485,7 +485,7 @@ class Profile(models.Model):
         return None if self.is_zombie else self.user.get_id
 
     def KNOTBOT() -> "Profile":
-        """Returns the profile of the knottersbot. 
+        """Returns the profile of the knottersbot.
         This is not specific to a user, but is a global profile.
         """
         cacheKey = 'profile_knottersbot'
@@ -531,6 +531,7 @@ class Profile(models.Model):
                     previous.picture.delete(False)
         except:
             pass
+        self.clearCache()
         super(Profile, self).save(*args, **kwargs)
 
     def is_manager(self) -> bool:
@@ -591,7 +592,7 @@ class Profile(models.Model):
             self.save()
         return self.nickname
 
-    def get_cache_one(*args, nickname=None, userID=None, throw=False) -> "Profile":
+    def get_cache_one(*args, nickname=None, userID=None, throw=False, is_active=True) -> "Profile":
         """Returns the profile instance of the nickname or userID, preferably from cache.
 
         Args:
@@ -602,26 +603,27 @@ class Profile(models.Model):
         Returns:
             Profile: The profile instance of the nickname or userID.
         """
+
         if nickname:
-            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}"
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}_{is_active}"
         else:
-            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}"
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}_{is_active}"
         profile: Profile = cache.get(cacheKey, None)
         if not profile:
             if nickname:
                 if throw:
                     profile: Profile = Profile.objects.get(
-                        nickname=nickname, to_be_zombie=False, is_active=True)
+                        nickname=nickname, to_be_zombie=False, is_active=is_active)
                 else:
                     profile: Profile = Profile.objects.filter(
-                        nickname=nickname, to_be_zombie=False, is_active=True).first()
+                        nickname=nickname, to_be_zombie=False, is_active=is_active).first()
             else:
                 if throw:
                     profile: Profile = Profile.objects.get(
-                        user__id=userID, to_be_zombie=False, is_active=True)
+                        user__id=userID, to_be_zombie=False, is_active=is_active)
                 else:
                     profile: Profile = Profile.objects.filter(
-                        user__id=userID, to_be_zombie=False, is_active=True).first()
+                        user__id=userID, to_be_zombie=False, is_active=is_active).first()
             cache.set(cacheKey, profile, settings.CACHE_SHORT)
         return profile
 
@@ -1722,6 +1724,13 @@ class Profile(models.Model):
         return profile_url
 
     def clearCache(self):
+        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}", 
+                           f"{Profile.MODEL_CACHE_KEY}_{self.nickname}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{True}", f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{False}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{True}",f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{False}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{False}", 
+                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{True}"
+                          ])
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
 
     def getApprovedModerations(self):
@@ -1978,6 +1987,70 @@ class DisplayMentor(models.Model):
         if self.profile:
             return self.profile.getExtendedBio()
         return self.about
+
+    @property
+    def get_link(self) -> str:
+        if self.profile:
+            return self.profile.getLink()
+        return self.website
+
+
+def displayContributorImagePath(instance: "CoreContributor", filename: str) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/displaycontributors/{instance.get_id}.{fileparts[-1]}"
+
+
+class CoreContributor(models.Model):
+    """Display palletes of core developers"""
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='display_contributor_profile', null=True, blank=True)
+    """profile (ForeignKey<Profile>): The profile of developer, if present."""
+    name: datetime = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): The name of the developer"""
+    about: str = models.CharField(max_length=500, null=True, blank=True)
+    """about (CharField): The about of the developer"""
+    picture: str = models.ImageField(
+        upload_to=displayContributorImagePath, default=defaultImagePath, null=True, blank=True)
+    """picture (ImageField): The picture of the developer"""
+    website: datetime = models.URLField(max_length=500, null=True, blank=True)
+    """website (URLField): The website of the display mentor"""
+    hidden: datetime = models.BooleanField(default=False)
+    """hidden (BooleanField): Whether the display developer is hidden"""
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """createdOn (DateTimeField): The time the display developer was created"""
+
+    def __str__(self):
+        return self.name or self.get_name or str(self.id)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    @property
+    def get_DP(self):
+        if self.profile:
+            return self.profile.getDP()
+        dp = str(self.picture)
+        return settings.MEDIA_URL+dp if not dp.startswith('/') else settings.MEDIA_URL + dp.removeprefix('/')
+
+    @property
+    def get_name(self) -> str:
+        if self.name:
+            return self.name
+        if self.profile:
+            return self.profile.getName()
+        return "Core contributor"
+
+    @property
+    def get_about(self) -> str:
+        if self.about:
+            return self.about
+        if self.profile and self.profile.getBio():
+            return self.profile.getBio()
+        return "Contributed to Knotters"
 
     @property
     def get_link(self) -> str:

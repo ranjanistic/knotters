@@ -216,6 +216,7 @@ class Message():
     NO_TAGS_SELECTED = _("No tags selected")
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
     LOGIN_REQUIRED = _("Please login to continue.")
+    EMAIL_NOT_VERIFIED = _("Please verify your account email address.")
 
     RESULT_DECLARED = _("Results declared!")
     RESULT_NOT_DECLARED = _("Results not declared.")
@@ -596,6 +597,8 @@ class URL():
 
     VERIFY_CAPTCHA = 'captcha/verify'
     DONATE = 'donate/'
+    
+    THANKYOU = 'thankyou/'
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:targetID>/'
     VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
@@ -1219,7 +1222,12 @@ class URL():
 
         def manageProjectCocreator(self, projectID):
             return setPathParams(self.MANAGE_PROJECT_COCREATOR, projectID)
-
+        
+        PROJECT_RATING_SUBMIT = 'rating/submit/<str:projectID>'
+        
+        def projectRatingSubmit(self, projectID):
+            return setPathParams(self.PROJECT_RATING_SUBMIT, projectID)
+        
         def getURLSForClient(self) -> dict:
             URLS = dict()
 
@@ -1494,6 +1502,13 @@ class Template():
         return f'{self.VIEW_SNAPSHOT}.html'
 
     DONATION = "donation"
+
+    THANKYOU = "thankyou"
+
+    @property
+    def thankyou(self):
+        return f'{self.THANKYOU}.html'
+    
 
     @property
     def donation(self):

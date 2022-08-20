@@ -22,6 +22,7 @@ from people.models import Profile, Topic
 
 from .apps import APPNAME
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 class Tag(models.Model):
     """A tag model"""
@@ -349,7 +350,9 @@ class BaseProject(models.Model):
     archive_forward_link: str = models.URLField(
         max_length=500, null=True, blank=True)
     """archive_forward_link (URLField): The forward link for people to visit if project is archived (optional)"""
-
+    raters = models.ManyToManyField(Profile, through="ProjectUserRating", default=[], related_name='project_user_rating')
+    """raters (ManyToManyField<Profile>): The raters of the project and their rating"""
+    
     def __str__(self):
         return self.name
 
@@ -392,6 +395,8 @@ class BaseProject(models.Model):
             total_admirations = f'{self.id}_total_admiration'
             project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
+            baseproject_totalratings = f"baseproject_totalratings_{self.id}"
+            baseproject_avgratings = f"baseproject_avgratings_{self.id}"
         return CKEYS()
 
     def homepage_project(*args) -> "BaseProject":
@@ -1040,7 +1045,46 @@ class BaseProject(models.Model):
             Q(query), Q(suspended=False, is_archived=False,
                         trashed=False)).annotate(num_admirers=models.Count('admirers')).order_by('-num_admirers')[:limit]
         ))
-
+            
+    def total_ratings(self):
+        """Returns the total numbers of Rating of the project"""
+        return ProjectUserRating.objects.filter(base_project=self).count()
+    
+    def get_rating_out_of_ten(self):
+        """Returns the Rating out of 10 of the project"""
+        rating_list=ProjectUserRating.objects.filter(base_project=self)
+        num_of_ratings=self.total_ratings()
+        total_sum=0
+        for rating in rating_list:
+            total_sum += rating.score
+        return round(total_sum/(num_of_ratings))
+    
+    def get_avg_rating(self):
+        """Returns the average Rating of the project"""
+        cacheKey = self.CACHE_KEYS.baseproject_avgratings
+        avgrating = cache.get(cacheKey, None)
+        if not avgrating:
+            rating_list=ProjectUserRating.objects.filter(base_project=self)
+            num_of_ratings=len(rating_list)
+            if (num_of_ratings==0):
+                return 0.0
+            total_sum=0
+            for rating in rating_list:
+                total_sum += rating.score
+            avgrating = round(total_sum/(2*num_of_ratings),1)
+            cache.set(cacheKey, avgrating, settings.CACHE_INSTANT)
+        return avgrating
+    
+    def is_rated_by(self, profile):
+        """To check whether user has rated or not"""
+        return ProjectUserRating.objects.filter(base_project=self, profile=profile).exists()
+    def rating_by_user(self,profile):
+        """Returns the Rating of the project by the user"""
+        rating = ProjectUserRating.objects.filter(base_project=self, profile=profile).first()
+        if not rating:
+            return 0
+        return rating.score
+            
 
 class BaseProjectPrimeCollaborator(models.Model):
     """The model for relation between a project and a prime collaborator."""
@@ -1162,7 +1206,9 @@ class Project(BaseProject):
             total_admirations = f'{self.id}_total_admiration'
             project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
-
+            baseproject_totalratings = f"baseproject_totalratings_{self.id}"
+            baseproject_avgratings = f"baseproject_avgratings_{self.id}"
+            
             gh_repo_data = f"gh_repo_data_{self.repo_id}"
             gh_team_data = f"gh_team_data_{self.reponame}"
             base_project = f"baseproject_of_project_{self.id}"
@@ -1554,7 +1600,9 @@ class FreeProject(BaseProject):
             total_admirations = f'{self.id}_total_admiration'
             project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
-
+            baseproject_totalratings = f"baseproject_totalratings_{self.id}"
+            baseproject_avgratings = f"baseproject_avgratings_{self.id}"
+            
             free_repo_exists = f"freeproject_freerepo_exists_{self.id}"
             linked_free_repo = f"freeproject_freerepo_{self.id}"
             base_project = f"baseproject_of_freeproject_{self.id}"
@@ -1832,7 +1880,9 @@ class CoreProject(BaseProject):
             total_admirations = f'{self.id}_total_admiration'
             project_admirers = f'{self.id}_project_admirers'
             baseproject_socialsites = f"baseproject_socialsites_{self.id}"
-
+            baseproject_totalratings = f"baseproject_totalratings_{self.id}"
+            baseproject_avgratings = f"baseproject_avgratings_{self.id}"
+            
             gh_repo_data = f"gh_repo_data_{self.repo_id}"
             gh_team_data = f"gh_team_data_{self.codename}"
             base_project = f"baseproject_of_coreproject_{self.id}"
@@ -2419,7 +2469,22 @@ class ProjectAdmirer(models.Model):
         BaseProject, on_delete=models.CASCADE, related_name='admired_baseproject')
     """base_project (ForeignKey<BaseProject>): base project which was admired"""
 
+class ProjectUserRating(models.Model):
+    """Model for relation between a rater and a project"""
+    class Meta:
+        unique_together = ('profile', 'base_project')
 
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='project_rater_profile')
+    """profile (ForeignKey<Profile>): profile who rated the project"""
+    base_project: BaseProject = models.ForeignKey(
+        BaseProject, on_delete=models.CASCADE, related_name='rated_baseproject')
+    """base_project (ForeignKey<BaseProject>): base project which was rated"""
+    score: float = models.FloatField(default=0, validators=[MinValueValidator(0.0), MaxValueValidator(10.0)])
+    
+    
 class SnapshotAdmirer(models.Model):
     """Model for relation between an admirer and a snapshot"""
     class Meta:

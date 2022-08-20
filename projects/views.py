@@ -1,5 +1,4 @@
 from datetime import timedelta
-from distutils.log import error
 from uuid import UUID
 
 from django.conf import settings
@@ -24,7 +23,7 @@ from main.exceptions import InvalidUserOrProfile
 from main.methods import (addMethodToAsyncQueue, base64ToFile,
                           base64ToImageFile, errorLog, renderString,
                           respondJson, respondRedirect)
-from main.strings import URL, Action, Code, Message, Moderation, Template, setURLAlerts
+from main.strings import URL, Action, Code, Message, Template, setURLAlerts
 from management.models import GhMarketApp, ReportCategory
 from moderation.methods import (assignModeratorToObject,
                                 requestModerationForCoreProject,
@@ -43,19 +42,8 @@ from .methods import (addTagToDatabase, coreProfileData,
                       freeProfileData, getProjectLiveData,
                       handleGithubKnottersRepoHook, renderer, renderer_stronly,
                       rendererstr, uniqueRepoName, verifiedProfileData)
-from .models import (AppRepository, Asset, BaseProject,
-                     BaseProjectCoCreatorInvitation, BotHookRecord, Category,
-                     CoreModerationTransferInvitation, CoreProject,
-                     CoreProjectDeletionRequest, CoreProjectHookRecord,
-                     CoreProjectVerificationRequest, FreeProject,
-                     FreeProjectVerificationRequest, FreeRepository, License,
-                     Project, ProjectHookRecord,
-                     ProjectModerationTransferInvitation, ProjectSocial,
-                     ProjectTag, ProjectTopic, ProjectTransferInvitation,
-                     Snapshot, Tag, VerProjectDeletionRequest, LeaveModerationTransferInvitation)
+from .models import *
 from .receivers import *
-from main.constants import NotificationCode
-from auth2.models import EmailNotificationSubscriber
 
 
 @require_GET
@@ -3238,3 +3226,38 @@ def leaveModTransferInviteAction(request: WSGIRequest, inviteID: UUID) -> HttpRe
         errorLog(e)
         raise Http404(e)
 
+
+@normal_profile_required
+@require_JSON
+def submitProjectRating(request: WSGIRequest, projectID: UUID) -> JsonResponse:
+    """To submit/update/delete user rating of a project
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object
+        projectID (UUID): The project id
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK if task successful, or main.strings.Code.NO
+    """
+    try:
+        action = request.POST['action']
+        project: BaseProject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False, is_archived=False)
+        profile=request.user.profile
+        if action == Action.CREATE:
+            score: float= float(request.POST['score'])
+            if (1 <= score <= 10):
+                ProjectUserRating.objects.update_or_create(profile=profile, base_project=project, defaults=dict(score=score),)
+            else:
+                raise ValidationError(score)       
+        elif action==Action.REMOVE:
+            ProjectUserRating.objects.filter(profile=profile, base_project=project).delete()        
+        else:
+            raise ValidationError(action)
+        return respondJson(Code.OK)
+    except (ObjectDoesNotExist, KeyError, InvalidUserOrProfile, ValidationError):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

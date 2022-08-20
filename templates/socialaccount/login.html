@@ -34,9 +34,10 @@
 {% endif %}
 
 <br/><br/>
-<form method="POST" action="{{request.path}}">
+<form method="POST" action="{{request.path}}?next={{request.GET.next}}">
   {% csrf_token %}
-  <button class="big-button border-joy primary" type="submit" data-icon="arrow_forward">{% trans "Continue via" %} {{provider.name}}</button>
+  <button class="big-button border-joy primary" type="submit" data-icon="arrow_forward">{% trans "Continue via" %} {{provider.name}}
+  </button>
 </form>
 <br/>
   <span class="text-medium">

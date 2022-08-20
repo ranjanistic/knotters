@@ -90,4 +90,6 @@ urlpatterns = [
     path(URL.Projects.INVITE_LEAVE_MOD, handleLeaveModeration),
     path(URL.Projects.LEAVE_MOD_INVITE, leaveModTransferInvite),
     path(URL.Projects.LEAVE_MOD_INVITE_ACT, leaveModTransferInviteAction),
+    # Project Raters
+    path(URL.Projects.PROJECT_RATING_SUBMIT, submitProjectRating)
 ]
