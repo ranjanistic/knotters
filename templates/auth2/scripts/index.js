@@ -438,6 +438,48 @@ initializeTabsView({
                             error(resp.error);
                             getElement("edit-nickname-button").click()
                         };
+                const pauseModDialog = async () => {
+                    if ("{{request.user.profile.mod_isPending}}"=="True")
+                    {
+                        await Swal.fire({
+                            title: `${NegativeText("Can't Pause Moderation")}`,
+                            html: `<h5>You have pending moderations. Please resolve them first</h5>`,
+                            showConfirmButton: true,
+                            showDenyButton: false,
+                            showCancelButton: true,
+                            cancelButtonText: "Go back",
+                            confirmButtonText: "Take me to moderation tab",
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                relocate({path : "{{request.user.profile.getLink}}", query : {
+                                    tab : 4,
+                                    a : STRING.resolve_pending
+                                }})
+                            }
+                        })
+                        return
+                    }
+                    paused = getElement("paused").value
+                    if(paused=="True")
+                        paused = true
+                    else
+                        paused = false
+                    const resp = await postRequest2({
+                        path: setUrlParams(URLS.PAUSE_MODERATORSHIP),
+                        data: {
+                            paused: paused
+                        },
+                    });
+                    if (resp.code === code.OK) 
+                    {
+                        if (paused)
+                            success(STRING.moderation_paused)
+                        else
+                            success(STRING.moderation_resumed)
+                        return tab.click();
+                    }
+                    error(resp.error);
+                };
                 const leaveModDialog = async () => {
                     if ("{{request.user.profile.mod_isPending}}"=="True")
                     {
@@ -452,7 +494,8 @@ initializeTabsView({
                         }).then(async (result) => {
                             if (result.isConfirmed) {
                                 relocate({path : "{{request.user.profile.getLink}}", query : {
-                                    tab : 4
+                                    tab : 4,
+                                    a : STRING.resolve_pending
                                 }})
                             }
                         })
@@ -525,6 +568,9 @@ initializeTabsView({
                             error(data.error);
                         }
                     });
+                };
+                getElement("pausemod").onclick = async (_) => {
+                    pauseModDialog();
                 };
                 getElement("leavemod").onclick = async (_) => {
                     leaveModDialog();

@@ -324,13 +324,21 @@ class Message():
         "Pending unresolved moderation requests exist.")
 
     RESOLVE_PENDING = _(
-        "Please resolve your pending projects first."
+        "Please resolve your pending moderations first."
     )
 
     LEAVE_MODERATION = _(
         "Your Moderatorship has been revoked."
     )
 
+    MODERATION_PAUSED = _(
+        "Moderation Paused."
+    )
+
+    MODERATION_RESUMED = _(
+        "Moderation Resumed."
+    )
+    
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
@@ -703,6 +711,7 @@ class URL():
         def notificationToggleDevice(self, notifID):
             return setPathParams(self.NOTIFICATION_TOGGLE_DEVICE, notifID)
         
+        PAUSE_MODERATORSHIP = 'pausemod'
         LEAVE_MODERATORSHIP = 'leavemod'
 
         def getURLSForClient(self) -> dict:

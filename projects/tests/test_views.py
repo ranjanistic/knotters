@@ -629,7 +629,7 @@ class TestViews(TestCase):
         self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
         
-        score = getRandomFloat(0.5,4.0)
+        score = getRandomFloat(1.0,4.0)
         resp = client.post(follow=True, path=root(
             url.projects.projectRatingSubmit(project.getID())), data=dict(action =Action.CREATE , score=score))
         self.assertDictEqual(json_loads(

@@ -522,6 +522,7 @@ def device_notifcation_toggle(request: WSGIRequest, notifID: UUID) -> JsonRespon
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
+@normal_profile_required
 @require_JSON
 def nicknameEdit(request: WSGIRequest):
     """
@@ -545,7 +546,38 @@ def nicknameEdit(request: WSGIRequest):
         errorLog(e)
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        return respondRedirect(APPNAME, alert=Message.SUBMISSION_ERROR)
+        return respondRedirect(APPNAME, error=Message.SUBMISSION_ERROR)
+
+
+@normal_profile_required
+@require_JSON
+def pauseModeratorship(request: WSGIRequest) -> JsonResponse:
+    """To pause/resume moderatorship"""
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        profile: Profile = request.user.profile
+        if not profile.is_moderator:
+            if json_body:
+                return respondJson(Code.NO, error=Message.INVALID_MODERATOR)
+            return respondRedirect(APPNAME, error=Message.INVALID_MODERATOR)
+        len_moderation = Moderation.objects.filter(moderator=profile, status=Code.MODERATION).count()
+        if len_moderation > 0:
+            if json_body:
+                return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
+            return respondRedirect(APPNAME, error=Message.RESOLVE_PENDING)
+        paused = request.POST.get("paused", False)
+        profile.is_mod_paused = paused
+        profile.save()
+        if json_body:
+            return respondJson(Code.OK)
+        if paused:
+            return respondRedirect(APPNAME, success=Message.MODERATION_PAUSED)
+        return respondRedirect(APPNAME, success=Message.MODERATION_RESUMED)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return respondRedirect(APPNAME, error=Message.ERROR_OCCURRED)
 
 
 @require_GET
