@@ -274,8 +274,10 @@ def editProfile(request: WSGIRequest, section: str) -> HttpResponse:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
 
-
-def editExtendedBio(request: WSGIRequest, section: str) -> HttpResponse:
+@normal_profile_required
+@require_POST
+@decode_JSON
+def editExtendedBio(request: WSGIRequest) -> HttpResponse:
     """To edit a ExtendedBio.
 
     METHODS: POST
@@ -294,24 +296,21 @@ def editExtendedBio(request: WSGIRequest, section: str) -> HttpResponse:
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         profile: Profile = Profile.objects.get(user=request.user)
-        nextlink = request.POST.get('next', None)
-        if section == 'pallete':
-            try:
-                extended_bio = str(request.POST['ExtendedBio']).strip()
-                if filterExtendedBio(extended_bio) != profile.extended_bio:
-                    profile.extended_bio = filterExtendedBio(extended_bio)
-                    profilechanged = True
-                    profile.save()
-                    if json_body:
-                        return respondJson(Code.OK, message=Message.PROFILE_UPDATED)
-                    return redirect(nextlink or profile.getLink(success=Message.PROFILE_UPDATED))
+        try:
+            extended_bio = str(request.POST['ExtendedBio']).strip()
+            if filterExtendedBio(extended_bio) != profile.extended_bio:
+                profile.extended_bio = filterExtendedBio(extended_bio)
+                profile.save()
                 if json_body:
-                    return respondJson(Code.OK)
-                return redirect(nextlink or profile.get_link)
-            except Exception as e:
-                if json_body:
-                    return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-                return redirect(nextlink or profile.getLink(error=Message.ERROR_OCCURRED))
+                    return respondJson(Code.OK, message=Message.PROFILE_UPDATED)
+                return redirect(profile.getLink(success=Message.PROFILE_UPDATED))
+            if json_body:
+                return respondJson(Code.OK)
+            return redirect(profile.get_link)
+        except Exception as e:
+            if json_body:
+                return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+            return redirect(profile.getLink(error=Message.ERROR_OCCURRED))
     except Exception as e:
         errorLog(e)
         if json_body:

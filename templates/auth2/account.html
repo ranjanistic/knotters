@@ -13,10 +13,10 @@
       <h4 class="dead-text">Personal nickname</h4>
       <div id="view-nickname">
          @{{request.user.profile.get_nickname}} (<a class="click-to-copy">{{SITE}}{{request.user.profile.get_short_link}}</a>)
-      <i class="edit-action" data-edittarget="nickname">edit</i>
+      <i id="edit-nickname-button" class="edit-action" data-edittarget="nickname">edit</i>
       </div>
       <div id="edit-nickname">
-      <form method="POST" action="{{URLS.NICKNAMEEDIT}}">
+      <form class="no-auto" method="POST" action="{{URLS.NICKNAMEEDIT}}" id="edit-nickname-form">
       {% csrf_token %}
       <input class="primary" type="text" autocomplete="nickname" autocapitalize placeholder="Your nickname" maxlength="70" required
        value="{{request.user.profile.get_nickname}}" name="nickname" id="nickname" />

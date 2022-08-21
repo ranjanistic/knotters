@@ -324,7 +324,7 @@ class Message():
         "Pending unresolved moderation requests exist.")
 
     RESOLVE_PENDING = _(
-        "Please resolve your pending/approved projects first."
+        "Please resolve your pending projects first."
     )
 
     LEAVE_MODERATION = _(
@@ -682,7 +682,6 @@ class URL():
         INVITESUCCESSOR = 'account/successor/invite'
         ACCOUNTDELETE = "account/delete"
         NICKNAMEEDIT = "account/nickname"
-        VALIDATEFIELD = 'validate'
 
         SUCCESSORINVITE = 'invitation/successor/<str:predID>'
 
@@ -932,11 +931,6 @@ class URL():
         def profileEdit(self, section):
             return setPathParams(self.PROFILEEDIT, section)
 
-        EXTENDEDBIOEDIT = 'profile/extendededbioedit/<str:section>'
-
-        def extendedBioedit(self, section):
-            return setPathParams(self.EXTENDEDBIOEDIT, section)
-
         PROFILETAB = 'profiletab/<str:userID>/<str:section>'
 
         def profileTab(self, userID, section):
@@ -954,6 +948,7 @@ class URL():
 
         ACCOUNTPREFERENCES = "account/preferences"
 
+        EXTENDEDBIOEDIT = 'extendedbioedit'
         TOPICSEARCH = "topics/search"
         TOPICSUPDATE = "topics/update"
 

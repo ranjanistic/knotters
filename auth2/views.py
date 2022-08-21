@@ -10,7 +10,7 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import manager_only, normal_profile_required, require_JSON
 from main.env import BOTMAIL
-from main.methods import errorLog, respondJson, user_device_notify
+from main.methods import errorLog, respondJson, user_device_notify, filterNickname
 from main.strings import Action, Code, Message, Template
 from management.models import Management
 from people.models import Profile, User
@@ -524,40 +524,28 @@ def device_notifcation_toggle(request: WSGIRequest, notifID: UUID) -> JsonRespon
 
 @require_JSON
 def nicknameEdit(request: WSGIRequest):
-
+    """
+    To edit nickname 
+    """
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         nickname = request.POST['nickname']
-        nickname = re_sub(r'[^a-z0-9\-]', "", nickname[:20])
-        nickname = "-".join(list(filter(lambda c: c,
-                            nickname.split('-')))).lower()
+        nickname = filterNickname(nickname)
         if Profile.objects.filter(nickname__iexact=nickname).exists():
+            if json_body:
+                return respondJson(Code.NO, error=Message.Custom.already_exists(nickname))
             return respondRedirect(APPNAME, alert=Message.NICKNAME_ALREADY_TAKEN)
         else:
             request.user.profile.nickname = nickname
             request.user.profile.save()
+            if json_body:
+                return respondJson(Code.OK)
             return respondRedirect(APPNAME, alert=Message.NICKNAME_UPDATED)
-
     except Exception as e:
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         return respondRedirect(APPNAME, alert=Message.SUBMISSION_ERROR)
-
-
-@require_JSON
-def validateField(request: WSGIRequest) -> JsonResponse:
-
-    try:
-        data = request.POST["nickname"]
-        data = re_sub(r'[^a-z0-9\-]', "", data[:20])
-        data = "-".join(list(filter(lambda c: c, data.split('-')))).lower()
-        if Profile.objects.filter(nickname=data).exists():
-            print("exists")
-            return respondJson(Code.NO, error=Message.Custom.already_exists(data))
-        else:
-            return respondJson(Code.OK)
-
-    except Exception as e:
-        errorLog(e)
-        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
 
 
 @require_GET
@@ -565,11 +553,8 @@ def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
     """To leave moderatorship"""
     try:
         profile: Profile = request.user.profile
-        moderation = Moderation.objects.filter(
-            moderator=profile)
-        pending = list(filter(lambda x: x.isPending(), moderation))
-        approved = list(filter(lambda x: x.isApproved(), moderation))
-        if(len(pending)>0 or len(approved)>0):
+        len_moderation = Moderation.objects.filter(moderator=profile, status__in=[Code.MODERATION, Code.APPROVED]).count()
+        if(len_moderation > 0):
             return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
         profile.is_moderator = False
         profile.save()
