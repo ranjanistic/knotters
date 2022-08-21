@@ -46,8 +46,9 @@
       <button id="pausemod" data-icon="toggle_off" class="accent w3-large w3-animate-zoom">{% trans "Pause Moderation" %}</button>
       <input type="hidden" id="paused" value=True>
       {% endif %}
+      {% comment %}
       <button id="leavemod" class="negative w3-large w3-animate-zoom">{% trans "Leave Moderation" %}</button>
-       
+      {% endcomment %}
       {% endif %}
       {% if request.user.profile.is_mentor %}
       <h4 class="dead-text">Mentorship</h4>

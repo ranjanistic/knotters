@@ -572,9 +572,9 @@ initializeTabsView({
                 getElement("pausemod").onclick = async (_) => {
                     pauseModDialog();
                 };
-                getElement("leavemod").onclick = async (_) => {
-                    leaveModDialog();
-                };
+                // getElement("leavemod").onclick = async (_) => {
+                //     leaveModDialog();
+                // };
             }
             break;
         }
