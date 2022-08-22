@@ -6,4 +6,5 @@ from main.strings import URL
 urlpatterns = [
     path(URL.INDEX, index),
     path(URL.Howto.DRAFT, draft),
+    # path(URL.HOWto.SECTION, section)
 ]

@@ -59,6 +59,14 @@ class Section(models.Model):
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)
     article = models.ForeignKey(Article,on_delete=models.CASCADE)
+    subheading = models.CharField(max_length=100)
+    paragraph = models.CharField(max_length=300)
+    img = models.ImageField(upload_to='images_uploaded',null=True)
+    video = models.FileField(upload_to='videos_uploaded',null=True)
+    # validators=[FileExtensionValidator(allowed_extensions=['MOV','avi','mp4','webm','mkv'])])
+    delete: Article = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name='article_section_delet')
+
     
 class ArticleAdmirer(models.Model):
     """Model for relation between an admirer and a project"""

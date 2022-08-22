@@ -1,0 +1,12 @@
+{% extends 'index.html' %}
+
+
+{% block content %}
+<h2>welcome</h2>
+{%for section in articles%}
+{{section.heading }}</br>
+{% endfor %}
+{% comment %} {% for howto in %} {% endcomment %}
+   {% comment %} { article } {% endcomment %}
+{% comment %} {% endfor %} {% endcomment %}
+{% endblock content%}
