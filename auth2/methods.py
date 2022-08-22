@@ -1,15 +1,22 @@
+from xmlrpc.client import Boolean
 from compete.models import Competition
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.http.response import HttpResponse
+from datetime import timedelta
 from django.utils import timezone
-from main.methods import errorLog, renderString, renderView
-from main.strings import Auth2, Code
+from main.methods import (errorLog, renderString, renderView, addMethodToAsyncQueue, base64ToFile,
+                          base64ToImageFile, errorLog, renderString,
+                          respondJson, respondRedirect)
+from main.strings import Auth2, Code, Message
 from people.models import Profile, User
 from projects.models import CoreProject, FreeProject, FreeRepository, Project
-
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.http import JsonResponse
+from projects.mailers import projectModTransferInvitation
 from .apps import APPNAME
 from .models import DeviceNotification, EmailNotification, Notification
+from main.exceptions import InvalidUserOrProfile
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -120,7 +127,8 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
         if predprofile.hasPredecessors():
             predprofile.predecessors().update(successor=successor)
 
-        comps = Competition.objects.filter(creator=predecessor.profile, is_draft=False)
+        comps = Competition.objects.filter(
+            creator=predecessor.profile, is_draft=False)
         cprojs = CoreProject.objects.filter(
             creator=predecessor.profile, trashed=False, status__in={Code.APPROVED, Code.REJECTED})
         if len(comps) or len(cprojs):
@@ -131,7 +139,7 @@ def migrateUserAssets(predecessor: User, successor: User) -> bool:
             else:
                 comps.update(creator=succprofile)
                 cprojs.update(migrated=True, migrated_by=predprofile,
-                                migrated_on=timezone.now(), creator=succprofile)
+                              migrated_on=timezone.now(), creator=succprofile)
 
         FreeRepository.objects.filter(
             free_project__creator=predecessor.profile).delete()

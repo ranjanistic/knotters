@@ -246,6 +246,7 @@ class Message():
     LICENSE_UNSELECTED = _("You have to choose a license")
     NICKNAME_ALREADY_TAKEN = _(
         "The nickname is not available, try something else.")
+    NICKNAME_UPDATED = _("Nickname updated successfully")
     CODENAME_ALREADY_TAKEN = _(
         "The codename is not available, try something else.")
     INVALID_LIC_DATA = _('Invalid license data')
@@ -322,6 +323,22 @@ class Message():
     PENDING_MODERATIONS_EXIST = _(
         "Pending unresolved moderation requests exist.")
 
+    RESOLVE_PENDING = _(
+        "Please resolve your pending moderations first."
+    )
+
+    LEAVE_MODERATION = _(
+        "Your Moderatorship has been revoked."
+    )
+
+    MODERATION_PAUSED = _(
+        "Moderation Paused."
+    )
+
+    MODERATION_RESUMED = _(
+        "Moderation Resumed."
+    )
+    
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
@@ -344,7 +361,6 @@ class Message():
             for key in attrs:
                 validMessages.append(attrs[key].lower())
             cache.set(cacheKey, validMessages, settings.CACHE_MINI)
-
         return message.lower() in validMessages
 
     class Custom():
@@ -673,6 +689,7 @@ class URL():
         GETSUCCESSOR = 'account/successor'
         INVITESUCCESSOR = 'account/successor/invite'
         ACCOUNTDELETE = "account/delete"
+        NICKNAMEEDIT = "account/nickname"
 
         SUCCESSORINVITE = 'invitation/successor/<str:predID>'
 
@@ -693,6 +710,9 @@ class URL():
 
         def notificationToggleDevice(self, notifID):
             return setPathParams(self.NOTIFICATION_TOGGLE_DEVICE, notifID)
+        
+        PAUSE_MODERATORSHIP = 'pausemod'
+        LEAVE_MODERATORSHIP = 'leavemod'
 
         def getURLSForClient(self) -> dict:
             URLS = dict()
@@ -937,6 +957,7 @@ class URL():
 
         ACCOUNTPREFERENCES = "account/preferences"
 
+        EXTENDEDBIOEDIT = 'extendedbioedit'
         TOPICSEARCH = "topics/search"
         TOPICSUPDATE = "topics/update"
 
@@ -1039,7 +1060,7 @@ class URL():
             return setPathParams(self.PROFILE_BASE, nickname)
 
         AT_NICKANAME = '@<str:nickname>'
-        
+
         def at_nickname(self, nickname: str):
             return setPathParams(self.AT_NICKANAME, nickname)
 
@@ -1124,6 +1145,7 @@ class URL():
         INVITE_PROJECT_OWNER = 'invite/ownership/'
         INVITE_VERPROJECT_MOD = 'invite/ownership/1'
         INVITE_COREPROJECT_MOD = 'invite/ownership/2'
+        INVITE_LEAVE_MOD = 'invite/leavemod'
 
         PROJECT_TRANS_INVITE = 'invitation/transfer/<str:inviteID>'
 
@@ -1175,6 +1197,16 @@ class URL():
         def coreDeletionRequestAct(self, inviteID):
             return setPathParams(self.CORE_DEL_REQUEST_ACT, inviteID)
 
+        LEAVE_MOD_INVITE = 'invitation/leavemod/<str:inviteID>'
+
+        def leaveModInvite(self, inviteID):
+            return setPathParams(self.LEAVE_MOD_INVITE, inviteID)
+        
+        LEAVE_MOD_INVITE_ACT = 'invitation/action/leavemod/<str:inviteID>'
+
+        def leaveModInviteAction(self, inviteID):
+            return setPathParams(self.LEAVE_MOD_INVITE_ACT, inviteID)
+        
         FREE_VERIFICATION_REQUEST = 'request/verification/0'
         CORE_VERIFICATION_REQUEST = 'request/verification/2'
 
@@ -1955,6 +1987,12 @@ class Template():
         @property
         def verdelinvite(self):
             return f'{self.DIRNAME}/{self.VER_DEL_INVITATION}.html'
+
+        LEAVE_MOD_INVITE = 'leavemodinvite'
+
+        @property
+        def leavemodinvite(self):
+            return f'{self.DIRNAME}/{self.LEAVE_MOD_INVITE}.html'
 
         CORE_DEL_INVITATION = 'coredelinvite'
 

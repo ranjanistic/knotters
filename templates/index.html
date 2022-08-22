@@ -830,7 +830,6 @@
         {% block ext_scripts %}{% endblock %}
         <script nonce="{{request.csp_nonce}}" src="{% static 'scripts/autostart.js' %}"></script>
         <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.QUERY_USE}}?{% for k, v in request.GET.items %}{{k}}={{v}}&{% endfor %}" type="text/javascript"></script>
-
         {% block scripts %}
         <script nonce="{{request.csp_nonce}}" async src="{% static 'scripts/home.js' %}"></script>
         {% endblock %}

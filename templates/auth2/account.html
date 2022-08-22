@@ -11,7 +11,19 @@
       <h4 class="dead-text">Email addresses</h4>
          <button class="accent mini-window-action" data-url="{% url 'account_email' %}" data-icon="open_in_new">{% trans "Email addresses" %}</button>
       <h4 class="dead-text">Personal nickname</h4>
+      <div id="view-nickname">
          @{{request.user.profile.get_nickname}} (<a class="click-to-copy">{{SITE}}{{request.user.profile.get_short_link}}</a>)
+      <i id="edit-nickname-button" class="edit-action" data-edittarget="nickname">edit</i>
+      </div>
+      <div id="edit-nickname">
+      <form class="no-auto" method="POST" action="{{URLS.NICKNAMEEDIT}}" id="edit-nickname-form">
+      {% csrf_token %}
+      <input class="primary" type="text" autocomplete="nickname" autocapitalize placeholder="Your nickname" maxlength="70" required
+       value="{{request.user.profile.get_nickname}}" name="nickname" id="nickname" />
+      <button id="save-edit-nickname"><i class="material-icons">done</i>Save</button>
+      <button id="discard-edit-nickname"><i class="material-icons">close</i>Discard</button>
+      </form>
+   </div>
       <h4 class="dead-text">Personal Emoticon</h4>
          Coming soon.
       <h4 class="dead-text">Password</h4>
@@ -27,7 +39,16 @@
          Coming soon.   
       {% if request.user.profile.is_moderator %}
       <h4 class="dead-text">Moderation</h4>
-         Coming soon.
+      {% if request.user.profile.is_mod_paused %}
+      <button id="pausemod" data-icon="toggle_on" class="accent w3-large w3-animate-zoom">{% trans "Resume Moderation" %}</button>
+      <input type="hidden" id="paused" value=False>
+      {% else %}
+      <button id="pausemod" data-icon="toggle_off" class="accent w3-large w3-animate-zoom">{% trans "Pause Moderation" %}</button>
+      <input type="hidden" id="paused" value=True>
+      {% endif %}
+      {% comment %}
+      <button id="leavemod" class="negative w3-large w3-animate-zoom">{% trans "Leave Moderation" %}</button>
+      {% endcomment %}
       {% endif %}
       {% if request.user.profile.is_mentor %}
       <h4 class="dead-text">Mentorship</h4>

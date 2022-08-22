@@ -2852,3 +2852,46 @@ class CoreProjectVerificationRequest(Invitation):
     def get_link(self) -> str:
         """Returns the link to the moderation view (the effective request view), used by receiver(moderator) via GET method"""
         return self.verifiedproject.get_link
+
+
+class LeaveModerationTransferInvitation(Invitation):
+    """Model for verified project moderatorship transfer invitation record"""
+    sender: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                        related_name='mod_leave_verifiedtransfer_invitation_sender')
+    """sender (ForeignKey<Profile>): sender of the invitation"""
+    receiver: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE,
+                                          related_name='mod_leave_verifiedtransfer_invitation_receiver')
+    """receiver (ForeignKey<Profile>): receiver of the invitation"""
+
+    def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        """Returns the link to the invitation view, used by receiver via GET method"""
+        return f"{url.getRoot(APPNAME)}{url.projects.leaveModInvite(self.get_id)}{url.getMessageQuery(alert,error,success)}"
+
+    @property
+    def get_link(self) -> str:
+        """Returns the link to the invitation view, used by receiver via GET method"""
+        return self.getLink()
+
+    @property
+    def get_act_link(self) -> str:
+        """Returns the link to the accept/decline invitation, used by receiver via POST method"""
+        return f"{url.getRoot(APPNAME)}{url.projects.leaveModInviteAction(self.get_id)}"
+
+    def accept(self) -> bool:
+        """Accepts the invitation and transfers the moderatorship"""
+        if self.expired:
+            return False
+        if self.resolved:
+            return False
+        self.resolve()
+        from .methods import transfer_approved_project_moderation
+        done = transfer_approved_project_moderation(self.sender, self.receiver)
+        if not done:
+            self.unresolve()
+        return done
+
+    def decline(self) -> bool:
+        """Declines the invitation"""
+        if self.resolved:
+            return False
+        return self.delete()

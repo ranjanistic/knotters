@@ -142,7 +142,7 @@ def getModeratorToAssignModeration(type: str, object: models.Model, ignoreModPro
     if ignoreModProfileIDs == False:
         raise IllegalModeration()
 
-    defaultQuery = Q(is_moderator=True,
+    defaultQuery = Q(is_mod_paused=False, is_moderator=True,
                      suspended=False, to_be_zombie=False, is_active=True)
 
     query = defaultQuery

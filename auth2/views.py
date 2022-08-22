@@ -1,5 +1,7 @@
+import email
+from main.strings import url
 from uuid import UUID
-
+from re import sub as re_sub
 from allauth.account.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
@@ -8,7 +10,7 @@ from django.shortcuts import redirect
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import manager_only, normal_profile_required, require_JSON
 from main.env import BOTMAIL
-from main.methods import errorLog, respondJson, user_device_notify
+from main.methods import errorLog, respondJson, user_device_notify, filterNickname
 from main.strings import Action, Code, Message, Template
 from management.models import Management
 from people.models import Profile, User
@@ -18,6 +20,11 @@ from .mailers import (accountInactiveAlert, accountReactiveAlert, assetMigration
 from .methods import get_auth_section_html, migrateUserAssets, renderer
 from .models import DeviceNotification, EmailNotification
 from .receivers import *
+
+from main.strings import URL
+from main.methods import respondRedirect
+from auth2.apps import APPNAME
+from moderation.models import Moderation
 
 
 @normal_profile_required
@@ -510,6 +517,80 @@ def device_notifcation_toggle(request: WSGIRequest, notifID: UUID) -> JsonRespon
         return respondJson(Code.OK)
     except (KeyError, ObjectDoesNotExist, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@normal_profile_required
+@require_JSON
+def nicknameEdit(request: WSGIRequest):
+    """
+    To edit nickname 
+    """
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        nickname = request.POST['nickname']
+        nickname = filterNickname(nickname)
+        if Profile.objects.filter(nickname__iexact=nickname).exists():
+            if json_body:
+                return respondJson(Code.NO, error=Message.Custom.already_exists(nickname))
+            return respondRedirect(APPNAME, alert=Message.NICKNAME_ALREADY_TAKEN)
+        else:
+            request.user.profile.nickname = nickname
+            request.user.profile.save()
+            if json_body:
+                return respondJson(Code.OK)
+            return respondRedirect(APPNAME, alert=Message.NICKNAME_UPDATED)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return respondRedirect(APPNAME, error=Message.SUBMISSION_ERROR)
+
+
+@normal_profile_required
+@require_JSON
+def pauseModeratorship(request: WSGIRequest) -> JsonResponse:
+    """To pause/resume moderatorship"""
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        profile: Profile = request.user.profile
+        if not profile.is_moderator:
+            if json_body:
+                return respondJson(Code.NO, error=Message.INVALID_MODERATOR)
+            return respondRedirect(APPNAME, error=Message.INVALID_MODERATOR)
+        len_moderation = Moderation.objects.filter(moderator=profile, status=Code.MODERATION).count()
+        if len_moderation > 0:
+            if json_body:
+                return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
+            return respondRedirect(APPNAME, error=Message.RESOLVE_PENDING)
+        paused = request.POST.get("paused", False)
+        profile.is_mod_paused = paused
+        profile.save()
+        if json_body:
+            return respondJson(Code.OK)
+        if paused:
+            return respondRedirect(APPNAME, success=Message.MODERATION_PAUSED)
+        return respondRedirect(APPNAME, success=Message.MODERATION_RESUMED)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        return respondRedirect(APPNAME, error=Message.ERROR_OCCURRED)
+
+
+@require_GET
+def leaveModeratorship(request: WSGIRequest) -> JsonResponse:
+    """To leave moderatorship"""
+    try:
+        profile: Profile = request.user.profile
+        len_moderation = Moderation.objects.filter(moderator=profile, status__in=[Code.MODERATION, Code.APPROVED]).count()
+        if(len_moderation > 0):
+            return respondJson(Code.NO, error=Message.RESOLVE_PENDING)
+        profile.is_moderator = False
+        profile.save()
+        return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

@@ -232,5 +232,10 @@ const STRING = {
     you_ve_joined_org: `{% trans "You\'ve joined this organization." %}`,
     you_ve_declined_org: `{% trans "You\'ve declined invitation to join this organization." %}`,
     pending_unresolved: `{% trans "Pending unresolved moderation requests exist." %}`,
+    leave_moderation: `{% trans "Your Moderatorship has been revoked." %}`,
+    nickname_updated: `{% trans "Nickname updated successfully." %}`,
+    resolve_pending: `{% trans "Please resolve your pending moderations first." %}`,
+    moderation_paused: `{% trans "Moderation Paused." %}`,
+    moderation_resumed: `{% trans "Moderation Resumed." %}`
 };
 Object.freeze(STRING);

@@ -94,6 +94,21 @@ def filterBio(string: str) -> str:
         return filterBio(bio)
     return bio
 
+def filterExtendedBio(string: str) -> str:
+    """Trims given string (assuming to be profile extended bio) to a certain length limit.
+
+    Args:
+        string (str): Assuming this to be user profile extended bio, operations will take place.
+
+    Returns:
+        str: Filtered string based profile extended bio.
+    """
+    extended_bio=str(string)
+    if len(extended_bio) > 500:
+        extended_bio=extended_bio[:(500-len(extended_bio))]
+        return filterExtendedBio(extended_bio)
+    return extended_bio
+
 
 def addTopicToDatabase(topic: str, creator: Profile = None, tags: list = []) -> Topic:
     """Adds a new topic to the database.

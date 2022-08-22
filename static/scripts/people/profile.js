@@ -224,6 +224,20 @@ const loadTabScript = (tab) => {
                             if (resp.code === code.OK) return tab.click();
                             error(resp.error);
                         };
+                        getElement("save-edit-extendedBio").onclick =
+                        async () => {
+                            const obj = getFormDataById(
+                                "edit-extendedBio-form"
+                            );
+                            const resp = await postRequest2({
+                                path: setUrlParams(URLS.EXTENDEDBIOEDIT),
+                                data: {
+                                    ExtendedBio: obj.ExtendedBio
+                                },
+                            });
+                            if (resp.code === code.OK) return tab.click();
+                            error(resp.error);
+                        };
                 }
             }
             break;

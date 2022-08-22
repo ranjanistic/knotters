@@ -390,6 +390,8 @@ class Profile(models.Model):
     """githubID (CharField): The GitHub ID of the user."""
     bio: str = models.CharField(max_length=350, blank=True, null=True)
     """bio (CharField): The bio of the user."""
+    extended_bio: str = models.CharField(max_length=500, blank=True, null=True)
+    """extended bio (CharField): The extended bio of the user."""
     successor: User = models.ForeignKey(User, null=True, blank=True, related_name='successor_profile',
                                         on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
     """successor (ForeignKey<User>): The successor of the user."""
@@ -399,9 +401,12 @@ class Profile(models.Model):
 
     is_moderator: bool = models.BooleanField(default=False)
     """is_moderator (BooleanField): Whether the user is a moderator."""
+    is_mod_paused: bool = models.BooleanField(default=False)
+    """is_moderator (BooleanField): Whether the user's moderation is paused."""
     is_mentor: bool = models.BooleanField(default=False)
     """is_mentor (BooleanField): Whether the user is a mentor."""
-
+    is_mentor_paused: bool = models.BooleanField(default=False)
+    """is_mentor (BooleanField): Whether the user's mentorship is paused."""
     is_active: bool = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     """is_active (BooleanField): Whether the account is active. This is different from the user's is_active field."""
@@ -818,6 +823,16 @@ class Profile(models.Model):
         self.save()
         return True
 
+    def mod_isPending(self):
+        """Returns True if moderator has pending modeartions"""
+        from moderation.models import Moderation
+        return Moderation.objects.filter(moderator=self, resolved=False).exists()
+    
+    def mod_isApproved(self):
+        """Returns True if moderator has approved modeartions"""
+        from moderation.models import Moderation
+        return Moderation.objects.filter(moderator=self, status=Code.APPROVED).exists()
+
     def makeMentor(self):
         """Makes the user a mentor, if possible.
 
@@ -904,6 +919,10 @@ class Profile(models.Model):
     def getBio(self) -> str:
         """Returns the user's bio"""
         return self.bio if self.bio else ''
+
+    def getExtendedBio(self) -> str:
+        """Returns the extended user bio"""
+        return self.extended_bio if self.extended_bio else ''
 
     def getSubtitle(self) -> str:
         """Returns the user's subtitle"""
@@ -1714,6 +1733,24 @@ class Profile(models.Model):
                           ])
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
 
+    def getApprovedModerations(self):
+        from moderation.models import Moderation
+        approved_moderations = Moderation.objects.filter(moderator=self, status=Code.APPROVED, resolved=True, type__in=[ ])
+        return approved_moderations
+
+    def getModProjects(self) -> models.QuerySet:
+        """Returns all projects that are moderated by user.
+
+        Returns:
+            models.QuerySet<Project>: All projects instances that are moderated by user.
+        """
+        cacheKey = f"moderated_projects_{self.id}"
+        moderatedprojects = cache.get(cacheKey, None)
+        if moderatedprojects is None:
+            moderatedprojects = list(map(lambda x: x.project, self.getApprovedModerations()))
+            cache.set(cacheKey, topicprojects, settings.CACHE_SHORT)
+        return topicprojects
+
 
 class ProfileSetting(models.Model):
     """Profile settings model
@@ -1943,6 +1980,12 @@ class DisplayMentor(models.Model):
     def get_about(self) -> str:
         if self.profile:
             return self.profile.getBio()
+        return self.about
+
+    @property
+    def get_extendedBio(self) -> str:
+        if self.profile:
+            return self.profile.getExtendedBio()
         return self.about
 
     @property
@@ -2221,7 +2264,7 @@ class CoreMember(models.Model):
         return self.profile.get_name
 
     def get_about(self):
-        return self.about or self.profile.getBio()
+        return self.about or self.profile.getBio() or self.profile.getExtendedBio()
 
 
 class ProfileXPRecord(models.Model):
