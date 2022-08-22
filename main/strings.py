@@ -12,6 +12,7 @@ from management.apps import APPNAME as MANAGEMENT
 from moderation.apps import APPNAME as MODERATION
 from people.apps import APPNAME as PEOPLE
 from projects.apps import APPNAME as PROJECTS
+from howto.apps import APPNAME as HOWTO
 
 from .env import CDN_URL
 
@@ -217,7 +218,7 @@ class Message():
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
     LOGIN_REQUIRED = _("Please login to continue.")
     EMAIL_NOT_VERIFIED = _("Please verify your account email address.")
-
+    ARTICLE_NOT_FOUND =_("Article not found")
     RESULT_DECLARED = _("Results declared!")
     RESULT_NOT_DECLARED = _("Results not declared.")
     RESULT_DECLARING = _("Results declaration in progress")
@@ -395,7 +396,7 @@ class Action():
 
 action = Action()
 
-DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2]
+DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2, HOWTO]
 
 
 class Project():
@@ -585,6 +586,7 @@ class URL():
     MANAGEMENT = f'{MANAGEMENT}/'
     FAME_WALL = 'wall-of-fame/'
     REDIRECTOR = 'redirector/'
+    HOWTO = f'{HOWTO}/'
 
     def redirector(self, to='/'):
         return f"{self.REDIRECTOR}?n={to}"
@@ -637,6 +639,8 @@ class URL():
             return f"/{self.MODERATION if withslash else self.MODERATION.strip('/')}"
         elif fromApp == MANAGEMENT:
             return f"/{self.MANAGEMENT if withslash else self.MANAGEMENT.strip('/')}"
+        elif fromApp == HOWTO:
+            return f"/{self.HOWTO if withslash else self.HOWTO.strip('/')}"
         else:
             return self.ROOT if withslash else self.ROOT.strip('/')
 
@@ -1345,6 +1349,20 @@ class URL():
 
     managemnt = Management()
     management = Management()
+    
+    class Howto():
+        DRAFT = 'e/<str:articleID>/draft/'
+        SECTION = 'e/<str:articleID>/section/'
+        DELETE = 'e/<str:articleID>/delete/'
+        EDIT_TOPICS = 'e/<str:articleID>/topics'
+        EDIT_TAGS = 'e/<str:articleID>/tags'
+        SAVE_CHANGES = 'e/<str:articleID>/save'
+        VIEW = '<str:nickname>/'
+
+        def view(self, nickname: str):
+            return setPathParams(self.VIEW, nickname)
+    
+    howto = Howto()
 
     def getURLSForClient(self) -> dict:
         URLS = dict()
@@ -1508,12 +1526,13 @@ class Template():
     DONATION = "donation"
 
     THANKYOU = "thankyou"
+    
 
     @property
     def thankyou(self):
         return f'{self.THANKYOU}.html'
     
-
+    
     @property
     def donation(self):
         return f'{self.DONATION}.html'
@@ -2234,6 +2253,22 @@ class Template():
 
     management = Management()
 
+    class Howto():
+        DIRNAME = HOWTO
+
+        INDEX = 'index'
+
+        @property
+        def index(self):
+            return f'{self.DIRNAME}/{self.INDEX}.html'
+        
+        ARTICLE ="article"
+
+        @property
+        def article(self):
+            return f'{self.DIRNAME}/{self.ARTICLE}.html'
+    
+    howto = Howto()
 
 template = Template()
 

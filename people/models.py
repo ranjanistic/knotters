@@ -2,7 +2,7 @@ from datetime import datetime
 from operator import truediv
 from re import sub as re_sub
 from time import time
-from uuid import UUID, uuid4
+from uuid import UUID,uuid4
 import math
 
 from allauth.account.models import EmailAddress
@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         PermissionsMixin)
 from django.core.cache import cache
+from time import time
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
 from django.db import models
@@ -1735,7 +1736,7 @@ class Profile(models.Model):
 
     def getApprovedModerations(self):
         from moderation.models import Moderation
-        approved_moderations = Moderation.objects.filter(moderator=self, status=Code.APPROVED, resolved=True, type__in=[ ])
+        approved_moderations = Moderation.objects.filter(moderator=self, status=Code.APPROVED, resolved=True, type=PROJECTS)
         return approved_moderations
 
     def getModProjects(self) -> models.QuerySet:
@@ -1748,8 +1749,7 @@ class Profile(models.Model):
         moderatedprojects = cache.get(cacheKey, None)
         if moderatedprojects is None:
             moderatedprojects = list(map(lambda x: x.project, self.getApprovedModerations()))
-            cache.set(cacheKey, topicprojects, settings.CACHE_SHORT)
-        return topicprojects
+        return moderatedprojects
 
 
 class ProfileSetting(models.Model):

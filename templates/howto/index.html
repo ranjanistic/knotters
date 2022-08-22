@@ -1,0 +1,40 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block title %}
+{% trans "HowTo" %}
+{% endblock %}
+{% block nav_text %}
+{% trans "HowTo" %}
+{% endblock %}
+{% block content %}
+
+<div class="w3-row tertiary" style="background-image: url('{{ICON_SHADOW}}');">
+    <div class="w3-row w3-center" style="padding:16px 4px">
+        <h3><span class="pallete-slab tertiary">{% trans "Articles" %}</span></h3>
+        <strong class="text-medium"><div class="pallete-slab tertiary">{% trans "Detailed guides to help you grow" %}</div></strong>
+    </div>
+    <div class="w3-row">
+        {% for article in articles %}
+        <div class="w3-col w3-quarter w3-padding"> 
+            <a href="{{article.get_link}}">
+                <div class="pallete w3-center no-pad">
+                    <div class="w3-row w3-padding">
+                        <h6>{{ article.heading }}</h6>
+                        <span>{{ article.subheading }}</span>
+                    </div>
+                    <br />
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    <br />
+</div>
+{% endblock %}
+{% block scripts %}
+{% endblock %}

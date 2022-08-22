@@ -1,0 +1,13 @@
+{% extends 'howto/index.html' %}
+
+{% block content %}
+{{article.heading}}
+<br>
+{{article.subheading}}
+<h4>Sections</h4>
+{%for section in sections%}
+{{section.subheading}}
+<img src="{{section.get_image}}">
+<br>
+{% endfor %}
+{% endblock %}

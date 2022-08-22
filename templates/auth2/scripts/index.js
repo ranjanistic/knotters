@@ -437,6 +437,7 @@ initializeTabsView({
                             }
                             error(resp.error);
                             getElement("edit-nickname-button").click()
+                            getElement("nickname").focus()
                         };
                 const pauseModDialog = async () => {
                     if ("{{request.user.profile.mod_isPending}}"=="True")
