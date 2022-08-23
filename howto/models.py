@@ -53,7 +53,7 @@ class Article(models.Model):
                     currTime += 200
                     nickname = nickname + str(currTime)
             self.nickname = nickname
-            self.save()
+            # self.save()
         return self.nickname
 
     def get_link(self) -> str:
@@ -91,7 +91,7 @@ class Section(models.Model):
 
 
 class ArticleAdmirer(models.Model):
-    """Model for relation between an admirer and a project"""
+    """Model for relation between an admirer and an article"""
     class Meta:
         unique_together = ('profile', 'article')
 
@@ -105,7 +105,7 @@ class ArticleAdmirer(models.Model):
     """article (ForeignKey<Article>): article which was admired"""
 
 class ArticleTopic(models.Model):
-    """Model for relation between an admirer and a project"""
+    """Model for relation between an admirer and an article"""
     class Meta:
         unique_together = ('topic', 'article')
 

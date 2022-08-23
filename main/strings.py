@@ -218,6 +218,8 @@ class Message():
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
     LOGIN_REQUIRED = _("Please login to continue.")
     EMAIL_NOT_VERIFIED = _("Please verify your account email address.")
+    ARTICLE_CREATED = _("Article created successfully")
+    ARTICLE_DELETED = _("Article deleted successfully")
     ARTICLE_NOT_FOUND =_("Article not found")
     RESULT_DECLARED = _("Results declared!")
     RESULT_NOT_DECLARED = _("Results not declared.")
@@ -1347,34 +1349,68 @@ class URL():
                 URLS[key] = f"{url.getRoot(MANAGEMENT)}{setPathParams(urls[key])}"
             return URLS
 
-    managemnt = Management()
     management = Management()
     
     class Howto():
+
+        CREATE = 'create/'
+
+        SAVE = 'save/'
+
         DRAFT = 'e/<str:articleID>/draft/'
+
+        def draft(self, articleID: str):
+            return setPathParams(self.DRAFT, articleID)
+
         SECTION = 'e/<str:articleID>/section/'
+        def section(self, articleID: str):
+            return setPathParams(self.SECTION, articleID)
+
         DELETE = 'e/<str:articleID>/delete/'
+
+        def delete(self, articleID: str):
+            return setPathParams(self.DELETE, articleID)
+
         EDIT_TOPICS = 'e/<str:articleID>/topics'
+
+        def editTopics(self, articleID: str):
+            return setPathParams(self.EDIT_TOPICS, articleID)
+
         EDIT_TAGS = 'e/<str:articleID>/tags'
+
+        def editTags(self, articleID: str):
+            return setPathParams(self.EDIT_TAGS, articleID)
+
         SAVE_CHANGES = 'e/<str:articleID>/save'
+
         VIEW = '<str:nickname>/'
 
         def view(self, nickname: str):
             return setPathParams(self.VIEW, nickname)
+        
+        def getURLSForClient(self) -> dict:
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Howto, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(HOWTO)}{setPathParams(urls[key])}"
+            return URLS
     
     howto = Howto()
 
     def getURLSForClient(self) -> dict:
-        URLS = dict()
+            URLS = dict()
 
-        def cond(key, value):
-            return str(key).isupper()
-        urls = classAttrsToDict(URL, cond)
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL, cond)
 
-        for key in urls:
-            URLS[key] = f"{url.getRoot() if urls[key] != url.getRoot() else ''}{setPathParams(urls[key])}"
-        return URLS
-
+            for key in urls:
+                URLS[key] = f"{url.getRoot() if urls[key] != url.getRoot() else ''}{setPathParams(urls[key])}"
+            return URLS
 
 url = URL()
 
@@ -2262,11 +2298,17 @@ class Template():
         def index(self):
             return f'{self.DIRNAME}/{self.INDEX}.html'
         
-        ARTICLE ="article"
+        ARTICLE = 'article'
 
         @property
         def article(self):
             return f'{self.DIRNAME}/{self.ARTICLE}.html'
+
+        CREATE = 'create'
+
+        @property
+        def create(self):
+            return f'{self.DIRNAME}/{self.CREATE}.html'
     
     howto = Howto()
 

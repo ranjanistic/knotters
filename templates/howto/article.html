@@ -1,5 +1,5 @@
 {% extends 'howto/index.html' %}
-
+{% load custom_tags %}
 {% block content %}
 {{article.heading}}
 <br>
@@ -10,4 +10,9 @@
 <img src="{{section.get_image}}">
 <br>
 {% endfor %}
+<form action="{{ URLS.DELETE|params:article.id}}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="remove" id="">
+    <button type="submit">Delete Article</button>
+</form>
 {% endblock %}
