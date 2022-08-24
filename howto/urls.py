@@ -9,5 +9,10 @@ urlpatterns = [
     path(URL.Howto.SAVE, saveArticle),
     path(URL.Howto.DRAFT, draft),
     path(URL.Howto.VIEW, view),
+    path(URL.Howto.SEARCH_TOPICS, topicsSearch),
+    path(URL.Howto.EDIT_TOPICS, topicsUpdate),
+    path(URL.Howto.SEARCH_TAGS, tagsSearch),
+    path(URL.Howto.EDIT_TAGS, tagsUpdate),
     path(URL.Howto.DELETE, deleteArticle),
+    path(URL.Howto.SECTION, section),
 ]

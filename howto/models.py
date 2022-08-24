@@ -7,7 +7,7 @@ from django.utils import timezone
 from people.models import Profile,Topic
 from projects.models import Tag
 from .apps import APPNAME
-from main import settings
+from django.conf import settings
 from main.strings import url
 
 
@@ -63,6 +63,12 @@ class Article(models.Model):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the article"""
         return f"{url.getRoot(APPNAME)}{url.howto.view(self.get_nickname())}{url.getMessageQuery(alert,error,success)}"
+
+    def getTopics(self) -> list:
+        return self.topics.all()
+    
+    def getTags(self) -> list:
+        return self.tags.all()
         
 
 def sectionMediaPath(instance, filename):

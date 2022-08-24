@@ -218,9 +218,12 @@ class Message():
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
     LOGIN_REQUIRED = _("Please login to continue.")
     EMAIL_NOT_VERIFIED = _("Please verify your account email address.")
-    ARTICLE_CREATED = _("Article created successfully")
-    ARTICLE_DELETED = _("Article deleted successfully")
-    ARTICLE_NOT_FOUND =_("Article not found")
+    ARTICLE_CREATED = _("Article created successfully.")
+    ARTICLE_DELETED = _("Article deleted successfully.")
+    ARTICLE_NOT_FOUND =_("Article not found.")
+    SECTION_CREATED =_("Section created successfully.")
+    SECTION_DELETED = _("Section deleted successfully.")
+    SECTION_UPDATED = _("Section updated successfully.")
     RESULT_DECLARED = _("Results declared!")
     RESULT_NOT_DECLARED = _("Results not declared.")
     RESULT_DECLARING = _("Results declaration in progress")
@@ -1362,19 +1365,24 @@ class URL():
         def draft(self, articleID: str):
             return setPathParams(self.DRAFT, articleID)
 
-        SECTION = 'e/<str:articleID>/section/'
-        def section(self, articleID: str):
-            return setPathParams(self.SECTION, articleID)
+        SECTION = 'e/<str:articleID>/section/<str:action>'
+
+        def section(self, articleID: str, action: str):
+            return setPathParams(self.SECTION, articleID, action)
 
         DELETE = 'e/<str:articleID>/delete/'
 
         def delete(self, articleID: str):
             return setPathParams(self.DELETE, articleID)
 
+        SEARCH_TOPICS = 's/<str:aticleID>/topics'
+
         EDIT_TOPICS = 'e/<str:articleID>/topics'
 
         def editTopics(self, articleID: str):
             return setPathParams(self.EDIT_TOPICS, articleID)
+
+        SEARCH_TAGS = 's/<str:aticleID>/tags'
 
         EDIT_TAGS = 'e/<str:articleID>/tags'
 
