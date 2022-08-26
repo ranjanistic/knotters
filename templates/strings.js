@@ -236,6 +236,9 @@ const STRING = {
     nickname_updated: `{% trans "Nickname updated successfully." %}`,
     resolve_pending: `{% trans "Please resolve your pending moderations first." %}`,
     moderation_paused: `{% trans "Moderation Paused." %}`,
-    moderation_resumed: `{% trans "Moderation Resumed." %}`
+    moderation_resumed: `{% trans "Moderation Resumed." %}`,
+    article_deleted: `{% trans "Article deleted successfully." %}`,
+    article_drafted: `{% trans "Article drafted successfully." %}`,
+    article_published: `{% trans "Article published successfully." %}`,
 };
 Object.freeze(STRING);

@@ -221,6 +221,8 @@ class Message():
     ARTICLE_CREATED = _("Article created successfully.")
     ARTICLE_DELETED = _("Article deleted successfully.")
     ARTICLE_NOT_FOUND =_("Article not found.")
+    ARTICLE_DRAFTED = _("Article drafted successfully.")
+    ARTICLE_PUBLISHED = _("Article published successfully.")
     SECTION_CREATED =_("Section created successfully.")
     SECTION_DELETED = _("Section deleted successfully.")
     SECTION_UPDATED = _("Section updated successfully.")
@@ -1471,6 +1473,7 @@ class Template():
         TOPIC = "topic.js"
         CORE_PROJECT = "core-project.js"
         PROJECTS = "projects.js"
+        ARTICLE = "article.js"
 
         def getScriptTemplates(self) -> list:
             TEMPLATES = []

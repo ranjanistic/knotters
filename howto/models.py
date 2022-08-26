@@ -69,8 +69,11 @@ class Article(models.Model):
     
     def getTags(self) -> list:
         return self.tags.all()
-        
+    
+    def canCreateArticle(profile: Profile) -> bool:
+        return profile.is_manager() or profile.is_moderator and not profile.is_mod_paused or profile.is_mentor and not profile.is_mentor_paused
 
+        
 def sectionMediaPath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/sections/{str(instance.get_id)}-{str(uuid4().hex)}.{fileparts[-1]}"

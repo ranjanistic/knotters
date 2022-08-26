@@ -1,6 +1,6 @@
 from django.shortcuts import redirect 
 from howto.models import Article, Section, ArticleTopic, ArticleTag
-from howto.methods import renderer
+from howto.methods import renderer, articleRenderData
 from main.strings import Template, Code , Message, URL, Action, setURLAlerts
 from main.methods import respondJson, errorLog, respondRedirect, base64ToFile, base64ToImageFile
 from main.decorators import require_JSON, normal_profile_required, decode_JSON
@@ -38,7 +38,15 @@ def createArticle(request: WSGIRequest):
     Returns:
         HttpResponse: The rendered text/html view.
     """
-    return renderer(request, Template.Howto.CREATE)
+    try:
+        if Article.canCreateArticle(request.user.profile):
+            return renderer(request, Template.Howto.CREATE)
+        raise ValidationError(request.user.profile)
+    except ValidationError as e:
+        raise Http404("Unauthorised access", e)
+    except Exception as e:
+        errorLog(e)
+        return respondRedirect(APPNAME, error=Message.ERROR_OCCURRED)
 
 
 @normal_profile_required
@@ -85,11 +93,12 @@ def view(request: WSGIRequest, nickname: str):
         article: Article = Article.objects.get(nickname=nickname)
         if request.user.profile != article.author and article.is_draft:
             raise Exception(article)
-        sections = Section.objects.filter(article=article)
-        return renderer(request, Template.Howto.ARTICLE, dict(article=article, sections=sections))
+        data = articleRenderData(request, article)
+        return renderer(request, Template.Howto.ARTICLE, data)
     except Exception as e:
         errorLog(e)
         return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
+
 
 @require_JSON
 @normal_profile_required   
@@ -402,6 +411,7 @@ def tagsUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
 
 @normal_profile_required
 @require_POST
+@decode_JSON
 def deleteArticle(request, articleID):
     """To delete an article.
 
@@ -414,16 +424,23 @@ def deleteArticle(request, articleID):
         HttpResponseRedirect: The redirect to the howto page if deleted successfully, else to the article page.
     """
     try:
-        action = request.POST['action']
-        if action == Action.REMOVE:
+        json_body = request.POST.get(Code.JSON_BODY, False)
+        confirm = request.POST.get('confirm', False)
+        if confirm:
             Article.objects.get(id=articleID, author=request.user.profile).delete()
+            if json_body:
+                return respondJson(Code.OK)
             return respondRedirect(APPNAME, success=Message.ARTICLE_DELETED)
         else:
-                raise ValidationError(action)
+                raise ValidationError(confirm)
     except (ValidationError, ObjectDoesNotExist) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         raise Http404(o)
     except Exception as e:
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         return respondRedirect(APPNAME, error=Message.ERROR_OCCURRED)
 
 
@@ -452,7 +469,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
     try:
         article: Article = Article.objects.get(id=articleID, author=request.user.profile)
         if action == Action.CREATE:
-            subheading = request.POST.get("subheading", "")
+            subheading = request.POST.get('subheading', "")
             paragraph = request.POST.get('paragraph', "")
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
@@ -475,12 +492,13 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
                 image=imagefile,
                 video=videofile
             )
-            return redirect(article.getLink(alert=Message.SECTION_CREATED))
+            return redirect(article.getLink(success=Message.SECTION_CREATED))
 
         id = request.POST['sectionid'][:50]
         section: Section = Section.objects.get(id=id, article=article)
+
         if action == Action.UPDATE:
-            subheading = request.POST.get("subheading", "")
+            subheading = request.POST.get('subheading', "")
             paragraph = request.POST.get('paragraph', "")
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
@@ -492,6 +510,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
                 changed = True
             if paragraph and section.paragraph != paragraph:
                 section.paragraph = paragraph
+                changed = True
             if image or video:
                 try:
                     newimgfile = base64ToImageFile(image)
@@ -500,23 +519,27 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
                     changed = True
                 except:
                     newimgfile = None
-                if not newimgfile:
-                    try:
-                        newvidfile = base64ToFile(video)
-                        section.video.delete(save=False)
-                        section.video = newvidfile
-                        changed = True
-                    except:
-                        newvidfile = None
+
+                try:
+                    newvidfile = base64ToFile(video)
+                    section.video.delete(save=False)
+                    section.video = newvidfile
+                    changed = True
+                except:
+                    newvidfile = None
             if changed:
                 section.save()
-            return respondJson(Code.OK, message=Message.SECTION_UPDATED)
+            if json_body:
+                return respondJson(Code.OK, message=Message.SECTION_UPDATED)
+            return redirect(article.getLink(success=Message.SECTION_UPDATED))
 
         if action == Action.REMOVE:
             done = section.delete()[0] >= 1
             if not done:
                 raise ObjectDoesNotExist(section)
-            return respondJson(Code.OK, message=Message.SECTION_DELETED)
+            if json_body:
+                return respondJson(Code.OK, message=Message.SECTION_DELETED)
+            return redirect(article.getLink(success=Message.SECTION_DELETED))
 
         raise KeyError(action)
     except (ObjectDoesNotExist, KeyError, ValidationError) as o:
