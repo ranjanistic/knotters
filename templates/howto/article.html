@@ -11,7 +11,51 @@
     <div class="w3-col w3-container m4 l3 w3-animate-left">
         <div class="w3-row pallete w3-center w3-animate-zoom" style="padding: 0">
             <h5>{{article.heading}}</h5>
-            {{article.subheading}}<br />
+            {{article.subheading}}<br /><br />
+            <div class="w3-row" id="view-articletopics">
+                <div class="w3-row text-big"><strong>Topics {% if self and article.topics.all|length > 0 %}<i class="edit-action" data-edittarget="articletopics">edit</i>{% endif %}</strong></div>
+                {% for topic in article.topics.all %}
+                    <a href="{{URLS.HOWTO}}?search=topic:{{topic}}">
+                        <button class="big-button topic-name primary border-joy">
+                        {{topic}}
+                        </button>
+                    </a>
+                {% empty %}
+                    {% if self %}
+                        <br/>
+                        <button class="accent edit-action big-button" data-edittarget="articletopics" data-icon="add">Add topics</button>
+                    {% else %}
+                        <br/>
+                        <div class="dead-text">
+                            <i class="w3-big">scatter_plot</i>
+                            <h4>No topics yet</h4>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% if self %}
+            <div id="edit-articletopics" hidden>
+                <br/>
+                <strong class="dead-text">Total 5 topics allowed</strong>
+                <form class="no-auto" method="POST" id="edit-article-topics-form">
+                    {% csrf_token %}
+                    <input class="wide" placeholder="Search topics" id="topic-search-input" maxlength="35" />
+                    <div class="w3-row w3-padding" id="topics-viewer">
+                        {% for topic in article.getTopics %}
+                        <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
+                        {% endfor %}
+                        <div class="w3-row w3-padding" id="topics-viewer-new"></div>
+                    </div>
+                    <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
+                    <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
+                    <input id="addtopics" name="addtopics" hidden type="text" />
+                    <br/>
+                    <button id="save-edit-articletopics" data-icon="done">Save</button>
+                    <button id="discard-edit-articletopics" data-icon="close">Cancel</button>
+                </form>
+            </div>
+            {% endif %}
+            <br />
         </div>
         <br />
         <div class="w3-row w3-padding-small">

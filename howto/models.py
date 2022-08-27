@@ -9,6 +9,7 @@ from projects.models import Tag
 from .apps import APPNAME
 from django.conf import settings
 from main.strings import url
+from django.core.cache import cache
 
 
 class Article(models.Model):
@@ -63,6 +64,16 @@ class Article(models.Model):
     def getLink(self, success: str = '', error: str = '', alert: str = '') -> str:
         """Returns the link to the article"""
         return f"{url.getRoot(APPNAME)}{url.howto.view(self.get_nickname())}{url.getMessageQuery(alert,error,success)}"
+
+    def get_admirers(self) -> models.QuerySet:
+        """Returns the admirers of this article
+        """
+        cacheKey = "article_admirers_{self.id}"
+        admirers = cache.get(cacheKey, [])
+        if not len(admirers):
+            admirers = self.admirers.all()
+            cache.set(cacheKey, admirers, settings.CACHE_INSTANT)
+        return admirers
 
     def getTopics(self) -> list:
         return self.topics.all()

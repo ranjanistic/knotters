@@ -1377,14 +1377,14 @@ class URL():
         def delete(self, articleID: str):
             return setPathParams(self.DELETE, articleID)
 
-        SEARCH_TOPICS = 's/<str:aticleID>/topics'
+        SEARCH_TOPICS = 's/<str:articleID>/topics'
 
         EDIT_TOPICS = 'e/<str:articleID>/topics'
 
         def editTopics(self, articleID: str):
             return setPathParams(self.EDIT_TOPICS, articleID)
 
-        SEARCH_TAGS = 's/<str:aticleID>/tags'
+        SEARCH_TAGS = 's/<str:articleID>/tags'
 
         EDIT_TAGS = 'e/<str:articleID>/tags'
 
