@@ -25,5 +25,6 @@ def articleRenderData(request:WSGIRequest, article: Article):
     self = request.user.profile==article.author and request.user.is_authenticated
     return dict(article=article,
                 sections=sections,
-                self=self
+                self=self,
+                canEdit=article.isEditable()
                 )

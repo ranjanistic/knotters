@@ -76,22 +76,22 @@
             {% include 'howto/sections.html' %}
         </div>
         <br />
-        <div class="w3-row align">
-            {% if self %}
-                <div class="w3-row" id="view-section">
+        <div class="w3-row">
+            {% if self and canEdit%}
+                <div class="w3-row w3-center" id="view-section">
                     <button class="large edit-action" data-icon='add' id="create-snap" data-edittarget="section">Add Section</button>
                 </div>
                 <div class="w3-row" id="edit-section">
                     <br />
-                    <input type='file' hidden id='snap-file' accept="image/png, image/jpg, image/jpeg" />
+                    <input type='file' hidden id='section-file-0' accept="image/png, image/jpg, image/jpeg"/>
                     <form action="{{URLS.SECTION|params:article.id|params:'create'}}" method="POST">
                         {% csrf_token %}
-                        <input type="text" name="subheading" placeholder="subheading"><br />
-                        <textarea class="wide snapshot-input" name='paragraph' rows="3" placeholder="Paragraph"></textarea>
-                        <input class="snapshot-input" type="text" id='snapimage' name='snapimage' hidden />
-                        <img width='100%' id='snapimageview' hidden class="snapshot-image preview-type-image" />
-                        <div class="dead-text" id='add-image-view'>
-                            <label for="snap-file">
+                        <input class="wide" type="text" name="subheading" placeholder="subheading">
+                        <textarea class="wide" style="margin-top: 1rem" name='paragraph' rows="3" placeholder="Paragraph"></textarea>
+                        <input type="text" id='imageData-0' name='image' hidden value=""/>
+                        <img hidden width='20%' id='imageOutput-0' class="preview-type-image" />
+                        <div class="dead-text" id='add-image-view-0'>
+                            <label for="section-file-0">
                                 <div class="w3-jumbo material-icons">add_circle</div>
                                 <h5>Add image</h5>
                             </label>

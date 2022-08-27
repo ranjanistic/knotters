@@ -71,12 +71,18 @@ class Article(models.Model):
         return self.tags.all()
     
     def canCreateArticle(profile: Profile) -> bool:
+        """Returns whether given profile can create article or not"""
         return profile.is_manager() or profile.is_moderator and not profile.is_mod_paused or profile.is_mentor and not profile.is_mentor_paused
+    
+    def isEditable(self) -> bool:
+        """TODO Returns whether the article can be edited or not"""
+        return True
 
         
 def sectionMediaPath(instance, filename):
     fileparts = filename.split('.')
     return f"{APPNAME}/sections/{str(instance.get_id)}-{str(uuid4().hex)}.{fileparts[-1]}"
+
 
 class Section(models.Model):
     id: UUID = models.UUIDField(

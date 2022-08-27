@@ -65,9 +65,8 @@ def saveArticle(request: WSGIRequest):
     articleobj = None
     alerted = False
     try:
-        # acceptedTerms: bool = request.POST.get("acceptterms", False)
-        # if not acceptedTerms:
-        #     return respondRedirect(APPNAME, URL.Howto.CREATE, error=Message.TERMS_UNACCEPTED)
+        if not Article.canCreateArticle(request.user.profile):
+            raise ValidationError(request.user.profile)
         heading = str(request.POST["heading"]).strip()
         subheading = str(request.POST["subheading"]).strip()
         
@@ -76,10 +75,9 @@ def saveArticle(request: WSGIRequest):
             raise Exception(articleobj)
         alerted = True
         return redirect(articleobj.getLink(success=Message.ARTICLE_CREATED))
-    except KeyError:
-        if articleobj and not alerted:
-            articleobj.delete()
-        return respondRedirect(APPNAME, URL.Howto.CREATE, error=Message.SUBMISSION_ERROR)
+    except ValidationError as e:
+        errorLog(e)
+        return respondRedirect(APPNAME, URL.Howto.CREATE, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
         if articleobj and not alerted:
@@ -473,7 +471,8 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
             paragraph = request.POST.get('paragraph', "")
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
-            if not (subheading and paragraph):
+
+            if not (subheading or paragraph or image or video):
                 return redirect(article.getLink(error=Message.INVALID_REQUEST))
 
             try:
@@ -502,8 +501,10 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
             paragraph = request.POST.get('paragraph', "")
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
-            if not (subheading and paragraph):
+
+            if not (subheading or paragraph or image or video):
                 return redirect(article.getLink(error=Message.INVALID_REQUEST))
+                
             changed = False
             if subheading and section.subheading != subheading:
                 section.subheading = subheading

@@ -1,6 +1,6 @@
 self = "{{request.GET.self}}"=="True"?true:false
 size = getElement("size").value
-for(let i=1; i<=size; i++)
+for(let i=0; i<=size; i++)
 {
     if (self) {
         getElement(`section-file-${i}`).onchange = (e) => {
