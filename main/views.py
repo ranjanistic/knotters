@@ -54,9 +54,10 @@ from .env import ADMINPATH, ISBETA, ISPRODUCTION
 from .mailers import featureRelease
 from .methods import (errorLog, getDeepFilePaths, renderData, renderString,
                       renderView, respondJson, respondRedirect, verify_captcha)
-from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS,
+from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS, HOWTO,
                       URL, Browse, Code, Event, Message, Template,
                       setPathParams, setURLAlerts)
+from howto.methods import articleRenderData
 
 
 @require_GET
@@ -665,6 +666,11 @@ def scripts_subapp(request: WSGIRequest, subapp: str, script: str) -> HttpRespon
         userID = request.GET.get('id', None)
         if script == Template.Script.PROFILE:
             data = profileRenderData(request, userID=userID)
+    elif subapp == HOWTO:
+        nickname = request.GET.get('nickname', "")
+        if script == Template.Script.ARTICLE:
+            data = articleRenderData(request, nickname)
+
     stringrender = render_to_string(f"{subapp}/scripts/{script}", request=request,
                                     context=renderData(fromApp=request.GET.get('fromApp', subapp), data=data))
     if not settings.DEBUG:

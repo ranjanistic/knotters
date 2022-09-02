@@ -1,4 +1,7 @@
-self = "{{request.GET.self}}"=="True"?true:false
+const self = "{{ self }}"
+const isRater = "{{isRater}}"==='True'
+const articleID = "{{ article.id }}"
+
 size = getElement("size").value
 for(let i=0; i<=size; i++)
 {
@@ -16,8 +19,7 @@ for(let i=0; i<=size; i++)
         };
     }
 }
-
-articleID = getElement("articleid").value 
+/* 
 getElement("deleteArticle").onclick = async(_) =>{
     await Swal.fire({
         title: `${NegativeText("Delete Article")}`,
@@ -71,7 +73,7 @@ getElement("draftArticle").onclick = async(_) => {
             }})
     }
 }
-
+*/
 const loadExistingTags = () => {
     initializeMultiSelector({
         candidateClass: "tag-existing",
@@ -286,9 +288,9 @@ const loadExistingTopics = () => {
                 getElements("topic-existing").length -
                     remtoplen +
                     addtoplen ===
-                5
+                3
             ) {
-                error(STRING.upto_5_topics_allowed);
+                error(STRING.upto_3_topics_allowed);
                 return false;
             }
             getElement("removetopicIDs").value = getElement(
@@ -324,9 +326,9 @@ const loadNewTopics = () => {
                 getElements("topic-existing").length -
                     remtoplen +
                     addtoplen ===
-                5
+                    3
             ) {
-                error(STRING.upto_5_topics_allowed);
+                error(STRING.upto_3_topics_allowed);
                 return false;
             }
             if (btn.classList.contains("topic-name")) {
@@ -442,4 +444,118 @@ getElement("save-edit-articletopics").onclick = async () => {
         return window.location.reload();
     }
     error(resp.error);
+};
+
+const userRatingScore = Number("{{userRatingScore}}")
+getElements('trigger-article-rating').forEach((triggerRate) => {
+    let starStatus = {};
+    triggerRate.onclick = () => {
+        Swal.fire({
+            title: `Rate this Article`,
+            html:
+                `<div class="rate">
+                <input type="checkbox" id="rating1" class="rating-value"/><label for="rating1" class="half rating-star"></label>
+                <input type="checkbox" id="rating2" class="rating-value"/><label for="rating2"  class="rating-star"></label>
+                <input type="checkbox" id="rating3" class="rating-value"/><label for="rating3" class="half rating-star"></label>
+                <input type="checkbox" id="rating4" class="rating-value"/><label for="rating4"  class="rating-star"></label>
+                <input type="checkbox" id="rating5" class="rating-value"/><label for="rating5" class="half rating-star"></label>
+                <input type="checkbox" id="rating6" class="rating-value"/><label for="rating6"  class="rating-star"></label>
+                <input type="checkbox" id="rating7" class="rating-value"/><label for="rating7" class="half rating-star"></label>
+                <input type="checkbox" id="rating8" class="rating-value"/><label for="rating8"  class="rating-star"></label>
+                <input type="checkbox" id="rating9" class="rating-value"/><label for="rating9" class="half rating-star"></label> 
+                <input type="checkbox" id="rating10" class="rating-value"/><label for="rating10" class="rating-star"></label>
+            </div>`,
+            showDenyButton: isRater,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: `Submit`,
+            denyButtonText: `Remove Rating`,
+            cancelButtonText: STRING.cancel,
+            didOpen: () => {
+                let stars = getElements('rating-star');
+                stars.forEach((star, i) => {
+                    if (i<userRatingScore){
+                        star.classList.add("selected")
+                        starStatus[star.getAttribute('for')] = true
+                    }
+                    star.onclick = () => {
+                        stars.forEach((s, j) => {
+                            if (j <= i) {
+                                s.classList.add("selected")
+                                starStatus[s.getAttribute('for')] = true
+                            } else {
+                                s.classList.remove("selected")
+                                starStatus[s.getAttribute('for')] = false
+                            }
+
+                        })
+                    }
+                })
+            },
+            preConfirm: () => {
+                const score =
+                    Object.values(starStatus).filter((rv) => rv).length;
+                if (!score) {
+                    error("Not a valid Rating");
+                    return false;
+                }
+                return score;
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const data = await postRequest2({
+                    path: setPathParams(URLS.RATING, articleID),
+                    data: {
+                        score: result.value, action: ACTIONS.CREATE
+                    }
+                });
+                if (!data) return;
+                if (data.code === code.OK) {
+                    return refresh({});
+                }
+                error(data.error);
+            } else if (result.isDenied) {
+                const data = await postRequest2({
+                    path: setPathParams(URLS.RATING, articleID),
+                    data: {
+                        action: ACTIONS.REMOVE
+                    }
+                });
+                if (!data) return;
+                if (data.code === code.OK) {
+                    return refresh({});
+                }
+                error(data.error);
+            }
+
+        })
+    }
+})
+
+getElements('trigger-login-popup').forEach((triggerRate) => {
+    triggerRate.onclick = () => {
+        Swal.fire({
+            title: `Login to rate`,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: `Login`,
+            cancelButtonText: STRING.cancel
+        }).then(async (result) => {
+            if (result.isConfirmed){
+                return refer({
+                    path: URLS.Auth.LOGIN,
+                    query: { next: window.location.pathname },
+                  })
+            }
+        })
+    }
+})
+
+getElement("show-admirations").onclick = async (_) => {
+    Swal.fire({
+        html: await getRequest2({
+            path: setUrlParams(URLS.ADMIRATIONS, articleID),
+        }),
+        title: "<h4 class='positive-text'>Admirers</h4>",
+    });
 };

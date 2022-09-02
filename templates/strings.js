@@ -106,6 +106,7 @@ const STRING = {
     create_lic: `{% trans "Create license" %}`,
     lic_created: `{% trans "License created" %}`,
     upto_5_topics_allowed: `{% trans "Up to 5 topics allowed" %}`,
+    upto_3_topics_allowed: `{% trans "Up to 3 topics allowed" %}`,
     upto_5_tags_allowed: `{% trans "Up to 5 tags allowed" %}`,
     deactivate_appname_account: `{% blocktrans %}Deactivate your {{APPNAME}} account?{% endblocktrans %}`,
     can_reactivate_anytime: `{% trans "You can reactivate your account by logging in again anytime." %}`,

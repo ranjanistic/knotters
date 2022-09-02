@@ -1391,13 +1391,26 @@ class URL():
         def editTags(self, articleID: str):
             return setPathParams(self.EDIT_TAGS, articleID)
 
-        SAVE_CHANGES = 'e/<str:articleID>/save'
-
         VIEW = '<str:nickname>/'
 
         def view(self, nickname: str):
             return setPathParams(self.VIEW, nickname)
         
+        RATING = 'rating/submit/<str:articleID>'
+
+        def rating(self, articleID: str):
+            return setPathParams(self.RATING, articleID)
+
+        TOGGLE_ADMIRATION = 'admiration/<str:articleID>'
+
+        def toggle_admiration(self, articleID: str):
+            return setPathParams(self.TOGGLE_ADMIRATION, articleID)
+        
+        ADMIRATIONS = 'admirations/<str:articleID>'
+
+        def admirations(self, articleID: str):
+            return setPathParams(self.ADMIRATIONS, articleID)
+
         def getURLSForClient(self) -> dict:
             URLS = dict()
 

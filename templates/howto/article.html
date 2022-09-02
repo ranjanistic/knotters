@@ -7,16 +7,92 @@
 {% load custom_tags %}
 
 {% block content %}
-<div class="w3-row w3-padding tertiary">
-    <div class="w3-col w3-container m4 l3 w3-animate-left">
-        <div class="w3-row pallete w3-center w3-animate-zoom" style="padding: 0">
-            <h5>{{article.heading}}</h5>
-            {{article.subheading}}<br /><br />
-            <div class="w3-row" id="view-articletopics">
-                <div class="w3-row text-big"><strong>Topics {% if self and article.topics.all|length > 0 %}<i class="edit-action" data-edittarget="articletopics">edit</i>{% endif %}</strong></div>
+<div class="w3-row">
+    <div class="w3-col w3-container m7 l8">
+        <div class="w3-row"><h1>{{article.heading}}</h1></div>
+        <div class="w3-row text-medium">{{article.subheading}}</div>
+        <br />
+        <div class="w3-row">
+            <div class="w3-col m3 l3"><span class="dead-text">{{article.createdOn}}</span></div>
+            <div class="w3-col m9 l9">
+                <div id="view-articletags">
+                    {% for tag in article.tags.all %}
+                    <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
+                    {% empty %}
+                        <strong class="dead-text">{% trans "No tags assigned" %}</strong>
+                    {% endfor %}
+                    {% if self %}<i class="edit-action" data-edittarget="articletags">edit</i>{% endif %}
+                </div>
+                {% if self %}
+                <div id="edit-articletags">
+                    <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
+                    <form class="no-auto" id="edit-tag-inputs">
+                        {% csrf_token %}
+                        <input class="tertiary" maxlength="40" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
+                        <div class="w3-row w3-padding" id="tags-viewer">
+                            {% for tag in article.tags.all %}
+                            <button type="button" class="primary small negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
+                            {% endfor %}
+                            <div class="w3-row w3-padding" id="tags-viewer-new"></div>
+                        </div>
+                        <input id="removetagIDs" name="removetagIDs" hidden type="text" />
+                        <input id="addtagIDs" name="addtagIDs" hidden type="text" />
+                        <input id="addtags" name="addtags" hidden type="text" />
+                        <button class="small" id="save-edit-articletags" data-icon="done">{% trans "Save" %}</button>
+                        <button class="small" id="discard-edit-articletags" data-icon="close">{% trans "Cancel" %}</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="w3-col w3-container m4 l3 w3-right">
+        <div class="w3-row">
+            <a href="{{article.author.getLink}}">
+                <div class="w3-col s9 m9 l9 w3-right-align">
+                    <strong class="text-medium text-primary">{{article.author.getName}}</strong>
+                {% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}
+                <br />
+                <span class="dead-text">{{article.author.getXP}}</span>
+                </div>
+                <div class="w3-col w3-container s3 m3 l3">
+                    <img class="w3-circle" src="{{article.author.getDP}}"  width="50"/>
+                </div>
+            </a>
+        </div>
+        {% if request.user.is_authenticated %}
+        <div class="w3-row w3-center trigger-article-rating">
+        {% else %}
+        <div class="w3-row w3-center trigger-login-popup">
+        {% endif %}
+            <span class="text-large">{{ article.get_avg_rating }}</span>
+            <br>
+                <div class="rate">
+                    {% for i in '0123456789'|make_list %}
+                    <input type="checkbox" required/>
+                    <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
+                    {% endfor %}
+                </div>
+            <br>
+            <span class="text-small">{{ article.total_ratings }} rating{{ article.total_ratings|pluralize }}</span>
+        </div>
+        <div class="w3-row" >
+            <a id="show-admirations"><strong>{{ article.total_admirers }} admirer{{ article.total_admirers|pluralize }}</strong></a>
+            {% if request.user.is_authenticated %}
+            <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
+                {% csrf_token %}
+                <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
+                <button type="submit" class="w3-right {% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration" ></button>
+            </form>
+            {% else %}
+            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism"></button></a>
+            {% endif %}
+        </div> 
+        <div class="w3-row w3-center">
+            <div id="view-articletopics">
                 {% for topic in article.topics.all %}
                     <a href="{{URLS.HOWTO}}?search=topic:{{topic}}">
-                        <button class="big-button topic-name primary border-joy">
+                        <button class="button topic-name primary border-joy">
                         {{topic}}
                         </button>
                     </a>
@@ -32,11 +108,12 @@
                         </div>
                     {% endif %}
                 {% endfor %}
+                <strong>{% if self and article.topics.all|length > 0 %}<i class="edit-action" data-edittarget="articletopics">edit</i>{% endif %}</strong>
             </div>
             {% if self %}
             <div id="edit-articletopics" hidden>
                 <br/>
-                <strong class="dead-text">Total 5 topics allowed</strong>
+                <strong class="dead-text">Total 3 topics allowed</strong>
                 <form class="no-auto" method="POST" id="edit-article-topics-form">
                     {% csrf_token %}
                     <input class="wide" placeholder="Search topics" id="topic-search-input" maxlength="35" />
@@ -55,73 +132,28 @@
                 </form>
             </div>
             {% endif %}
-            <br />
         </div>
-        <br />
-        <div class="w3-row w3-padding-small">
-            <div id="view-articletags">
-                {% for tag in article.tags.all %}
-                <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
-                {% empty %}
-                    <h6 class="dead-text">{% trans "No tags assigned" %}</h6>
-                {% endfor %}
-                {% if self %}<i class="edit-action w3-right" data-edittarget="articletags">edit</i>{% endif %}
-            </div>
-            {% if self %}
-            <div id="edit-articletags">
-                <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
-                <form class="no-auto" id="edit-tag-inputs">
-                    {% csrf_token %}
-                    <input class="wide primary" maxlength="40" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
-                    <div class="w3-row w3-padding" id="tags-viewer">
-                        {% for tag in article.tags.all %}
-                        <button type="button" class="primary small negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
-                        {% endfor %}
-                        <div class="w3-row w3-padding" id="tags-viewer-new"></div>
-                    </div>
-                    <input id="removetagIDs" name="removetagIDs" hidden type="text" />
-                    <input id="addtagIDs" name="addtagIDs" hidden type="text" />
-                    <input id="addtags" name="addtags" hidden type="text" />
-                    <button class="small" id="save-edit-articletags" data-icon="done">{% trans "Save" %}</button>
-                    <button class="small" id="discard-edit-articletags" data-icon="close">{% trans "Cancel" %}</button>
-                </form>
-            </div>
-            {% endif %}
-        </div>
-        <br />
-        <div class="w3-row pallete">
-            <h5 class="align"><i>description</i>&nbsp;Description</h5><br/>
-            <strong>{% trans "Author : " %}</strong><a href="{{article.author.getLink}}"><button class="primary"><img class="circle" src="{{article.author.getDP}}"  width="20"/>&nbsp;{{article.author.getName}}{% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</button></a><br/><br/>
-            <strong>{% trans "Created on : " %} <span>{{article.createdOn}}</span></strong><br/><br/>
-            <strong>{% trans "Last Updated on : " %} <span>{{article.modifiedOn}}</span></strong><br/>
-        </div>
-        {% if self %}
-        <br />
-        <div class="w3-row pallete">
-            <h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5>
-            <br />
-            <div class="w3-row align">
-                <input type="hidden" value="{{ article.id }}" id="articleid">
-                <input type="hidden" value="{{ article.is_draft }}" id="draft">
-                <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete Article</button>
-                <button id="draftArticle" class="accent w3-large w3-animate-zoom">
-                    {% if article.is_draft %}
-                    Publish Article
-                    {% else %}
-                    Draft Article
-                    {% endif %}
-                </button>
-            </div>
-        </div>
-        {% endif %}
     </div>
-    <div class="w3-col w3-container m8 l9 pallete" id="sections">
+</div>
+<br />
+<div class="w3-row" style="display:flex">
+    <div class="w3-col w3-conatiner m4 l3 tertiary" style="border-top-right-radius : 10px;">
+        {% for section in sections %}
+        <div class="w3-row w3-center">
+            <br />
+            <a href="#view-section-{{ forloop.counter }}">
+                <strong><span class="text-primary text-medium">{{section.subheading}}</span></strong>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="w3-col w3-container m8 l9">
         <div class="w3-row">
             {% include 'howto/sections.html' %}
         </div>
         <br />
         <div class="w3-row">
-            {% if self and canEdit%}
+            {% if self and article.isEditable %}
                 <div class="w3-row w3-center" id="view-section">
                     <button class="large edit-action" data-icon='add' id="create-snap" data-edittarget="section">Add Section</button>
                 </div>
@@ -146,11 +178,31 @@
                 </div>
             {% endif %}
         </div>
-        <br />
     </div>
-    <br />
 </div>
+<!-- <input type="hidden" value="{{ article.id }}" id="articleid">
+<input type="hidden" value="{{ article.is_draft }}" id="draft"> -->
 {% endblock %}
 {% block scripts %}
-<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.ARTICLE}}?self={{self}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.ARTICLE}}?nickname={{article.nickname}}"></script>
 {% endblock %}
+
+{% comment %}
+    {% if self %}
+        <br />
+        <div class="w3-row pallete">
+            <h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5>
+            <br />
+            <div class="w3-row align">
+                <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete Article</button>
+                <button id="draftArticle" class="accent w3-large w3-animate-zoom">
+                    {% if article.is_draft %}
+                    Publish Article
+                    {% else %}
+                    Draft Article
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+    {% endif %}
+{% endcomment %}

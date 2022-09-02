@@ -47,6 +47,7 @@
         <link rel="apple-touch-icon" href="{% static 'graphics/self/1024/icon-circle.webp' %}" />
         <link rel="apple-touch-startup-image" href="{% static 'graphics/self/1024/icon-circle.webp' %}" />
         <link rel="icon" href="{% block icon %}{% static 'graphics/self/64/icon-circle.webp' %}{% endblock %}" class="darkimg">
+        <link rel="stylesheet" href="{% static 'star.css' %}">
 
         <link rel="preload" as="font" href="{% static 'fonts/Poppins/Devnagri.woff2' %}" type="font/woff2" crossorigin />
         <link rel="preload" as="font" href="{% static 'fonts/Poppins/LatinX.woff2' %}" type="font/woff2" crossorigin />
@@ -71,6 +72,7 @@
         <link rel="stylesheet" href="{% static 'styles/overrides.css' %}">
         <link rel="stylesheet" href="{% static 'styles/browser.css' %}">
         <link rel="stylesheet" href="{% static 'styles/menu.css' %}">
+        <link rel="stylesheet" href="{% static 'fontawesome/font-awesome.min.css' %}">
         {% block stylesheets %}{% endblock %}
 
         <link rel="manifest" href="{{MANIFESTURL}}" />

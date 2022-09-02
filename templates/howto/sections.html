@@ -6,7 +6,7 @@
 
 <input hidden type="text" name="size" id="size" value="{{ sections|length }}">
 {% for section in sections %}
-    <div class="w3-row pallete-slab" style="border-radius:10px;margin: 10px auto;padding:0">
+    <div class="w3-row" style="border-radius:10px;margin: 10px auto;padding:0">
         <div class="w3-row w3-padding" id="view-section-{{ forloop.counter }}">
             {% if section.subheading %}
             <span class="dead-text text-tertiary text-large ">{{section.subheading}}</span><br/>
@@ -24,20 +24,20 @@
                 <br/>
                 {% endif %}
             </div>
-            {% if self and canEdit%}
+            {% if self and article.isEditable%}
             <div class="w3-row">
             <button class="small edit-action" data-icon='edit' id="create-snap" data-edittarget="section-{{ forloop.counter }}">Edit Section</button>
             </div>
             {% endif %}
         </div>
-        {% if self and canEdit%}
+        {% if self and article.isEditable%}
         <div class="w3-row w3-padding" id="edit-section-{{ forloop.counter }}">
             <input type='file' hidden id='section-file-{{forloop.counter}}' accept="image/png, image/jpg, image/jpeg"/>
             <form action="{{URLS.SECTION|params:article.id|params:'update'}}" method="POST">
                 {% csrf_token %}
                 <input type="text" name='sectionid' hidden value="{{ section.id }}">
-                <input class="wide primary" type="text" name="subheading" placeholder="subheading" value="{{ section.subheading }}">
-                <textarea class="wide primary" style="margin-top: 1rem" name='paragraph' rows="3" placeholder="paragraph">{{ section.paragraph }}</textarea>
+                <input class="wide" type="text" name="subheading" placeholder="subheading" value="{{ section.subheading }}">
+                <textarea class="wide" style="margin-top: 1rem" name='paragraph' rows="3" placeholder="paragraph">{{ section.paragraph }}</textarea>
                 <input type="text" id='imageData-{{forloop.counter}}' name='image' hidden value=""/>
                 <img hidden width='20%' id='imageOutput-{{forloop.counter}}' class="preview-type-image" />
                 <div class="dead-text" id='add-image-view-{{forloop.counter}}'>

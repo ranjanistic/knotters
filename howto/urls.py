@@ -15,4 +15,7 @@ urlpatterns = [
     path(URL.Howto.EDIT_TAGS, tagsUpdate),
     path(URL.Howto.DELETE, deleteArticle),
     path(URL.Howto.SECTION, section),
+    path(URL.Howto.RATING, submitArticleRating),
+    path(URL.Howto.TOGGLE_ADMIRATION, toggleAdmiration),
+    path(URL.Howto.ADMIRATIONS, articleAdmirations),
 ]

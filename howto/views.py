@@ -1,5 +1,5 @@
-from django.shortcuts import redirect 
-from howto.models import Article, Section, ArticleTopic, ArticleTag
+from django.shortcuts import redirect, render
+from howto.models import Article, Section, ArticleTopic, ArticleTag, ArticleUserRating
 from howto.methods import renderer, articleRenderData
 from main.strings import Template, Code , Message, URL, Action, setURLAlerts
 from main.methods import respondJson, errorLog, respondRedirect, base64ToFile, base64ToImageFile
@@ -39,7 +39,7 @@ def createArticle(request: WSGIRequest):
         HttpResponse: The rendered text/html view.
     """
     try:
-        if Article.canCreateArticle(request.user.profile):
+        if Article().canCreateArticle(request.user.profile):
             return renderer(request, Template.Howto.CREATE)
         raise ValidationError(request.user.profile)
     except ValidationError as e:
@@ -88,16 +88,18 @@ def saveArticle(request: WSGIRequest):
 @normal_profile_required 
 def view(request: WSGIRequest, nickname: str):
     try:
-        article: Article = Article.objects.get(nickname=nickname)
-        if request.user.profile != article.author and article.is_draft:
-            raise Exception(article)
-        data = articleRenderData(request, article)
+        data = articleRenderData(request, nickname)
+        if not data:
+            raise ObjectDoesNotExist(data)
         return renderer(request, Template.Howto.ARTICLE, data)
+    except ObjectDoesNotExist:
+        return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
     except Exception as e:
         errorLog(e)
-        return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
+        raise Http404(e)
+        
 
-
+##     
 @require_JSON
 @normal_profile_required   
 def draft(request: WSGIRequest, articleID:UUID):
@@ -132,7 +134,7 @@ def topicsSearch(request: WSGIRequest, articleID: UUID) -> JsonResponse:
         if not query:
             raise KeyError(query)
 
-        limit = int(request.POST.get('limit', 5))
+        limit = int(request.POST.get('limit', 3))
         article: Article = Article.objects.get(id=articleID, author=request.user.profile)
 
         cacheKey = f"article_topics_search_{query}"
@@ -217,7 +219,7 @@ def topicsUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
 
             articletops = ArticleTopic.objects.filter(article=article)
             currentcount = articletops.count()
-            if currentcount + len(addtopicIDs) > 5:
+            if currentcount + len(addtopicIDs) > 3:
                 if json_body:
                     return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
                 return redirect(article.getLink(error=Message.MAX_TOPICS_ACHEIVED))
@@ -230,7 +232,7 @@ def topicsUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
             count = ArticleTopic.objects.filter(article=article).count()
             if not json_body:
                 addtopics = addtopics.strip(',').split(',')
-            if count + len(addtopics) > 5:
+            if count + len(addtopics) > 3:
                 if json_body:
                     return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
                 return redirect(article.getLink(error=Message.MAX_TOPICS_ACHEIVED))
@@ -556,7 +558,136 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
         if article:
             return redirect(article.getLink(error=Message.INVALID_REQUEST))
         raise Http404(e)
-    
+
+
+@normal_profile_required
+@require_JSON
+def submitArticleRating(request: WSGIRequest, articleID: UUID) -> JsonResponse:
+    """To submit/update/delete user rating of a article
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object
+        articleID (UUID): The article id
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK if task successful, or main.strings.Code.NO
+    """
+    try:
+        action = request.POST['action']
+        article: Article = Article.objects.get(id=articleID)
+        profile=request.user.profile
+        if action == Action.CREATE:
+            score: float= float(request.POST['score'])
+            if (1 <= score <= 10):
+                ArticleUserRating.objects.update_or_create(profile=profile, article=article, defaults=dict(score=score))
+            else:
+                raise ValidationError(score)       
+        elif action==Action.REMOVE:
+            ArticleUserRating.objects.filter(profile=profile, article=article).delete()        
+        else:
+            raise ValidationError(action)
+        return respondJson(Code.OK)
+    except (ObjectDoesNotExist, ValidationError):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@normal_profile_required
+@require_POST
+@decode_JSON
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+def toggleAdmiration(request: WSGIRequest, articleID: UUID) -> HttpResponse:
+    """To toggle the admiration for a article.
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object
+        articleID (UUID): The id of the article
+
+    Returns:
+        JsonResponse: The response with main.strings.Code.OK if succesfull, otherwise main.strings.Code.NO
+        HttpResponseRedirect: If request method was not json POST.
+    """
+    article = None
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        admire = request.POST['admire']
+        article: Article = Article.objects.get(
+            id=articleID)
+        if admire in ["true", True]:
+            article.admirers.add(request.user.profile)
+            if(article.author.user != request.user):
+                pass
+                # TODO: mail function 
+                # articleAdmired(request, article)
+        elif admire in ["false", False]:
+            article.admirers.remove(request.user.profile)
+        if json_body:
+            return respondJson(Code.OK)
+        return redirect(article.getLink())
+    except (ObjectDoesNotExist, ValidationError, KeyError) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        if article:
+            return redirect(article.getLink(error=Message.INVALID_REQUEST))
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        if article:
+            return redirect(article.getLink(error=Message.ERROR_OCCURRED))
+        raise Http404(e)
+
+
+@decode_JSON
+def articleAdmirations(request: WSGIRequest, articleID: UUID) -> HttpResponse:
+    """To get the list of admirers for a article.
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object
+        articleID (UUID): The id of the article
+
+    Raises:
+        Http404: If the article does not exist, or any other error occurs
+
+    Returns:
+        HttpResponse: The text/html reponse of admirers view with context
+        JsonResponse: The response with main.strings.Code.OK and admirers list, otherwise main.strings.Code.NO
+    """
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        article: Article = Article.objects.get(
+            id=articleID)
+        admirers = article.admirers.filter(is_active=True, suspended=False)
+        if request.user.is_authenticated:
+            admirers = request.user.profile.filterBlockedProfiles(admirers)
+        if json_body:
+            jadmirers = list(map(lambda adm: dict(
+                id=adm.get_userid,
+                name=adm.get_name,
+                dp=adm.get_dp,
+                url=adm.get_link,
+            ), admirers))
+            return respondJson(Code.OK, dict(admirers=jadmirers))
+        return render(request, Template().admirers, dict(admirers=admirers))
+    except ObjectDoesNotExist as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(e)
+
     
     
 
