@@ -65,7 +65,7 @@ def saveArticle(request: WSGIRequest):
     articleobj = None
     alerted = False
     try:
-        if not Article.canCreateArticle(request.user.profile):
+        if not Article().canCreateArticle(request.user.profile):
             raise ValidationError(request.user.profile)
         heading = str(request.POST["heading"]).strip()
         subheading = str(request.POST["subheading"]).strip()
@@ -469,7 +469,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
     try:
         article: Article = Article.objects.get(id=articleID, author=request.user.profile)
         if action == Action.CREATE:
-            subheading = request.POST.get('subheading', "")
+            subheading = request.POST.get('subheading', "Untitled Section")
             paragraph = request.POST.get('paragraph', "")
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)

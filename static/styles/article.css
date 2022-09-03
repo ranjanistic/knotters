@@ -1,0 +1,37 @@
+.section-body {
+    display: flex;
+}
+.sidenav {
+    flex: 23%;
+    z-index: 1;
+    border-top-right-radius : 10px;
+}
+
+.main {
+    flex: 77%;
+}
+#opennav, #closenav{
+    display: none;
+}
+
+
+@media screen and (max-width: 950px) {
+    .sidenav {
+        flex: 30%;
+    }
+    .main {
+        flex: 70%;
+    }
+    
+}
+@media screen and (max-width: 700px) {
+    .section-body {
+        flex-direction: column;
+    }
+    .sidenav {
+        display: none;
+    }
+    #opennav, #closenav{
+        display: block;
+    }
+}

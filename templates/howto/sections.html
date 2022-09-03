@@ -1,22 +1,25 @@
+{% load static %}
 {% load i18n %}
 {% load l10n %}
 {% load tz %}
 {% load cache %}
 {% load custom_tags %}
 
-<input hidden type="text" name="size" id="size" value="{{ sections|length }}">
 {% for section in sections %}
-    <div class="w3-row" style="border-radius:10px;margin: 10px auto;padding:0">
-        <div class="w3-row w3-padding" id="view-section-{{ forloop.counter }}">
-            {% if section.subheading %}
-            <span class="dead-text text-tertiary text-large ">{{section.subheading}}</span><br/>
+    <div class="w3-row">
+        <div class="w3-row w3-padding" id="view-section-{{ section.id }}">
+            {% if self and article.isEditable %}
+            <div class="w3-row">
+                <button class="small w3-right negative" id='delete-section-{{ section.id }}' data-icon='delete'></button>
+                <button class="small edit-action w3-right w3-margin-right" data-icon='edit' data-edittarget="section-{{ section.id }}"></button>
+            </div>
             {% endif %}
             {% if section.paragraph %}
             <span class="text-tertiary text-medium ">{{section.paragraph}}</span><br/>
             {% endif %}
-            <div class="w3-row" style="padding-bottom:1rem">
+            <div class="w3-row w3-center" style="padding-bottom:1rem">
                 {% if section.image %}
-                <img class="primary preview-type-image" src="{{ section.get_image }}"/>
+                <img class="primary " src="{{ section.get_image }}"/>
                 <br/>
                 {% endif %}
                 {% if section.video %}
@@ -24,30 +27,40 @@
                 <br/>
                 {% endif %}
             </div>
-            {% if self and article.isEditable%}
-            <div class="w3-row">
-            <button class="small edit-action" data-icon='edit' id="create-snap" data-edittarget="section-{{ forloop.counter }}">Edit Section</button>
-            </div>
-            {% endif %}
         </div>
         {% if self and article.isEditable%}
-        <div class="w3-row w3-padding" id="edit-section-{{ forloop.counter }}">
-            <input type='file' hidden id='section-file-{{forloop.counter}}' accept="image/png, image/jpg, image/jpeg"/>
+        <div class="w3-row w3-padding" id="edit-section-{{ section.id }}">
+            <input type='file' hidden id='section-file-{{section.id}}' accept="image/png, image/jpg, image/jpeg"/>
             <form action="{{URLS.SECTION|params:article.id|params:'update'}}" method="POST">
                 {% csrf_token %}
                 <input type="text" name='sectionid' hidden value="{{ section.id }}">
-                <input class="wide" type="text" name="subheading" placeholder="subheading" value="{{ section.subheading }}">
-                <textarea class="wide" style="margin-top: 1rem" name='paragraph' rows="3" placeholder="paragraph">{{ section.paragraph }}</textarea>
-                <input type="text" id='imageData-{{forloop.counter}}' name='image' hidden value=""/>
-                <img hidden width='20%' id='imageOutput-{{forloop.counter}}' class="preview-type-image" />
-                <div class="dead-text" id='add-image-view-{{forloop.counter}}'>
-                    <label for="section-file-{{forloop.counter}}">
-                        <div class="w3-jumbo material-icons">add_circle</div>
-                        <h5>Add image</h5>
-                    </label>
+                {% if section.paragraph %}
+                <textarea class="wide" name='paragraph' rows="3" placeholder="paragraph">{{ section.paragraph }}</textarea>
+                {% endif %}
+                <input type="text" id='imageData-{{section.id}}' name='image' hidden value=""/>
+                {% if section.image %}
+                <div class="w3-center">
+                    <img class="primary" src="{{ section.get_image }}" alt="{{ section.subheading }}" id="imageOutput-{{section.id}}" style="opacity:0.5" />
                 </div>
-                <button class="small positive" type='submit' id="save-edit-section-{{ forloop.counter }}" data-icon="done">{% trans "Update Section" %}</button>
-                <button class="small negative" type='button' id="discard-edit-section-{{ forloop.counter }}" data-icon="close">{% trans "Discard" %}</button>
+                <div class="dead-text w3-center w3-padding" id='add-image-view-{{section.id}}'>
+                    <button type="button" class="small accent" data-icon="upload">
+                        <label for="section-file-{{section.id}}">Update Image</label>
+                    </button>
+                </div>
+                {% else %}
+                <div class="w3-center">
+                    <img hidden id='imageOutput-{{section.id}}' class="preview-type-image" />
+                </div>
+                <div class="dead-text w3-center w3-padding" id='add-image-view-{{section.id}}'>
+                    <button type="button" class="small accent" data-icon="upload">
+                        <label for="section-file-{{section.id}}">Upload Image</label>
+                    </button>
+                </div>
+                {% endif %}
+                <div class="w3-center w3-padding">
+                    <button class="small positive" type='submit' id="save-edit-section-{{ section.id }}" data-icon="done">{% trans "Update Section" %}</button>
+                    <button class="small negative" type='button' id="discard-edit-section-{{ section.id }}" data-icon="close">{% trans "Discard" %}</button>
+                </div>
             </form>
             <hr/>
         </div>

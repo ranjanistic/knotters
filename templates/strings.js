@@ -241,5 +241,6 @@ const STRING = {
     article_deleted: `{% trans "Article deleted successfully." %}`,
     article_drafted: `{% trans "Article drafted successfully." %}`,
     article_published: `{% trans "Article published successfully." %}`,
+    section_deleted: `{% trans "Section deleted successfully." %}`,
 };
 Object.freeze(STRING);

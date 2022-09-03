@@ -6,22 +6,26 @@
 {% load cache %}
 {% load custom_tags %}
 
+{% block stylesheets %}
+<link rel="stylesheet" href="{% static 'styles/article.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="w3-row">
-    <div class="w3-col w3-container m7 l8">
+    <div class="w3-col w3-container m8 l8">
         <div class="w3-row"><h1>{{article.heading}}</h1></div>
-        <div class="w3-row text-medium">{{article.subheading}}</div>
+        <div class="w3-row text-medium w3-justify">{{article.subheading}}</div>
         <br />
         <div class="w3-row">
             <div class="w3-col m3 l3"><span class="dead-text">{{article.createdOn}}</span></div>
-            <div class="w3-col m9 l9">
+            <div class="w3-col m9 l9 w3-container">
                 <div id="view-articletags">
                     {% for tag in article.tags.all %}
                     <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
                     {% empty %}
                         <strong class="dead-text">{% trans "No tags assigned" %}</strong>
                     {% endfor %}
-                    {% if self %}<i class="edit-action" data-edittarget="articletags">edit</i>{% endif %}
+                    {% if self %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
                 </div>
                 {% if self %}
                 <div id="edit-articletags">
@@ -46,48 +50,50 @@
             </div>
         </div>
     </div>
-    <div class="w3-col w3-container m4 l3 w3-right">
-        <div class="w3-row">
+    <div class="w3-col w3-container m4 l4 w3-right">
+        <div class="w3-row w3-right-align">
             <a href="{{article.author.getLink}}">
-                <div class="w3-col s9 m9 l9 w3-right-align">
-                    <strong class="text-medium text-primary">{{article.author.getName}}</strong>
+                <img class="w3-circle w3-right" src="{{article.author.getDP}}" width="50"/>
+                <strong class="text-medium text-primary">{{article.author.getName}}</strong>
                 {% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}
                 <br />
+                {% for label in article.author.get_labels %}
+                    <strong class="w3-tiny w3-round w3-tag {{label.theme}} w3-padding-small">{{label.name}}</strong>
+                {% endfor %}
                 <span class="dead-text">{{article.author.getXP}}</span>
-                </div>
-                <div class="w3-col w3-container s3 m3 l3">
-                    <img class="w3-circle" src="{{article.author.getDP}}"  width="50"/>
-                </div>
             </a>
         </div>
-        {% if request.user.is_authenticated %}
-        <div class="w3-row w3-center trigger-article-rating">
-        {% else %}
-        <div class="w3-row w3-center trigger-login-popup">
-        {% endif %}
-            <span class="text-large">{{ article.get_avg_rating }}</span>
-            <br>
-                <div class="rate">
-                    {% for i in '0123456789'|make_list %}
-                    <input type="checkbox" required/>
-                    <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
-                    {% endfor %}
-                </div>
-            <br>
-            <span class="text-small">{{ article.total_ratings }} rating{{ article.total_ratings|pluralize }}</span>
-        </div>
-        <div class="w3-row" >
-            <a id="show-admirations"><strong>{{ article.total_admirers }} admirer{{ article.total_admirers|pluralize }}</strong></a>
+        <div class="w3-row w3-padding">
             {% if request.user.is_authenticated %}
-            <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
-                {% csrf_token %}
-                <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
-                <button type="submit" class="w3-right {% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration" ></button>
-            </form>
+            <div class="w3-col l9 w3-center trigger-article-rating">
             {% else %}
-            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="w3-right primary" data-icon="volunteer_activism"></button></a>
+            <div class="w3-col l9 w3-center trigger-login-popup">
             {% endif %}
-        </div> 
+                <span class="text-large">{{ article.get_avg_rating }}</span>
+                <br>
+                    <div class="rate">
+                        {% for i in '0123456789'|make_list %}
+                        <input type="checkbox" required/>
+                        <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
+                        {% endfor %}
+                    </div>
+                <br>
+                <span class="text-small">{{ article.total_ratings }} rating{{ article.total_ratings|pluralize }}</span>
+            </div>
+            <div class="w3-col l3 w3-center w3-padding" >
+                <br />
+                {% if request.user.is_authenticated %}
+                <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
+                    {% csrf_token %}
+                    <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
+                    <button type="submit" class="{% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration" ></button>
+                </form>
+                {% else %}
+                <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="primary" data-icon="volunteer_activism"></button></a>
+                {% endif %}
+                <a id="show-admirations"><strong>{{ article.total_admirers }}&nbsp;admirer{{ article.total_admirers|pluralize }}</strong></a>
+            </div> 
+        </div>
         <div class="w3-row w3-center">
             <div id="view-articletopics">
                 {% for topic in article.topics.all %}
@@ -136,44 +142,74 @@
     </div>
 </div>
 <br />
-<div class="w3-row" style="display:flex">
-    <div class="w3-col w3-conatiner m4 l3 tertiary" style="border-top-right-radius : 10px;">
-        {% for section in sections %}
-        <div class="w3-row w3-center">
+<div class="w3-row section-body">
+    {% if sections %}
+        <div class="sidenav w3-animate-left tertiary w3-center w3-padding text-medium">
             <br />
-            <a href="#view-section-{{ forloop.counter }}">
-                <strong><span class="text-primary text-medium">{{section.subheading}}</span></strong>
-            </a>
+            {% for section in sections %}
+            <div class="w3-row" id="view-section-subhead-{{section.id}}">
+                <a class="text-primary" href="#view-section-{{ section.id }}">
+                    <strong>{{section.subheading}}</strong>
+                </a>
+                {% if self and article.isEditable %}
+                    <button class="small edit-action w3-right" data-icon="edit" data-edittarget="section-subhead-{{section.id}}"></button>
+                {% endif %}
+            </div>
+            {% if self and article.isEditable %}
+            <div class="w3-row" id="edit-section-subhead-{{section.id}}">
+                <form action="{{URLS.SECTION|params:article.id|params:'update'}}" method="POST">
+                    {% csrf_token %}
+                    <input type="text" name='sectionid' hidden value="{{ section.id }}">
+                    <input type="text" class="primary w3-input" name="subheading" placeholder="Subheading" value="{{section.subheading}}"/>
+                    <button class="small positive" type='submit' id="save-edit-section-subhead-{{ section.id }}" data-icon="done">{% trans "Update Subheading" %}</button>
+                    <button class="small negative" type='button' id="discard-edit-section-subhead-{{ section.id }}" data-icon="close">{% trans "Discard" %}</button>
+                </form> 
+            </div>
+            {% endif %}
+            <br />
+            {% endfor %}
+            <div class="w3-center align text-primary"><button id="closenav" class="primary"><i class="w3-xlarge material-icons text-primary">close</i></button></div>
         </div>
-        {% endfor %}
-    </div>
-    <div class="w3-col w3-container m8 l9">
-        <div class="w3-row">
-            {% include 'howto/sections.html' %}
-        </div>
-        <br />
+    {% endif %}
+    <div class="main">
+        <button id="opennav" class="w3-xlarge accent">&#9776;</button> 
+        {% include 'howto/sections.html' %}
         <div class="w3-row">
             {% if self and article.isEditable %}
-                <div class="w3-row w3-center" id="view-section">
-                    <button class="large edit-action" data-icon='add' id="create-snap" data-edittarget="section">Add Section</button>
+                <div class="w3-row w3-center" id="view-section-paragraph">
+                    <button class="large edit-action w3-margin w3-padding" data-icon='add' data-edittarget="section-paragraph">Add Paragraph</button>
                 </div>
-                <div class="w3-row" id="edit-section">
+                <div class="w3-row w3-padding" id="edit-section-paragraph">
                     <br />
-                    <input type='file' hidden id='section-file-0' accept="image/png, image/jpg, image/jpeg"/>
                     <form action="{{URLS.SECTION|params:article.id|params:'create'}}" method="POST">
                         {% csrf_token %}
-                        <input class="wide" type="text" name="subheading" placeholder="subheading">
-                        <textarea class="wide" style="margin-top: 1rem" name='paragraph' rows="3" placeholder="Paragraph"></textarea>
-                        <input type="text" id='imageData-0' name='image' hidden value=""/>
-                        <img hidden width='20%' id='imageOutput-0' class="preview-type-image" />
-                        <div class="dead-text" id='add-image-view-0'>
-                            <label for="section-file-0">
-                                <div class="w3-jumbo material-icons">add_circle</div>
-                                <h5>Add image</h5>
+                        <textarea class="wide" name='paragraph' rows="3" placeholder="Paragraph"></textarea>
+                        <div class="w3-center">
+                            <button class="small positive" type='submit' id="save-edit-section-paragraph" data-icon="done">{% trans "Publish Section" %}</button>
+                            <button class="small negative" type='button' id="discard-edit-section-paragraph" data-icon="close">{% trans "Discard" %}</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="w3-row w3-center" id="view-section-image">
+                    <button class="large edit-action w3-margin w3-padding" data-icon='add' data-edittarget="section-image">Add Image</button>
+                </div>
+                <div class="w3-row w3-padding" id="edit-section-image">
+                    <br />
+                    <input type='file' hidden id='section-file' accept="image/png, image/jpg, image/jpeg"/>
+                    <form action="{{URLS.SECTION|params:article.id|params:'create'}}" method="POST">
+                        {% csrf_token %}
+                        <input type="text" id='imageData' name='image' hidden value=""/>
+                        <div class="dead-text w3-center" id='add-image-view'>
+                            <label for="section-file">
+                                <div class="w3-jumbo material-icons">upload</div>
+                                <h5>Upload image</h5>
                             </label>
                         </div>
-                        <button class="small positive" type='submit' id="save-edit-section" data-icon="done">{% trans "Publish Section" %}</button>
-                        <button class="small negative" type='button' id="discard-edit-section" data-icon="close">{% trans "Discard" %}</button>
+                        <div class="w3-center">
+                            <img hidden width='20%' id='imageOutput'/><br />
+                            <button class="small positive" type='submit' id="save-edit-section-image" data-icon="done">{% trans "Publish Section" %}</button>
+                            <button class="small negative" type='button' id="discard-edit-section-image" data-icon="close">{% trans "Discard" %}</button>
+                        </div>
                     </form>
                 </div>
             {% endif %}
