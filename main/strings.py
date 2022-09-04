@@ -221,6 +221,7 @@ class Message():
     ARTICLE_CREATED = _("Article created successfully.")
     ARTICLE_DELETED = _("Article deleted successfully.")
     ARTICLE_NOT_FOUND =_("Article not found.")
+    ARTICLE_UPDATED = _("Article updated successfully.")
     ARTICLE_DRAFTED = _("Article drafted successfully.")
     ARTICLE_PUBLISHED = _("Article published successfully.")
     SECTION_CREATED =_("Section created successfully.")
@@ -1360,12 +1361,15 @@ class URL():
 
         CREATE = 'create/'
 
-        SAVE = 'save/'
+        SAVE = 'save/<str:nickname>/'
 
-        DRAFT = 'e/<str:articleID>/draft/'
+        def save(self, nickname: str):
+            return setPathParams(self.SAVE, nickname)
 
-        def draft(self, articleID: str):
-            return setPathParams(self.DRAFT, articleID)
+        PUBLISH = 'e/<str:articleID>/publish/'
+
+        def publish(self, articleID: str):
+            return setPathParams(self.PUBLISH, articleID)
 
         SECTION = 'e/<str:articleID>/section/<str:action>'
 
@@ -2327,12 +2331,6 @@ class Template():
         @property
         def article(self):
             return f'{self.DIRNAME}/{self.ARTICLE}.html'
-
-        CREATE = 'create'
-
-        @property
-        def create(self):
-            return f'{self.DIRNAME}/{self.CREATE}.html'
     
     howto = Howto()
 

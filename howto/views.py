@@ -36,57 +36,59 @@ def createArticle(request: WSGIRequest):
         request (WSGIRequest): The request object.
 
     Returns:
-        HttpResponse: The rendered text/html view.
+        HttpResponseRedirect: The redirect to the article page if created successfully, else 404.
     """
     try:
         if Article().canCreateArticle(request.user.profile):
-            return renderer(request, Template.Howto.CREATE)
+            article: Article = Article.objects.create(author=request.user.profile)
+            return redirect(article.getLink(success=Message.ARTICLE_CREATED))
         raise ValidationError(request.user.profile)
     except ValidationError as e:
         raise Http404("Unauthorised access", e)
     except Exception as e:
         errorLog(e)
-        return respondRedirect(APPNAME, error=Message.ERROR_OCCURRED)
+        raise Http404(e)
 
 
 @normal_profile_required
 @require_POST
-def saveArticle(request: WSGIRequest):
+def saveArticle(request: WSGIRequest, nickname: str):
     """To save an article.
 
     METHODS: POST
 
     Args:
         request (WSGIRequest): The request object.
+        nickname (str): The nickname of the article.
 
     Returns:
-        HttpResponseRedirect: The redirect to the article page if created successfully, else to the create page.
+        HttpResponseRedirect: The redirect to the article page with success message if saved successfully.
     """
-    articleobj = None
-    alerted = False
     try:
-        if not Article().canCreateArticle(request.user.profile):
-            raise ValidationError(request.user.profile)
         heading = str(request.POST["heading"]).strip()
         subheading = str(request.POST["subheading"]).strip()
-        
-        articleobj = Article.objects.create(heading=heading, subheading=subheading, author=request.user.profile)
-        if not articleobj:
-            raise Exception(articleobj)
-        alerted = True
-        return redirect(articleobj.getLink(success=Message.ARTICLE_CREATED))
-    except ValidationError as e:
-        errorLog(e)
-        return respondRedirect(APPNAME, URL.Howto.CREATE, error=Message.INVALID_REQUEST)
+        data = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
+        if not data:
+            raise Exception(data)
+        return respondRedirect(APPNAME, path=URL.howto.view(nickname),success=Message.ARTICLE_UPDATED)
     except Exception as e:
         errorLog(e)
-        if articleobj and not alerted:
-            articleobj.delete()
-        return respondRedirect(APPNAME, URL.Howto.CREATE, error=Message.SUBMISSION_ERROR)
+        raise Http404(e)
 
 
 @normal_profile_required 
 def view(request: WSGIRequest, nickname: str):
+    """To view an article.
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        nickname (str): The nickname of the article.
+
+    Returns:
+        HttpResponse: The article view
+    """
     try:
         data = articleRenderData(request, nickname)
         if not data:
@@ -98,16 +100,17 @@ def view(request: WSGIRequest, nickname: str):
         errorLog(e)
         raise Http404(e)
         
-
-##     
+    
 @require_JSON
 @normal_profile_required   
-def draft(request: WSGIRequest, articleID:UUID):
+def publish(request: WSGIRequest, articleID:UUID):
+    """To publish the article
+    TODO: Add redis entry for 7 days which will be used to check editability of the article
+    """
     try:
-        is_draft = request.POST.get("draft", True)
-        done = Article.objects.filter(id=articleID, author=request.user.profile).update(is_draft=is_draft)
+        done = Article.objects.filter(id=articleID, author=request.user.profile).exclude(Q(heading__exact='') | Q(subheading__exact='')).update(is_draft=False)
         if not done:
-          return respondJson(Code.NO, error=Message.ARTICLE_NOT_FOUND)
+          return respondJson(Code.NO, error=Message.INVALID_REQUEST)
         return respondJson(Code.OK)
     except Exception as e:
         errorLog(e)
@@ -474,7 +477,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
 
-            if not (subheading or paragraph or image or video):
+            if not (paragraph or image or video):
                 return redirect(article.getLink(error=Message.INVALID_REQUEST))
 
             try:

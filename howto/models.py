@@ -42,7 +42,7 @@ class Article(models.Model):
     
     @property
     def get_nickname(self):
-        if not self.nickname or self.nickname == self.id:
+        if not self.nickname or self.nickname == str(self.id):
             if self.is_draft:
                 if self.nickname:
                     return self.nickname

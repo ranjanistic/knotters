@@ -12,13 +12,40 @@
 
 {% block content %}
 <div class="w3-row">
-    <div class="w3-col w3-container m8 l8">
-        <div class="w3-row"><h1>{{article.heading}}</h1></div>
-        <div class="w3-row text-medium w3-justify">{{article.subheading}}</div>
-        <br />
+    <div class="w3-col m8 l8">
+        <div id="view-article-details">
+            {% if article.heading %}
+            <div class="w3-row w3-padding">
+                {% if self and article.isEditable %}
+                <button class="small w3-right edit-action" data-edittarget="article-details" data-icon="edit"></button>
+                {% endif %}
+                <h1>{{article.heading}}</h1>
+            </div>
+            <div class="w3-row text-medium w3-justify w3-padding">{{article.subheading}}</div>
+            <br />
+            {% else %}
+                {% if self and article.isEditable %}
+                    <br />
+                    <button class="accent edit-action big-button" data-edittarget="article-details" data-icon="add">Add article details</button>
+                {% endif %}
+            {% endif %}
+        </div>
+        {% if self and article.isEditable %}
+        <div id="edit-article-details">
+            <form action="{{ URLS.SAVE|params:article.get_nickname }}" method="POST">
+                {% csrf_token %}
+                <input class="wide w3-margin-left" type="text" name="heading" placeholder="Heading" value="{{ article.heading }}">
+                <textarea class="wide w3-margin" name="subheading" rows="3" placeholder="Subheading">{{ article.subheading }}</textarea>
+                <div class="w3-center">
+                    <button class="small" id="save-edit-article-details" data-icon="done">{% trans "Save" %}</button>
+                    <button class="small" id="discard-edit-article-details" data-icon="close">{% trans "Cancel" %}</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
         <div class="w3-row">
-            <div class="w3-col m3 l3"><span class="dead-text">{{article.createdOn}}</span></div>
-            <div class="w3-col m9 l9 w3-container">
+            <div class="w3-col m3 l3 w3-padding"><span class="dead-text">{{article.createdOn}}</span></div>
+            <div class="w3-col m9 l9 w3-padding">
                 <div id="view-articletags">
                     {% for tag in article.tags.all %}
                     <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
@@ -50,8 +77,8 @@
             </div>
         </div>
     </div>
-    <div class="w3-col w3-container m4 l4 w3-right">
-        <div class="w3-row w3-right-align">
+    <div class="w3-col m4 l4 w3-right">
+        <div class="w3-row w3-padding w3-right-align">
             <a href="{{article.author.getLink}}">
                 <img class="w3-circle w3-right" src="{{article.author.getDP}}" width="50"/>
                 <strong class="text-medium text-primary">{{article.author.getName}}</strong>
@@ -143,8 +170,18 @@
 </div>
 <br />
 <div class="w3-row section-body">
-    {% if sections %}
+    {% if sections or self %}
         <div class="sidenav w3-animate-left tertiary w3-center w3-padding text-medium">
+            {% if self %}
+                <div class="w3-row align w3-padding">
+                    {% if article.is_draft%}
+                        <button id="draftArticle" class="accent w3-large w3-animate-zoom">
+                            Publish Article
+                        </button>
+                    {% endif %}
+                    <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete Article</button> 
+                </div>
+            {% endif %}
             <br />
             {% for section in sections %}
             <div class="w3-row" id="view-section-subhead-{{section.id}}">
@@ -216,29 +253,7 @@
         </div>
     </div>
 </div>
-<!-- <input type="hidden" value="{{ article.id }}" id="articleid">
-<input type="hidden" value="{{ article.is_draft }}" id="draft"> -->
 {% endblock %}
 {% block scripts %}
 <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.ARTICLE}}?nickname={{article.nickname}}"></script>
 {% endblock %}
-
-{% comment %}
-    {% if self %}
-        <br />
-        <div class="w3-row pallete">
-            <h5 class="align"><i class="w3-spin">settings</i>&nbsp;{% trans "Settings" %}</h5>
-            <br />
-            <div class="w3-row align">
-                <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete Article</button>
-                <button id="draftArticle" class="accent w3-large w3-animate-zoom">
-                    {% if article.is_draft %}
-                    Publish Article
-                    {% else %}
-                    Draft Article
-                    {% endif %}
-                </button>
-            </div>
-        </div>
-    {% endif %}
-{% endcomment %}

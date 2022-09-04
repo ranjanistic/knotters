@@ -1,8 +1,9 @@
 const self = "{{ self }}"==='True'
 const isRater = "{{isRater}}"==='True'
 const articleID = "{{ article.id }}"
+const canEdit = "{{ article.isEditable }}"==="True"
 
-if (self) {
+if (self && canEdit) {
     getElement(`section-file`).onchange = (e) => {
         handleCropImageUpload(
             e,
@@ -61,7 +62,7 @@ if (self) {
             })
         }
     {% endfor %}
-    /* 
+    
     getElement("deleteArticle").onclick = async(_) =>{
         await Swal.fire({
             title: `${NegativeText("Delete Article")}`,
@@ -91,31 +92,34 @@ if (self) {
         })
     }
 
-    getElement("draftArticle").onclick = async(_) => {
-        draft = getElement("draft").value
-        if(draft=="True")
-            draft = false
-        else
-            draft = true
-        resp = await postRequest2({
-            path: setUrlParams(URLS.Howto.DRAFT, articleID),
-            data : {
-                draft : draft
-            },
-        })
-        if(resp.code === code.OK)
-        {
-            if (draft)
-                relocate({query:{
-                    s: STRING.article_drafted
-                }})
-            else
-                relocate({query:{
-                    s: STRING.article_published
-                }})
+   {% if article.is_draft %}
+        getElement("draftArticle").onclick = async(_) => {
+            await Swal.fire({
+                title: `Publish Article`,
+                html: `<h5>Article cannot be drafted back once published. You will be allowed to edit the article for a period of 7 days after publishing the article.</h5>`,
+                showConfirmButton: true,
+                showDenyButton: false,
+                showCancelButton: true,
+                cancelButtonText: "Go back",
+                confirmButtonText: "Publish Article",
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    const resp = await postRequest2({
+                        path: setUrlParams(URLS.Howto.PUBLISH, articleID)
+                    })
+                    if(resp.code === code.OK)
+                    {
+                        relocate({query:{
+                            s: STRING.article_published
+                        }})
+                        return
+                    }
+                    error(resp.error);
+                }
+            })
         }
-    }
-    */
+    {% endif %}
+
     const loadExistingTags = () => {
         initializeMultiSelector({
             candidateClass: "tag-existing",

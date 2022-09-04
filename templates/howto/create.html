@@ -1,9 +1,0 @@
-{% extends "howto/index.html" %}
-{% block content %}
-<form action="{{ URLS.SAVE }}" method="POST">
-    {% csrf_token %}
-    <input type="text" placeholder="Heading" name="heading">
-    <input type="text" placeholder="Subheading" name="subheading" id="">
-    <button type="submit"> Submit</button>
-</form>
-{% endblock %}
