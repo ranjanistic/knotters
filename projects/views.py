@@ -41,7 +41,7 @@ from .methods import (addTagToDatabase, coreProfileData,
                       deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository,
                       freeProfileData, getProjectLiveData,
                       handleGithubKnottersRepoHook, renderer, renderer_stronly,
-                      rendererstr, uniqueRepoName, verifiedProfileData)
+                      rendererstr, uniqueRepoName, verifiedProfileData, tagSearchList, topicSearchList)
 from .models import *
 from .receivers import *
 
@@ -1000,22 +1000,8 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
                 map(lambda topic: topic.id.hex, project.getTopics()))
             cacheKey = cacheKey + "".join(map(str, excluding))
 
-        topics = cache.get(cacheKey, [])
-        if not len(topics):
-            topics = Topic.objects.exclude(id__in=excluding).filter(
-                Q(name__istartswith=query)
-                | Q(name__iendswith=query)
-                | Q(name__iexact=query)
-                | Q(name__icontains=query)
-            )[:limit]
-            cache.set(cacheKey, topics, settings.CACHE_SHORT)
-        topicslist = list(map(lambda topic: dict(
-            id=topic.getID(),
-            name=topic.name
-        ), topics[:limit]))
-
         return respondJson(Code.OK, dict(
-            topics=topicslist
+            topics=topicSearchList(query, excluding, limit, cacheKey)
         ))
     except (ObjectDoesNotExist, ValidationError, KeyError) as e:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -1151,24 +1137,10 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
             excludeIDs = list(map(lambda tag: tag.id.hex, project.getTags()))
             cacheKey = cacheKey + "".join(map(str, excludeIDs))
 
-        tags = cache.get(cacheKey, [])
-        if not len(tags):
-            tags = Tag.objects.exclude(id__in=excludeIDs).filter(
-                Q(name__istartswith=query)
-                | Q(name__iendswith=query)
-                | Q(name__iexact=query)
-                | Q(name__icontains=query)
-            )[:limit]
-            cache.set(cacheKey, tags, settings.CACHE_SHORT)
-
-        tagslist = list(map(lambda tag: dict(
-            id=tag.getID(),
-            name=tag.name
-        ), tags[:limit]))
-
         return respondJson(Code.OK, dict(
-            tags=tagslist
+            tags=tagSearchList(query, excludeIDs, limit, cacheKey)
         ))
+        
     except (ObjectDoesNotExist, ValidationError, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:

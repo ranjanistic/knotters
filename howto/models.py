@@ -41,6 +41,10 @@ class Article(models.Model):
         super(Article, self).save(*args, **kwargs)
     
     @property
+    def get_id(self) -> str:
+        return self.id.hex
+    
+    @property
     def get_nickname(self):
         if not self.nickname or self.nickname == str(self.id):
             if self.is_draft:
@@ -95,8 +99,30 @@ class Article(models.Model):
     def getTopics(self) -> list:
         return self.topics.all()
     
+    def getPalleteTopics(self, limit: int = 2) -> models.QuerySet:
+        """Returns the topics of the article to be used in the pallete
+
+        Args:
+            limit (int, optional): The limit of topics to be returned. Defaults to 2.
+
+        Returns:
+            models.QuerySet<Topic>: The topic instances of the article to be used in the pallete
+        """
+        return self.topics.filter()[:limit]
+    
     def getTags(self) -> list:
         return self.tags.all()
+    
+    def getPalleteTags(self, limit: int = 2) -> models.QuerySet:
+        """Returns the tags of the article to be used in the pallete
+
+        Args:
+            limit (int, optional): The limit of tags to be returned. Defaults to 2.
+
+        Returns:
+            models.QuerySet<Tag>: The tag instances of the article to be used in the pallete
+        """
+        return self.tags.filter()[:limit]
     
     def canCreateArticle(self, profile: Profile) -> bool:
         """Returns whether given profile can create article or not"""
@@ -161,6 +187,7 @@ class Section(models.Model):
     image = models.ImageField(upload_to=sectionMediaPath, null=True, blank=True)
     video = models.FileField(upload_to=sectionMediaPath, null=True, blank=True)
 
+    @property
     def get_id(self):
             return self.id.hex
     

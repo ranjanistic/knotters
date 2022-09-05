@@ -17,7 +17,7 @@ from main.decorators import (decode_JSON, github_only, normal_profile_required,
 from main.methods import base64ToImageFile, errorLog, respondJson
 from main.strings import Code, Event, Message, Template, setURLAlerts
 from management.models import ReportCategory
-from projects.methods import addTagToDatabase
+from projects.methods import addTagToDatabase, tagSearchList, topicSearchList
 from projects.models import Tag
 from ratelimit.decorators import ratelimit
 
@@ -378,22 +378,8 @@ def topicsSearch(request: WSGIRequest) -> JsonResponse:
             cacheKey = f"{cacheKey}_{request.user.id}" + \
                 "".join(map(lambda i: str(i), excluding))
 
-        topicslist = cache.get(cacheKey, [])
-
-        if not len(topicslist):
-            topics = Topic.objects.exclude(id__in=excluding).filter(
-                Q(name__istartswith=query)
-                | Q(name__iexact=query)
-                | Q(name__icontains=query)
-            )[:limit]
-            topicslist = list(map(lambda topic: dict(
-                id=topic.get_id,
-                name=topic.name
-            ), topics))
-            cache.set(cacheKey, topicslist, settings.CACHE_INSTANT)
-
         return respondJson(Code.OK, dict(
-            topics=topicslist
+            topics=topicSearchList(query, excluding, limit, cacheKey)
         ))
     except (KeyError, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -530,22 +516,8 @@ def tagsSearch(request: WSGIRequest) -> JsonResponse:
         cacheKey = f"tagssearch_{query}" + \
             "".join(map(lambda i: i.hex, excludeIDs))
 
-        tagslist = cache.get(cacheKey, [])
-        if not len(tagslist):
-            tags = Tag.objects.exclude(id__in=excludeIDs).filter(
-                Q(name__istartswith=query)
-                | Q(name__iendswith=query)
-                | Q(name__iexact=query)
-                | Q(name__icontains=query)
-            )[:limit]
-            tagslist = list(map(lambda tag: dict(
-                id=tag.getID(),
-                name=tag.name
-            ), tags))
-            cache.set(cacheKey, tagslist, settings.CACHE_SHORT)
-
         return respondJson(Code.OK, dict(
-            tags=tagslist[:limit]
+            tags=tagSearchList(query, excludeIDs, limit, cacheKey)
         ))
     except (ObjectDoesNotExist, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)

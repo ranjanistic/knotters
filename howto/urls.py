@@ -18,4 +18,5 @@ urlpatterns = [
     path(URL.Howto.RATING, submitArticleRating),
     path(URL.Howto.TOGGLE_ADMIRATION, toggleAdmiration),
     path(URL.Howto.ADMIRATIONS, articleAdmirations),
+    path(URL.Howto.BROWSE_SEARCH, browseSearch),
 ]

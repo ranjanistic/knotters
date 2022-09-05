@@ -6,6 +6,7 @@ from uuid import UUID
 from people.views import browseSearch as peopleSearch
 from projects.views import browseSearch as projectsSearch
 from compete.views import browseSearch as competeSearch
+from howto.views import browseSearch as howtoSearch
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
@@ -242,7 +243,9 @@ def search_results(request: WSGIRequest) -> HttpResponse:
         projects = response2.content.decode(Code.UTF_8)
         response3 = competeSearch(request)
         compete = response3.content.decode(Code.UTF_8)
-        return respondJson(Code.OK, dict(people=people, projects=projects, compete=compete))
+        response4 = howtoSearch(request)
+        howto = response4.content.decode(Code.UTF_8)
+        return respondJson(Code.OK, dict(people=people, projects=projects, compete=compete, howto=howto))
     except (KeyError, ValidationError) as e:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)

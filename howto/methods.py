@@ -1,8 +1,9 @@
 from django.core.handlers.wsgi import WSGIRequest
 from howto.models import Article, Section
-from main.methods import renderView
+from main.methods import renderView, renderString
 from howto.apps import APPNAME
 from django.core.exceptions import ObjectDoesNotExist
+from django.http.response import HttpResponse
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()):
@@ -17,6 +18,20 @@ def renderer(request: WSGIRequest, file: str, data: dict = dict()):
         HttpResponse: The rendered text/html view with default and provided context.
     """
     return renderView(request, file, data, fromApp=APPNAME)
+
+
+def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
+    """Returns text/html content as http response with the given data.
+
+    Args:
+        request (WSGIRequest): The request object.
+        file (str): The file for html content under templates/projects, without extension.
+        data (dict, optional): The data to pass to the template. Defaults to dict().
+
+    Returns:
+        HttpResponse: The text based html string content http response with default and provided context.
+    """
+    return HttpResponse(renderString(request, file, data, fromApp=APPNAME))
 
 
 def articleRenderData(request:WSGIRequest, nickname: str):

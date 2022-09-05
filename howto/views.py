@@ -1,6 +1,6 @@
 from django.shortcuts import redirect, render
 from howto.models import Article, Section, ArticleTopic, ArticleTag, ArticleUserRating
-from howto.methods import renderer, articleRenderData
+from howto.methods import renderer, articleRenderData, rendererstr
 from main.strings import Template, Code , Message, URL, Action, setURLAlerts
 from main.methods import respondJson, errorLog, respondRedirect, base64ToFile, base64ToImageFile
 from main.decorators import require_JSON, normal_profile_required, decode_JSON
@@ -16,7 +16,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.http import JsonResponse
 from django.db.models.query_utils import Q
 from people.methods import addTopicToDatabase
-from projects.methods import addTagToDatabase
+from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
 
 
@@ -120,7 +120,7 @@ def publish(request: WSGIRequest, articleID:UUID):
 @normal_profile_required
 @require_JSON
 def topicsSearch(request: WSGIRequest, articleID: UUID) -> JsonResponse:
-    """To search for topics for a article.
+    """To search for topics for an article.
 
     METHODS: POST
 
@@ -148,22 +148,8 @@ def topicsSearch(request: WSGIRequest, articleID: UUID) -> JsonResponse:
                 map(lambda topic: topic.id.hex, article.getTopics()))
             cacheKey = cacheKey + "".join(map(str, excluding))
 
-        topics = cache.get(cacheKey, [])
-        if not len(topics):
-            topics = Topic.objects.exclude(id__in=excluding).filter(
-                Q(name__istartswith=query)
-                | Q(name__iendswith=query)
-                | Q(name__iexact=query)
-                | Q(name__icontains=query)
-            )[:limit]
-            cache.set(cacheKey, topics, settings.CACHE_SHORT)
-        topicslist = list(map(lambda topic: dict(
-            id=topic.getID(),
-            name=topic.name
-        ), topics[:limit]))
-
         return respondJson(Code.OK, dict(
-            topics=topicslist
+            topics=topicSearchList(query, excluding, limit, cacheKey)
         ))
     except (ObjectDoesNotExist, ValidationError, KeyError) as e:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -291,24 +277,9 @@ def tagsSearch(request: WSGIRequest, articleID: UUID) -> JsonResponse:
         if article:
             excludeIDs = list(map(lambda tag: tag.id.hex, article.getTags()))
             cacheKey = cacheKey + "".join(map(str, excludeIDs))
-
-        tags = cache.get(cacheKey, [])
-        if not len(tags):
-            tags = Tag.objects.exclude(id__in=excludeIDs).filter(
-                Q(name__istartswith=query)
-                | Q(name__iendswith=query)
-                | Q(name__iexact=query)
-                | Q(name__icontains=query)
-            )[:limit]
-            cache.set(cacheKey, tags, settings.CACHE_SHORT)
-
-        tagslist = list(map(lambda tag: dict(
-            id=tag.getID(),
-            name=tag.name
-        ), tags[:limit]))
-
+            
         return respondJson(Code.OK, dict(
-            tags=tagslist
+            tags=tagSearchList(query, excludeIDs, limit, cacheKey)
         ))
     except (ObjectDoesNotExist, ValidationError, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -691,6 +662,107 @@ def articleAdmirations(request: WSGIRequest, articleID: UUID) -> HttpResponse:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
 
-    
+
+@ratelimit(key='user_or_ip', rate='2/s')
+@decode_JSON
+def browseSearch(request: WSGIRequest) -> HttpResponse:
+    """To search for articles
+
+    METHODS: GET, POST
+
+    Args:
+        request (WSGIRequest): The request object
+
+    Raises:
+        Http404: If any error occurs
+
+    Returns:
+        HttpResponse: The text/html search view response with the search results context
+        JsonResponse: The json response with main.strings.Code.OK and articles, or main.strings.Code.NO
+    """
+    json_body = request.POST.get(Code.JSON_BODY, False)
+    try:
+        query = request.GET.get('query', request.POST.get('query', ""))[
+            :100].strip()
+        if not query:
+            raise KeyError(query)
+        limit = request.GET.get('limit', request.POST.get('limit', 10))
+        excludeauthorIDs = []
+        cachekey = f'article_browse_search_{query}{request.LANGUAGE_CODE}'
+        if request.user.is_authenticated:
+            excludeauthorIDs = request.user.profile.blockedIDs()
+            cachekey = f"{cachekey}{''.join(excludeauthorIDs)}"
+
+        articles = cache.get(cachekey, [])
+
+        if not len(articles):
+            specials = ('tag:', 'topic:', 'author:')
+            pquery = None
+            dbquery = Q()
+            invalidQuery = False
+            if query.startswith(specials):
+                def specquerieslist(q):
+                    return [
+                        Q(tags__name__iexact=q),
+                        Q(topics__name__iexact=q),
+                        Q(
+                            Q(author__user__first_name__iexact=q) | Q(author__user__last_name__iexact=q) | Q(
+                                author__user__email__iexact=q) | Q(author__nickname__iexact=q)
+                        ),
+                        Q()
+                    ]
+                commaparts = query.split(",")
+                for cpart in commaparts:
+                    if cpart.strip().lower().startswith(specials):
+                        special, specialq = cpart.split(':')
+                        dbquery = Q(dbquery, specquerieslist(specialq.strip())[
+                            list(specials).index(f"{special.strip()}:")])
+                    else:
+                        pquery = cpart.strip()
+                        break
+            else:
+                pquery = query
+            if pquery and not invalidQuery:
+                dbquery = Q(dbquery, Q(
+                    Q(author__user__first_name__istartswith=pquery)
+                    | Q(author__user__last_name__istartswith=pquery)
+                    | Q(author__user__email__istartswith=pquery)
+                    | Q(author__nickname__istartswith=pquery)
+                    | Q(topics__name__iexact=pquery)
+                    | Q(tags__name__iexact=pquery)
+                    | Q(heading__iexact=pquery)
+                    | Q(subheading__iexact=pquery)
+                    | Q(nickname__iexact=pquery)
+                    | Q(topics__name__istartswith=pquery)
+                    | Q(tags__name__istartswith=pquery)
+                    | Q(heading__icontains=pquery)
+                    | Q(subheading__icontains=pquery)
+                    | Q(nickname__icontains=pquery)
+                ))
+            if not invalidQuery:
+                articles: Article = Article.objects.exclude(author__user__id__in=excludeauthorIDs).filter(dbquery).distinct()[0:limit]
+
+                if len(articles):
+                    cache.set(cachekey, articles, settings.CACHE_SHORT)
+
+        if json_body:
+            return respondJson(Code.OK, dict(
+                articles=list(map(lambda m: dict(
+                    id=m.get_id,
+                    heading=m.heading, subheading=m.subheading, nickname=m.get_nickname,
+                    url=m.get_link, author=m.author.get_name
+                ), articles)),
+                query=query
+            ))
+        return rendererstr(request, Template.Howto.BROWSE_SEARCH, dict(articles=articles, query=query))
+    except (KeyError) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(e)
     
 

@@ -13,10 +13,47 @@
 {% endblock %}
 {% block content %}
 
+<div class="w3-row w3-padding welcome-row first-time-view" id='articles-intro-banner'>
+    <br/>
+    <div class='w3-row w3-padding'>
+        <h1 class="w3-jumbo w3-hide-small">{% trans "Articles" %}</h1>
+        <h2 class="w3-hide-medium w3-hide-large">{% trans "Articles" %}</h1>
+    </div>
+    <br/>
+    <div class='w3-row w3-padding'>
+        <strong class='text-large'>
+            {% trans "Detailed guides to help you grow" %}
+        </strong>
+    </div>
+    <br/><br/>
+    <div class='w3-row w3-padding'>
+        <button class='big-button accent' id='close-articles-intro-banner' data-icon='flight_takeoff'>
+            {% trans "Got it" %}
+        </button>
+        <a href="{{URLS.CREATE}}">
+            <button class='big-button positive' data-icon='add'>
+                {% trans "New Article" %}
+            </button>
+        </a>
+    </div>
+    <br/><br/>
+</div>
 <div class="w3-row tertiary" style="background-image: url('{{ICON_SHADOW}}');">
-    <div class="w3-row w3-center" style="padding:16px 4px">
-        <h3><span class="pallete-slab tertiary">{% trans "Articles" %}</span></h3>
-        <strong class="text-medium"><div class="pallete-slab tertiary">{% trans "Detailed guides to help you grow" %}</div></strong>
+    <div class="w3-row" >
+        <div class="w3-row tertiary w3-padding" id="mainframe">
+            <div class="w3-col w3-quarter w3-padding-small"></div>
+                <form class="no-auto" id="search-articles-form">
+                <div class="w3-col w3-half w3-center w3-padding-small">
+                    <input class="wide primary bold border-positive" type="search" inputmode="search" placeholder="{% trans "Search articles as topic:translation, or anything" %}" id="browse-search-input" />
+                </div>
+                <div class="w3-col w3-quarter w3-padding-small" id="browse-search-actions" hidden>
+                    <button type="button" class="negative w3-right browse-search-articles" data-icon="close" id="browse-search-clear"></button>
+                    <button type="button" class="positive w3-right browse-search-articles" data-icon="search" id="browse-search-exec"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="w3-row search-view" data-search-type="articles" id='browse-search-view'>
     </div>
     <div class="w3-row">
         {% for article in articles %}
@@ -35,8 +72,8 @@
         {% endfor %}
     </div>
     <br />
-    <a href="{{ URLS.CREATE }}"><button>Create new article</button></a>
 </div>
 {% endblock %}
 {% block scripts %}
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.INDEX}}?search={{request.GET.search}}"></script>
 {% endblock %}

@@ -1415,6 +1415,8 @@ class URL():
         def admirations(self, articleID: str):
             return setPathParams(self.ADMIRATIONS, articleID)
 
+        BROWSE_SEARCH = 'browse/search/'
+
         def getURLSForClient(self) -> dict:
             URLS = dict()
 
@@ -2331,6 +2333,12 @@ class Template():
         @property
         def article(self):
             return f'{self.DIRNAME}/{self.ARTICLE}.html'
+        
+        BROWSE_SEARCH = 'browse/search'
+
+        @property
+        def browse_search(self):
+            return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
     
     howto = Howto()
 
