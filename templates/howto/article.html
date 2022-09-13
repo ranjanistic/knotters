@@ -11,249 +11,139 @@
 {% endblock %}
 
 {% block content %}
-<div class="w3-row">
-    <div class="w3-col m8 l8">
-        <div id="view-article-details">
-            {% if article.heading %}
-            <div class="w3-row w3-padding">
-                {% if self and article.isEditable %}
-                <button class="small w3-right edit-action" data-edittarget="article-details" data-icon="edit"></button>
-                {% endif %}
-                <h1>{{article.heading}}</h1>
+<div id="view-article">
+    {% if self and article.isEditable %}
+    <div class="w3-row w3-padding">
+    <i id="edit-article">edit</i>
+    <button hidden id="save-article" class="small positive" data-icon="done">Save As Draft</button>
+    </div>
+    {% endif %}
+    <div class="w3-row">
+        <div class="w3-col m8 l8">
+            <div id="article-head">
             </div>
-            <div class="w3-row text-medium w3-justify w3-padding">{{article.subheading}}</div>
             <br />
-            {% else %}
-                {% if self and article.isEditable %}
-                    <br />
-                    <button class="accent edit-action big-button" data-edittarget="article-details" data-icon="add">Add article details</button>
-                {% endif %}
-            {% endif %}
-        </div>
-        {% if self and article.isEditable %}
-        <div id="edit-article-details">
-            <form action="{{ URLS.SAVE|params:article.get_nickname }}" method="POST">
-                {% csrf_token %}
-                <input class="wide w3-margin-left" type="text" name="heading" placeholder="Heading" value="{{ article.heading }}">
-                <textarea class="wide w3-margin" name="subheading" rows="3" placeholder="Subheading">{{ article.subheading }}</textarea>
-                <div class="w3-center">
-                    <button class="small" id="save-edit-article-details" data-icon="done">{% trans "Save" %}</button>
-                    <button class="small" id="discard-edit-article-details" data-icon="close">{% trans "Cancel" %}</button>
+            <div class="w3-row">
+                <div class="w3-col m3 l3 w3-padding"><span class="dead-text">{{article.createdOn}}</span></div>
+                <div class="w3-col m7 l7 w3-padding">
+                    <div id="view-articletags">
+                        {% for tag in article.tags.all %}
+                        <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
+                        {% empty %}
+                            <strong class="dead-text">{% trans "No tags assigned" %}</strong>
+                        {% endfor %}
+                        {% if self %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
+                    </div>
+                    {% if self %}
+                    <div id="edit-articletags">
+                        <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
+                        <form class="no-auto" id="edit-tag-inputs">
+                            {% csrf_token %}
+                            <input class="tertiary" maxlength="40" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
+                            <div class="w3-row w3-padding" id="tags-viewer">
+                                {% for tag in article.tags.all %}
+                                <button type="button" class="primary small negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
+                                {% endfor %}
+                                <div class="w3-row w3-padding" id="tags-viewer-new"></div>
+                            </div>
+                            <input id="removetagIDs" name="removetagIDs" hidden type="text" />
+                            <input id="addtagIDs" name="addtagIDs" hidden type="text" />
+                            <input id="addtags" name="addtags" hidden type="text" />
+                            <button class="small" id="save-edit-articletags" data-icon="done">{% trans "Save" %}</button>
+                            <button class="small" id="discard-edit-articletags" data-icon="close">{% trans "Cancel" %}</button>
+                        </form>
+                    </div>
+                    {% endif %}
                 </div>
-            </form>
+                <div class="w3-col l2 m2 w3-padding" >
+                    {% if request.user.is_authenticated %}
+                    <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
+                        {% csrf_token %}
+                        <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
+                        <button type="submit" class="{% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration" ></button>
+                    </form>
+                    {% else %}
+                    <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="primary" data-icon="volunteer_activism"></button></a>
+                    {% endif %}
+                    <a id="show-admirations"><strong>{{ article.total_admirers }}&nbsp;admirer{{ article.total_admirers|pluralize }}</strong></a>
+                </div> 
+            </div>
         </div>
-        {% endif %}
-        <div class="w3-row">
-            <div class="w3-col m3 l3 w3-padding"><span class="dead-text">{{article.createdOn}}</span></div>
-            <div class="w3-col m9 l9 w3-padding">
-                <div id="view-articletags">
-                    {% for tag in article.tags.all %}
-                    <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
-                    {% empty %}
-                        <strong class="dead-text">{% trans "No tags assigned" %}</strong>
+        <div class="w3-col m4 l4 w3-right">
+            <div class="w3-row w3-padding w3-right-align">
+                <a href="{{article.author.getLink}}">
+                    <img class="w3-circle w3-right" src="{{article.author.getDP}}" width="50"/>
+                    <strong class="text-medium text-primary">{{article.author.getName}}</strong>
+                    {% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}
+                    <br />
+                    {% for label in article.author.get_labels %}
+                        <strong class="w3-tiny w3-round w3-tag {{label.theme}} w3-padding-small">{{label.name}}</strong>
                     {% endfor %}
-                    {% if self %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
+                    <span class="dead-text">{{article.author.getXP}}</span>
+                </a>
+            </div>
+            <div class="w3-row w3-right {% if request.user.is_authenticated %}trigger-article-rating{% else %}trigger-login-popup{% endif %}">
+                <div class="rate">
+                    <span class="w3-left text-large">{{ article.get_avg_rating }}</span>
+                    {% for i in '0123456789'|make_list %}
+                    <input type="checkbox" required/>
+                    <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="w3-row w3-padding">
+                <div id="view-articletopics" class="w3-right">
+                    {% for topic in article.topics.all %}
+                        <a href="{{URLS.HOWTO}}?search=topic:{{topic}}">
+                            <button class="button topic-name primary border-joy">
+                            {{topic}}
+                            </button>
+                        </a>
+                    {% empty %}
+                        {% if self %}
+                            <br/>
+                            <button class="accent edit-action big-button" data-edittarget="articletopics" data-icon="add">Add topics</button>
+                        {% else %}
+                            <br/>
+                            <div class="dead-text">
+                                <i class="w3-big">scatter_plot</i>
+                                <h4>No topics yet</h4>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% if self and article.topics.all|length > 0 %}<i class="edit-action" data-edittarget="articletopics">edit</i>{% endif %}
                 </div>
                 {% if self %}
-                <div id="edit-articletags">
-                    <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
-                    <form class="no-auto" id="edit-tag-inputs">
-                        {% csrf_token %}
-                        <input class="tertiary" maxlength="40" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
-                        <div class="w3-row w3-padding" id="tags-viewer">
-                            {% for tag in article.tags.all %}
-                            <button type="button" class="primary small negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
-                            {% endfor %}
-                            <div class="w3-row w3-padding" id="tags-viewer-new"></div>
-                        </div>
-                        <input id="removetagIDs" name="removetagIDs" hidden type="text" />
-                        <input id="addtagIDs" name="addtagIDs" hidden type="text" />
-                        <input id="addtags" name="addtags" hidden type="text" />
-                        <button class="small" id="save-edit-articletags" data-icon="done">{% trans "Save" %}</button>
-                        <button class="small" id="discard-edit-articletags" data-icon="close">{% trans "Cancel" %}</button>
-                    </form>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    <div class="w3-col m4 l4 w3-right">
-        <div class="w3-row w3-padding w3-right-align">
-            <a href="{{article.author.getLink}}">
-                <img class="w3-circle w3-right" src="{{article.author.getDP}}" width="50"/>
-                <strong class="text-medium text-primary">{{article.author.getName}}</strong>
-                {% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}
-                <br />
-                {% for label in article.author.get_labels %}
-                    <strong class="w3-tiny w3-round w3-tag {{label.theme}} w3-padding-small">{{label.name}}</strong>
-                {% endfor %}
-                <span class="dead-text">{{article.author.getXP}}</span>
-            </a>
-        </div>
-        <div class="w3-row w3-padding">
-            {% if request.user.is_authenticated %}
-            <div class="w3-col l9 w3-center trigger-article-rating">
-            {% else %}
-            <div class="w3-col l9 w3-center trigger-login-popup">
-            {% endif %}
-                <span class="text-large">{{ article.get_avg_rating }}</span>
-                <br>
-                    <div class="rate">
-                        {% for i in '0123456789'|make_list %}
-                        <input type="checkbox" required/>
-                        <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
-                        {% endfor %}
-                    </div>
-                <br>
-                <span class="text-small">{{ article.total_ratings }} rating{{ article.total_ratings|pluralize }}</span>
-            </div>
-            <div class="w3-col l3 w3-center w3-padding" >
-                <br />
-                {% if request.user.is_authenticated %}
-                <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
-                    {% csrf_token %}
-                    <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
-                    <button type="submit" class="{% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration" ></button>
-                </form>
-                {% else %}
-                <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="primary" data-icon="volunteer_activism"></button></a>
-                {% endif %}
-                <a id="show-admirations"><strong>{{ article.total_admirers }}&nbsp;admirer{{ article.total_admirers|pluralize }}</strong></a>
-            </div> 
-        </div>
-        <div class="w3-row w3-center">
-            <div id="view-articletopics">
-                {% for topic in article.topics.all %}
-                    <a href="{{URLS.HOWTO}}?search=topic:{{topic}}">
-                        <button class="button topic-name primary border-joy">
-                        {{topic}}
-                        </button>
-                    </a>
-                {% empty %}
-                    {% if self %}
-                        <br/>
-                        <button class="accent edit-action big-button" data-edittarget="articletopics" data-icon="add">Add topics</button>
-                    {% else %}
-                        <br/>
-                        <div class="dead-text">
-                            <i class="w3-big">scatter_plot</i>
-                            <h4>No topics yet</h4>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-                <strong>{% if self and article.topics.all|length > 0 %}<i class="edit-action" data-edittarget="articletopics">edit</i>{% endif %}</strong>
-            </div>
-            {% if self %}
-            <div id="edit-articletopics" hidden>
-                <br/>
-                <strong class="dead-text">Total 3 topics allowed</strong>
-                <form class="no-auto" method="POST" id="edit-article-topics-form">
-                    {% csrf_token %}
-                    <input class="wide" placeholder="Search topics" id="topic-search-input" maxlength="35" />
-                    <div class="w3-row w3-padding" id="topics-viewer">
-                        {% for topic in article.getTopics %}
-                        <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
-                        {% endfor %}
-                        <div class="w3-row w3-padding" id="topics-viewer-new"></div>
-                    </div>
-                    <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
-                    <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
-                    <input id="addtopics" name="addtopics" hidden type="text" />
+                <div id="edit-articletopics" class="w3-right" hidden>
                     <br/>
-                    <button id="save-edit-articletopics" data-icon="done">Save</button>
-                    <button id="discard-edit-articletopics" data-icon="close">Cancel</button>
-                </form>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-<br />
-<div class="w3-row section-body">
-    {% if sections or self %}
-        <div class="sidenav w3-animate-left tertiary w3-center w3-padding text-medium">
-            {% if self %}
-                <div class="w3-row align w3-padding">
-                    {% if article.is_draft%}
-                        <button id="draftArticle" class="accent w3-large w3-animate-zoom">
-                            Publish Article
-                        </button>
-                    {% endif %}
-                    <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete Article</button> 
+                    <strong class="dead-text">Total 3 topics allowed</strong>
+                    <form class="no-auto" method="POST" id="edit-article-topics-form">
+                        {% csrf_token %}
+                        <input class="wide" placeholder="Search topics" id="topic-search-input" maxlength="35" />
+                        <div class="w3-row w3-padding" id="topics-viewer">
+                            {% for topic in article.getTopics %}
+                            <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
+                            {% endfor %}
+                            <div class="w3-row w3-padding" id="topics-viewer-new"></div>
+                        </div>
+                        <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
+                        <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
+                        <input id="addtopics" name="addtopics" hidden type="text" />
+                        <br/>
+                        <button id="save-edit-articletopics" data-icon="done">Save</button>
+                        <button id="discard-edit-articletopics" data-icon="close">Cancel</button>
+                    </form>
                 </div>
-            {% endif %}
-            <br />
-            {% for section in sections %}
-            <div class="w3-row" id="view-section-subhead-{{section.id}}">
-                <a class="text-primary" href="#view-section-{{ section.id }}">
-                    <strong>{{section.subheading}}</strong>
-                </a>
-                {% if self and article.isEditable %}
-                    <button class="small edit-action w3-right" data-icon="edit" data-edittarget="section-subhead-{{section.id}}"></button>
                 {% endif %}
             </div>
-            {% if self and article.isEditable %}
-            <div class="w3-row" id="edit-section-subhead-{{section.id}}">
-                <form action="{{URLS.SECTION|params:article.id|params:'update'}}" method="POST">
-                    {% csrf_token %}
-                    <input type="text" name='sectionid' hidden value="{{ section.id }}">
-                    <input type="text" class="primary w3-input" name="subheading" placeholder="Subheading" value="{{section.subheading}}"/>
-                    <button class="small positive" type='submit' id="save-edit-section-subhead-{{ section.id }}" data-icon="done">{% trans "Update Subheading" %}</button>
-                    <button class="small negative" type='button' id="discard-edit-section-subhead-{{ section.id }}" data-icon="close">{% trans "Discard" %}</button>
-                </form> 
-            </div>
-            {% endif %}
-            <br />
-            {% endfor %}
-            <div class="w3-center align text-primary"><button id="closenav" class="primary"><i class="w3-xlarge material-icons text-primary">close</i></button></div>
         </div>
-    {% endif %}
-    <div class="main">
-        <button id="opennav" class="w3-xlarge accent">&#9776;</button> 
-        {% include 'howto/sections.html' %}
-        <div class="w3-row">
-            {% if self and article.isEditable %}
-                <div class="w3-row w3-center" id="view-section-paragraph">
-                    <button class="large edit-action w3-margin w3-padding" data-icon='add' data-edittarget="section-paragraph">Add Paragraph</button>
-                </div>
-                <div class="w3-row w3-padding" id="edit-section-paragraph">
-                    <br />
-                    <form action="{{URLS.SECTION|params:article.id|params:'create'}}" method="POST">
-                        {% csrf_token %}
-                        <textarea class="wide" name='paragraph' rows="3" placeholder="Paragraph"></textarea>
-                        <div class="w3-center">
-                            <button class="small positive" type='submit' id="save-edit-section-paragraph" data-icon="done">{% trans "Publish Section" %}</button>
-                            <button class="small negative" type='button' id="discard-edit-section-paragraph" data-icon="close">{% trans "Discard" %}</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="w3-row w3-center" id="view-section-image">
-                    <button class="large edit-action w3-margin w3-padding" data-icon='add' data-edittarget="section-image">Add Image</button>
-                </div>
-                <div class="w3-row w3-padding" id="edit-section-image">
-                    <br />
-                    <input type='file' hidden id='section-file' accept="image/png, image/jpg, image/jpeg"/>
-                    <form action="{{URLS.SECTION|params:article.id|params:'create'}}" method="POST">
-                        {% csrf_token %}
-                        <input type="text" id='imageData' name='image' hidden value=""/>
-                        <div class="dead-text w3-center" id='add-image-view'>
-                            <label for="section-file">
-                                <div class="w3-jumbo material-icons">upload</div>
-                                <h5>Upload image</h5>
-                            </label>
-                        </div>
-                        <div class="w3-center">
-                            <img hidden width='20%' id='imageOutput'/><br />
-                            <button class="small positive" type='submit' id="save-edit-section-image" data-icon="done">{% trans "Publish Section" %}</button>
-                            <button class="small negative" type='button' id="discard-edit-section-image" data-icon="close">{% trans "Discard" %}</button>
-                        </div>
-                    </form>
-                </div>
-            {% endif %}
-        </div>
+    </div>
+    <br />
+    <div id="sections">
     </div>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.ARTICLE}}?nickname={{article.nickname}}"></script>
 {% endblock %}

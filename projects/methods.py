@@ -25,6 +25,7 @@ from .models import (BaseProject, Category, CoreProject,
                      CoreProjectVerificationRequest, FileExtension,
                      FreeProject, FreeProjectVerificationRequest, License,
                      Project, ProjectSocial, Tag)
+from people.models import Topic
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -1256,7 +1257,6 @@ def topicSearchList(query: str, excluding, limit: int, cacheKey: str):
     """
     Returns topics list
     """
-    from people.models import Topic
     topicslist = cache.get(cacheKey, [])
     if not len(topicslist):
         topics = Topic.objects.exclude(id__in=excluding).filter(
@@ -1275,7 +1275,6 @@ def tagSearchList(query: str, excludeIDs, limit: int, cacheKey: str):
     """
     Returns tags list
     """
-    from projects.models import Tag
     tags = cache.get(cacheKey, [])
     if not len(tags):
         tags = Tag.objects.exclude(id__in=excludeIDs).filter(

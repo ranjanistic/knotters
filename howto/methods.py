@@ -40,10 +40,11 @@ def articleRenderData(request:WSGIRequest, nickname: str):
     """
     try:
         article: Article = Article.objects.get(nickname=nickname)
-        if request.user.profile != article.author and article.is_draft:
+        authenticated = request.user.is_authenticated
+        self: bool = authenticated and request.user.profile == article.author
+        if not self and article.is_draft:
             return False
         sections = Section.objects.filter(article=article)
-        self = request.user.profile==article.author and request.user.is_authenticated
         isAdmirer = request.user.is_authenticated and article.isAdmirer(
             request.user.profile)
         isRater = False if not request.user.is_authenticated else article.is_rated_by(

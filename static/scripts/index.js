@@ -795,7 +795,8 @@ const handleCropImageUpload = (
     dataOutElemID,
     previewImgID,
     onCropped = (croppedB64) => {},
-    ratio = 1 / 1
+    ratio = 1 / 1,
+    setImage = true
 ) => {
     const file = Array.from(event.target.files)[0];
     if (file) {
@@ -833,8 +834,10 @@ const handleCropImageUpload = (
                         error(STRING.img_too_large_10M);
                         return false;
                     }
-                    getElement(dataOutElemID).value = croppedB64;
-                    getElement(previewImgID).src = croppedB64;
+                    if (setImage){
+                        getElement(dataOutElemID).value = croppedB64;
+                        getElement(previewImgID).src = croppedB64;
+                    }
                     return croppedB64;
                 } catch (e) {
                     error("", true);
@@ -851,6 +854,57 @@ const handleCropImageUpload = (
         reader.readAsDataURL(file);
     }
 };
+
+const handleVideoUpload = (
+    event,
+    dataOutElemID,
+    previewVideoID,
+    onCropped = (croppedB64) => {},
+    setVideo = true
+) => {
+    const file = Array.from(event.target.files)[0];
+    if (file) {
+        loader();
+        message(STRING.loading_video);
+    }
+    const reader = new FileReader();
+    reader.onload = (_) => {
+        const base64String = reader.result;
+        Swal.fire({
+            title: "Video Preview",
+            html: `<div class="w3-row w3-center">
+                <video controls src="${base64String}" style="max-width:100%" id="tempvideooutput">
+                </video>
+                </div>`,
+            showDenyButton: true,
+            denyButtonText: STRING.cancel,
+            confirmButtonText: STRING.confirm,
+            allowOutsideClick: false,
+            didOpen: () => {
+                loader(false);
+            },
+            preConfirm: (x) => {
+                if (String(base64String).length / 1024 / 1024 >= 50) {
+                    error(STRING.video_too_large_50M);
+                    return false;
+                }
+                if (setVideo){
+                    getElement(dataOutElemID).value = croppedB64;
+                    getElement(previewVideoID).src = croppedB64;
+                }
+                return base64String;
+            },
+        }).then((res) => {
+            if (res.isConfirmed) {
+                onCropped(res.value);
+            }
+        });
+    };
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+};
+
 
 const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
     const byteCharacters = atob(b64Data);
