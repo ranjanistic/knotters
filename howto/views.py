@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from howto.models import Article, Section, ArticleTopic, ArticleTag, ArticleUserRating
 from howto.methods import renderer, articleRenderData, rendererstr
 from main.strings import Template, Code , Message, URL, Action, setURLAlerts
-from main.methods import respondJson, errorLog, respondRedirect, base64ToFile, base64ToImageFile
+from main.methods import renderString, respondJson, errorLog, respondRedirect, base64ToFile, base64ToImageFile
 from main.decorators import require_JSON, normal_profile_required, decode_JSON
 from django.views.decorators.http import require_GET, require_POST
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -50,7 +50,7 @@ def createArticle(request: WSGIRequest):
 
 
 @normal_profile_required
-@require_POST
+@decode_JSON
 def saveArticle(request: WSGIRequest, nickname: str):
     """To save an article.
 
@@ -63,19 +63,23 @@ def saveArticle(request: WSGIRequest, nickname: str):
     Returns:
         HttpResponseRedirect: The redirect to the article page with success message if saved successfully.
     """
+    json_body = request.POST.get(Code.JSON_BODY, False)
     try:
         heading = str(request.POST["heading"]).strip()
         subheading = str(request.POST["subheading"]).strip()
         data = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
         if not data:
             raise Exception(data)
+        if json_body:
+            return respondJson(Code.OK, success=Message.ARTICLE_UPDATED)
         return respondRedirect(APPNAME, path=URL.howto.view(nickname),success=Message.ARTICLE_UPDATED)
     except Exception as e:
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
 
 
-@normal_profile_required 
 def view(request: WSGIRequest, nickname: str):
     """To view an article.
 
@@ -468,6 +472,8 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
                 image=imagefile,
                 video=videofile
             )
+            if json_body:
+                return respondJson(Code.OK, dict(sectionID=section.id))
             return redirect(article.getLink(success=Message.SECTION_CREATED))
 
         id = request.POST['sectionid'][:50]
@@ -764,4 +770,20 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
     
+
+def renderArticle(request: WSGIRequest, nickname: str):
+    """
+    """
+    try:
+        data = articleRenderData(request, nickname)
+        if not data:
+            raise ObjectDoesNotExist(data)
+        return respondJson(Code.OK, dict(article_head = renderString(request, Template.Howto.ARTICLE_HEAD, data, APPNAME), sections = renderString(request, Template.Howto.SECTION, data, APPNAME)))
+    except ObjectDoesNotExist:
+        return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+    
+
 

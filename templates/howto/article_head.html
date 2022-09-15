@@ -1,0 +1,16 @@
+<div id="article-head-view">
+    <div class="w3-row w3-padding" id="heading-view">
+        <h1>{{article.heading}}</h1>
+    </div>
+    <div class="w3-row text-medium w3-padding" id="subheading-view">{{article.subheading}}</div>
+</div>
+{% if self and article.isEditable %}
+    <div class="article-edit" id="article-head-edit" hidden>
+        <div class="w3-row w3-padding-small">
+            <textarea class="article-edit wide heading-input" id="heading" name="heading" placeholder="Heading">{{ article.heading }}</textarea>
+        </div>
+        <div class="w3-row w3-padding-small">
+            <textarea class="article-edit wide text-medium" name="subheading" id="subheading" placeholder="Subheading">{{ article.subheading }}</textarea>
+        </div>
+    </div>
+{% endif %}

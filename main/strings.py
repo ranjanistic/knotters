@@ -1417,6 +1417,11 @@ class URL():
 
         BROWSE_SEARCH = 'browse/search/'
 
+        RENDER_ARTICLE = 'render/article/<str:nickname>'
+
+        def render_article(self, articleID: str):
+            return setPathParams(self.RENDER_ARTICLE, articleID)
+
         def getURLSForClient(self) -> dict:
             URLS = dict()
 
@@ -2339,6 +2344,18 @@ class Template():
         @property
         def browse_search(self):
             return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
+        
+        ARTICLE_HEAD = 'article_head'
+
+        @property
+        def article_head(self):
+            return f'{self.DIRNAME}/{self.ARTICLE_HEAD}.html'
+
+        SECTION = 'sections'
+
+        @property
+        def section(self):
+            return f'{self.DIRNAME}/{self.SECTION}.html'
     
     howto = Howto()
 
