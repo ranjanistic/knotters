@@ -29,7 +29,6 @@ from .models import (Profile, ProfileSetting, ProfileSocial, ProfileTag,
 from .receivers import *
 from .mailers import reportedUser, admireAlert
 
-
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
     """To render community home page.

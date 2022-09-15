@@ -18,12 +18,11 @@ from django.db.models.query_utils import Q
 from people.methods import addTopicToDatabase
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
-
+from howto.mailers import articleAdmired
 
 def index(request):
     articles=Article.objects.filter(is_draft=False)
     return renderer(request, Template.Howto.INDEX, dict(articles=articles))
-
 
 @normal_profile_required
 @require_GET
@@ -93,12 +92,14 @@ def view(request: WSGIRequest, nickname: str):
         data = articleRenderData(request, nickname)
         if not data:
             raise ObjectDoesNotExist(data)
+        
         return renderer(request, Template.Howto.ARTICLE, data)
     except ObjectDoesNotExist:
         return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
+    
         
     
 @require_JSON
@@ -596,9 +597,7 @@ def toggleAdmiration(request: WSGIRequest, articleID: UUID) -> HttpResponse:
         if admire in ["true", True]:
             article.admirers.add(request.user.profile)
             if(article.author.user != request.user):
-                pass
-                # TODO: mail function 
-                # articleAdmired(request, article)
+                articleAdmired(request, article)
         elif admire in ["false", False]:
             article.admirers.remove(request.user.profile)
         if json_body:

@@ -73,7 +73,7 @@ def participantJoinedAlert(profile: Profile, submission: Submission) -> str:
                 actions=[{'text': "View competition",
                           'url': f'{submission.competition.get_link}'}],
                 footer=f"Someone from your team, or you had invited {profile.getFName()} to join your submission, and they have accepted the invite.",
-                conclusion=f"You received this email because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
+                conclusion=f"You received this ema]'//il because you participated in a competition at {PUBNAME}. If this is unexpected, please report to us."
             )
 
 
