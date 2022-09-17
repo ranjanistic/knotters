@@ -27,7 +27,7 @@ const STRING = {
     required: `{% trans "required" %}`,
     crop_image: `{% trans "Crop Image" %}`,
     img_too_large_10M: `{% trans "Image too large. Preferred size < 10 MB" %}`,
-    video_too_large_50M: `{% trans "Video too large. Preferred size < 50 MB" %}`,
+    video_too_large_10M: `{% trans "Video too large. Preferred size < 10 MB" %}`,
     file_too_large_10M: `{% trans "File too large. Preferred size < 10 MB" %}`,
     cancel: `{% trans "Cancel" %}`,
     confirm: `{% trans "Confirm" %}`,

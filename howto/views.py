@@ -18,6 +18,7 @@ from django.db.models.query_utils import Q
 from people.methods import addTopicToDatabase
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
+from django.core import serializers
 
 
 def index(request):
@@ -28,7 +29,7 @@ def index(request):
 @normal_profile_required
 @require_GET
 def createArticle(request: WSGIRequest):
-    """To render create article page.
+    """To create an article.
 
     METHODS: GET
 
@@ -40,7 +41,7 @@ def createArticle(request: WSGIRequest):
     """
     try:
         if Article().canCreateArticle(request.user.profile):
-            article: Article = Article.objects.create(author=request.user.profile)
+            article: Article = Article.objects.create(author=request.user.profile, heading="Untitled Article")
             return redirect(article.getLink(success=Message.ARTICLE_CREATED))
         raise ValidationError(request.user.profile)
     except ValidationError as e:
@@ -105,6 +106,30 @@ def view(request: WSGIRequest, nickname: str):
         raise Http404(e)
         
     
+def editArticle(request: WSGIRequest, nickname: str):
+    """To render edit article page.
+
+    METHODS: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+        nickname (str): The nickname of the article.
+
+    Returns:
+        HttpResponse: The edit article page
+    """
+    try:
+        data = articleRenderData(request, nickname)
+        if not data:
+            raise ObjectDoesNotExist(data)
+        return renderer(request, Template.Howto.ARTICLE_EDIT, data)
+    except ObjectDoesNotExist:
+        return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+
 @require_JSON
 @normal_profile_required   
 def publish(request: WSGIRequest, articleID:UUID):
@@ -746,7 +771,7 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
                     | Q(nickname__icontains=pquery)
                 ))
             if not invalidQuery:
-                articles: Article = Article.objects.exclude(author__user__id__in=excludeauthorIDs).filter(dbquery).distinct()[0:limit]
+                articles: Article = Article.objects.exclude(author__user__id__in=excludeauthorIDs).exclude(is_draft=True).filter(dbquery).distinct()[0:limit]
 
                 if len(articles):
                     cache.set(cachekey, articles, settings.CACHE_SHORT)
@@ -779,7 +804,8 @@ def renderArticle(request: WSGIRequest, nickname: str):
         data = articleRenderData(request, nickname)
         if not data:
             raise ObjectDoesNotExist(data)
-        return respondJson(Code.OK, dict(article_head = renderString(request, Template.Howto.ARTICLE_HEAD, data, APPNAME), sections = renderString(request, Template.Howto.SECTION, data, APPNAME)))
+        serialized_sections = serializers.serialize('python', data['sections'])
+        return respondJson(Code.OK, dict(sections = serialized_sections))
     except ObjectDoesNotExist:
         return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
     except Exception as e:

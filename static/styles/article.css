@@ -27,7 +27,7 @@
 }
 
 .sidenav {
-    flex: 23%;
+    flex: 35%;
     z-index: 1;
     border-top-right-radius : 10px;
 }
@@ -44,16 +44,46 @@
 }
 
 .sections {
-    flex: 77%;
+    flex: 65%;
 }
 
-@media screen and (max-width: 950px) {
+.section-video {
+    width: 100%;
+}
+
+@media only screen and (min-width: 600px) {
+    .section-video {
+        width: 80%;
+    }
+}
+
+@media only screen and (min-width: 768px) {
     .sidenav {
-        flex: 30%;
+        flex: 28%;
     }
     .sections {
-        flex: 70%;
+        flex: 72%;
     }
-    
+    .section-video {
+        width: 70%;
+    }
+}
+
+@media only screen and (min-width: 992px) {
+    .sidenav {
+        flex: 23%;
+    }
+    .sections {
+        flex: 77%;
+    }
+    .section-video {
+        width: 60%;
+    }
+}
+
+@media only screen and (min-width: 1200px) {
+    .section-video {
+        width: 50%;
+    }
 }
 
