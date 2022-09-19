@@ -13,7 +13,7 @@
             <div id="article-head">
                 <div id="article-head-view">
                     <div class="w3-row w3-padding" id="heading-view">
-                        <h1>{{article.heading}}</h1>
+                        <h1>{%if article.heading %}{{ article.heading}}{% else %}Untitled Article{% endif %}</h1>
                     </div>
                     <div class="w3-row text-medium w3-padding" id="subheading-view">{{article.subheading}}</div>
                 </div>
@@ -98,7 +98,7 @@
                     {% empty %}
                         {% if self %}
                             <br/>
-                            <button class="accent edit-action big-button" data-edittarget="articletopics" data-icon="add">Add topics</button>
+                            <button class="accent edit-action w3-padding" data-edittarget="articletopics" data-icon="add">Add topics</button>
                         {% else %}
                             <br/>
                             <div class="dead-text">

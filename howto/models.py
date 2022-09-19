@@ -73,6 +73,10 @@ class Article(models.Model):
         """Returns the link to the article"""
         return f"{url.getRoot(APPNAME)}{url.howto.view(self.get_nickname)}{url.getMessageQuery(alert,error,success)}"
 
+    def getEditLink(self, success: str = '', error: str = '', alert: str = '') -> str:
+        """Returns the link to the article's edit page"""
+        return f"{url.getRoot(APPNAME)}{url.howto.edit(self.get_nickname)}{url.getMessageQuery(alert,error,success)}"
+
     def get_admirers(self) -> models.QuerySet:
         """Returns the admirers of this article
         """
