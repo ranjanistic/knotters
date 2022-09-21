@@ -9,6 +9,7 @@ const fetchSections = async() => {
     })
     console.log(data['sections'])
 }
+
 const article_content = {
     paragraph_input :
     `<div class="w3-row w3-padding temp-para-parent">
@@ -22,6 +23,16 @@ const article_content = {
 
     video_input : `<input hidden id="upload-video" type='file' accept="video/mp4, video/ogg"/>`,
 
+    paragraph_content : (sectionID, paragraph) => {
+        return `
+        <div class="w3-row w3-padding section-content" sectionid="${ sectionID }">
+            <div class="section-edit" sectionid="${ sectionID }">
+                <textarea id="${ sectionID }-paragraph" class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph">${paragraph}</textarea>
+            </div>
+            <br />
+        </div>`
+    },
+    
     image_content : (sectionID, imageData) => {
         return `
         <div class="w3-row w3-padding section-content" sectionid="${ sectionID }">
@@ -138,7 +149,7 @@ const handleImageSectionCreation = () => {
             )
         };
     upload_image.outerHTML = ""
-    }
+}
 
 const handleVideoSectionCreation = () => {
     appendHtmlContent(getElement("section-edit-inputs"), article_content.video_input)
@@ -163,8 +174,8 @@ const handleSectionCreation = () => {
     handleSectionUpdate();
     getElements(`temp-paragraphs`).forEach((temp_element) => {
         temp_element.oninput = () => {
-            let paragarph = temp_element.getElementsByTagName('textarea')[0].value
-            sessionStorage.setItem("paragarph-input", paragarph)
+            let paragraph = temp_element.getElementsByTagName('textarea')[0].value
+            sessionStorage.setItem("paragraph-input", paragraph)
         }
         temp_element.onchange = async() => {
             let paragraph = temp_element.getElementsByClassName("paragraph")[0].value
@@ -189,11 +200,12 @@ const handleSectionCreation = () => {
                 text_input.setAttribute('id', `${resp.sectionID}-paragraph`) 
                 appendHtmlContent(getElement("sidenav-edit"), article_content.sidenav_mini_content(resp.sectionID))
                 appendHtmlContent(getElement("sidenav2-edit"), article_content.sidenav_content(resp.sectionID))
-                sessionStorage.removeItem("paragarph-input")
+                sessionStorage.removeItem("paragraph-input")
                 handleSectionUpdate();
                 return
             }
             error(resp.error);
+            getElements('temp-para-parent')[0].outerHTML = ""
         }
     })
 }
@@ -245,12 +257,11 @@ const updateSection = async({sectionID, subheading="", paragraph="", image="", v
         if(subheading) {
             getElement(`${sectionID}-subheading`).defaultValue = subheading
             getElement(`${sectionID}-subheading-2`).defaultValue = subheading
-            sessionStorage.removeItem(`${sectionID}-subheading`)
         }
         if(paragraph) {
             getElement(`${sectionID}-paragraph`).innerHTML = paragraph
-            sessionStorage.removeItem(`${sectionID}-paragraph`)
         }
+        sessionStorage.removeItem(`${sectionID}-${articleID}-update`)
         message("saving")
         return
     }
@@ -271,8 +282,7 @@ const updateArticleHead = async() => {
     })
     if (resp.code === code.OK) 
     {
-        sessionStorage.removeItem('heading')
-        sessionStorage.removeItem('subheading')
+        sessionStorage.removeItem('article-update')
         message("saving")
         return
     }
@@ -280,11 +290,11 @@ const updateArticleHead = async() => {
 }
 
 heading.oninput = () => {
-    sessionStorage.setItem("heading", heading.value)
+    sessionStorage.setItem("article-update", JSON.stringify({heading : heading.value, subheading : subheading.value }))
 }
 
 subheading.oninput = () => {
-    sessionStorage.setItem("subheading", subheading.value)
+    sessionStorage.setItem("article-update", JSON.stringify({heading : heading.value, subheading : subheading.value }))
 }
 
 heading.onchange = async() => {
@@ -300,23 +310,30 @@ const handleSectionUpdate = () => {
         let sectionID = section.getAttribute("sectionid")
         let subheading = section.getElementsByClassName("subheading")
         let paragraph = section.getElementsByClassName("paragraph")
-        if (subheading.length > 0) {
+
+        if(subheading.length > 0) {
             subheading[0].oninput = () => {
-                sessionStorage.setItem(`${sectionID}-subheading`, subheading[0].value)
+                let paraElem = getElement(`${sectionID}-paragraph`)
+                let paraData = paraElem?paraElem.value:""
+                sessionStorage.setItem(`${sectionID}-${articleID}-update`, JSON.stringify({sectionID : sectionID, subheading : subheading[0].value, paragraph : paraData}))
             }
         }
-        if (paragraph.length > 0) {
+
+        if(paragraph.length > 0) {
             paragraph[0].oninput = () => {
-                sessionStorage.setItem(`${sectionID}-paragraph`, paragraph[0].value)
+                let subheadData = JSON.parse(sessionStorage.getItem(`${sectionID}-${articleID}-update`))
+                if(subheadData) 
+                    subheadData = subheadData['subheading']
+                else
+                    getElement(`${sectionID}-subheading`).value
+                sessionStorage.setItem(`${sectionID}-${articleID}-update`, JSON.stringify({sectionID : sectionID, subheading : subheadData, paragraph : paragraph[0].value}))
             }
         }
-    })
-    getElements("section-edit").forEach((section) => {
+        
         section.addEventListener('change', () =>   {
-            let sectionID = section.getAttribute("sectionid")
             let subheading = section.getElementsByClassName("subheading")
-            subheading = subheading.length>0?subheading[0].value:""
             let paragraph = section.getElementsByClassName("paragraph")
+            subheading = subheading.length>0?subheading[0].value:""
             paragraph = paragraph.length>0?paragraph[0].value:""
             updateSection({sectionID, subheading, paragraph})
         })
@@ -372,7 +389,6 @@ handleSectionUpdate();
 
 
 getElement("add-paragraph").onclick = () => {
-    console.log("doit")
     if (getElements('temp-paragraphs').length > 0)
         return
     handleSectionCreation();
@@ -406,9 +422,9 @@ document.querySelectorAll("#deleteArticle").forEach((delete_button) => {
                 });
                 if (resp.code === code.OK) 
                 {
-                    relocate({path: URLS.HOWTO, query: {
+                    relocate({path: URLS.HOWTO, query:} {
                         s: STRING.article_deleted
-                    }})
+                    })
                     return
                 }
                 error(resp.error);
@@ -437,14 +453,14 @@ document.querySelectorAll("#deleteArticle").forEach((delete_button) => {
                 {
                     relocate({query:{
                         s: STRING.article_published
-                    }})
+                    })
                     return
                 }
                 error(resp.error);
             }
         })
     }
-}
+})
 {% endif %}
 
 getElement("opennav").onclick = () => {
@@ -464,29 +480,61 @@ window.addEventListener('mouseup', function (event) {
     }
 });
 
-const sync = () => {
+const sync = async() => {
+    let article_update
+    let section_create_paragraph
+    let section_update = []
     Object.keys(sessionStorage).forEach((key) => {
-        if (key.includes('-paragraph')) {
-            let sectionID = key.replace("-paragraph", '')
-            let paragraph = sessionStorage.getItem(key)
-            getElement(key).innerHTML = paragraph
-            updateSection({sectionID, paragraph})
+        if(key.includes(`${articleID}-update`)) {
+            let data = JSON.parse(sessionStorage.getItem(key))
+            section_update.push(data)
         }
-        else if(key.includes('-subheading')) {
-            let sectionID = key.replace("-subheading", '')
-            let subheading = sessionStorage.getItem(key)
-            getElement(key).defaultValue = subheading
-            getElement(key+"-2").defaultValue = subheading
-            updateSection({sectionID, subheading})
+        else if(key==='article-update') {
+            data = JSON.parse(sessionStorage.getItem(key))
+            article_update = data
         }
-        else if(key=='heading') {
-            getElement('heading').value = sessionStorage.getItem(key)
-            updateArticleHead()
-        }
-        else if(key=='subheading') {
-            getElement('subheading').value = sessionStorage.getItem(key)
-            updateArticleHead()
+        else if(key==='paragraph-input') {
+            data = sessionStorage.getItem('paragraph-input')
+            section_create_paragraph = data
         }
     })
+
+    if(!(article_update || section_create_paragraph || section_update.length>0))
+        return
+
+    const resp = await postRequest2({
+        path: setUrlParams(URLS.ARTICLE_BULK_UPDATE, articleID),
+        data: {
+            article_update,
+            section_create_paragraph,
+            section_update
+        }
+    })
+    if(resp.code === code.OK) {
+        if(section_create_paragraph) {
+            appendHtmlContent(getElement("section-edit-inputs"), article_content.paragraph_content(resp.sectionID, section_create_paragraph))
+            appendHtmlContent(getElement("sidenav-edit"), article_content.sidenav_mini_content(resp.sectionID))
+            appendHtmlContent(getElement("sidenav2-edit"), article_content.sidenav_content(resp.sectionID))
+            sessionStorage.removeItem('paragraph-input')
+            handleSectionUpdate()
+        }
+        if(article_update) {
+            getElement('heading').value = article_update.heading
+            getElement('subheading').value = article_update.subheading
+            sessionStorage.removeItem('article-update')
+        }
+        section_update.forEach((data) => {
+            let sectionID = data.sectionID
+            let subheading = data.subheading
+            let paragraph = data.paragraph
+            getElement(`${sectionID}-subheading`).defaultValue = subheading
+            getElement(`${sectionID}-subheading`+"-2").defaultValue = subheading
+            if(paragraph)
+                getElement(`${sectionID}-paragraph`).innerHTML = paragraph
+            sessionStorage.removeItem(`${sectionID}-${articleID}-update`)
+        })
+        return
+    }
+    error(resp.error)
 }
 sync();

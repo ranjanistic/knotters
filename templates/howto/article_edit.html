@@ -17,7 +17,7 @@
                         <textarea class="article-edit wide heading-input" id="heading" name="heading" placeholder="Heading">{{ article.heading }}</textarea>
                     </div>
                     <div class="w3-row w3-padding-small">
-                        <textarea class="article-edit wide text-medium" name="subheading" id="subheading" placeholder="Subheading">{{ article.subheading }}</textarea>
+                        <textarea class="article-edit wide text-medium" rows='5' name="subheading" id="subheading" placeholder="Subheading">{{ article.subheading }}</textarea>
                     </div>
                 </div>
             </div>
@@ -79,7 +79,7 @@
                     {% empty %}
                         {% if self %}
                             <br/>
-                            <button class="accent edit-action big-button" data-edittarget="articletopics" data-icon="add">Add topics</button>
+                            <button class="accent edit-action w3-padding" data-edittarget="articletopics" data-icon="add">Add topics</button>
                         {% else %}
                             <br/>
                             <div class="dead-text">
@@ -148,9 +148,9 @@
         </div>
         <div class="w3-row section-body">
             <div class="sidenav w3-hide-small tertiary w3-center w3-padding text-medium">
-                <div class="w3-row align w3-padding">
+                <div class="w3-row w3-padding">
                     {% if article.is_draft %}
-                        <button id="draftArticle" class="accent w3-large w3-animate-zoom">
+                        <button id="publishArticle" class="accent w3-large w3-animate-zoom">
                             Publish Article
                         </button>
                     {% endif %}

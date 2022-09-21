@@ -40,9 +40,8 @@ def createArticle(request: WSGIRequest):
     """
     try:
         if Article().canCreateArticle(request.user.profile):
-            article: Article = Article.objects.create(author=request.user.profile, heading="Untitled Article")
-            article = request.user.profile.filterBlockedProfiles(article)
-            return redirect(article.getLink(success=Message.ARTICLE_CREATED))
+            article: Article = Article.objects.create(author=request.user.profile)
+            return redirect(article.getEditLink(success=Message.ARTICLE_CREATED))
         raise ValidationError(request.user.profile)
     except ValidationError as e:
         raise Http404("Unauthorised access", e)
@@ -94,7 +93,6 @@ def view(request: WSGIRequest, nickname: str):
         data = articleRenderData(request, nickname)
         if not data:
             raise ObjectDoesNotExist(data)
-        
         return renderer(request, Template.Howto.ARTICLE, data)
     except ObjectDoesNotExist:
         return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
@@ -805,6 +803,66 @@ def renderArticle(request: WSGIRequest, nickname: str):
     except Exception as e:
         errorLog(e)
         raise Http404(e)
-    
 
 
+@require_JSON
+def bulkUpdateArticle(request: WSGIRequest, articleID: str):
+    """
+    To bulk upadate article's sections
+    """
+    try:
+        article:Article = Article.objects.get(id=articleID, author=request.user.profile)
+        article_update = request.POST.get('article_update', None)
+        section_create_paragraph = request.POST.get('section_create_paragraph', None)
+        section_update = request.POST['section_update']
+        
+        if article_update:
+            article.heading = article_update['heading']
+            article.subheading = article_update['subheading']
+            article.save()
+
+        section = None
+        if section_create_paragraph:
+            section: Section = Section.objects.create(article=article, paragraph=section_create_paragraph, subheading="Untitled Section")
+
+        if len(section_update)>0:
+            for data in section_update:
+                if data['paragraph']:
+                    done = Section.objects.filter(id=data['sectionID'], article=article).update(subheading=data['subheading'], paragraph=data['paragraph'])
+                else:
+                    done = Section.objects.filter(id=data['sectionID'],article=article).update(subheading=section_update[0]['subheading'])
+                if not done:
+                    raise Exception
+            
+        #TODO: Try to do using bulk_update
+        # if len(section_update)>0:
+        #     if len(section_update)==1:
+        #         if section_update[0]['paragraph']:
+        #             done = Section.objects.filter(id=section_update[0]['sectionID'],article=article).update(subheading=section_update[0]['subheading'], paragraph=section_update[0]['paragraph'])
+        #         else:
+        #             done = Section.objects.filter(id=section_update[0]['sectionID'],article=article).update(paragraph=section_update[0]['subheading'])
+        #         if not done:
+        #             raise Exception
+        #     else:
+        #         sections_dict = {}
+        #         for data in section_update:
+        #             sections_dict[data['sectionID']] = [data['subheading'], data['paragraph']]
+        #         update_list = Section.objects.filter(id__in=sections_dict.keys(), article=article)
+        #         for obj in update_list:
+        #             subheading = sections_dict[str(obj.id)][0]
+        #             paragraph = sections_dict[str(obj.id)][1]
+        #             obj.subheading = subheading
+        #             obj.paragraph = paragraph
+        #         done = Section.objects.bulk_update(update_list, ['subheading','paragraph'])
+        #         if not done:
+        #             raise Exception
+
+        if section_create_paragraph:
+            return respondJson(Code.OK, dict(sectionID=section.id))
+        return respondJson(Code.OK)
+
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.ARTICLE_NOT_FOUND)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

@@ -49,7 +49,7 @@ def articleCreation(request: WSGIRequest, article: Article):
                             f"Your article - {article.get_nickname} - has been created by {request.user.first_name}",
                             article.getLink(),
                             actions=[{
-                                'title': 'View Article',
+                                'title': 'Create Article',
                                 'url': article.get_link(),
                                 'action': "action1"},
                                 ])
