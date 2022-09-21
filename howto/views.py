@@ -19,7 +19,7 @@ from people.methods import addTopicToDatabase
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
 from django.core import serializers
-from howto.mailers import articleAdmired
+from howto.mailers import articleAdmired, articleCreation
 
 def index(request):
     articles=Article.objects.filter(is_draft=False)
@@ -41,6 +41,7 @@ def createArticle(request: WSGIRequest):
     try:
         if Article().canCreateArticle(request.user.profile):
             article: Article = Article.objects.create(author=request.user.profile)
+            articleCreation(request, article)
             return redirect(article.getEditLink(success=Message.ARTICLE_CREATED))
         raise ValidationError(request.user.profile)
     except ValidationError as e:

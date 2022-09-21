@@ -42,14 +42,12 @@ def articleCreation(request: WSGIRequest, article: Article):
     To notify author that article has created article
     """
     device, email = False, False
-    if(article.is_draft == True ):
-        return device, email 
     if DeviceNotificationSubscriber.objects.filter(user=article.author.user, device_notification__notification__code=NotificationCode.CREATED_ARTICLE).exists():
         device = user_device_notify(article.author.user, "Article Created",
                             f"Your article - {article.get_nickname} - has been created by {request.user.first_name}",
                             article.getLink(),
                             actions=[{
-                                'title': 'Create Article',
+                                'title': 'View Article',
                                 'url': article.get_link(),
                                 'action': "action1"},
                                 ])

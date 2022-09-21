@@ -422,9 +422,10 @@ document.querySelectorAll("#deleteArticle").forEach((delete_button) => {
                 });
                 if (resp.code === code.OK) 
                 {
-                    relocate({path: URLS.HOWTO, query:} {
+                    relocate({path: URLS.HOWTO, query: {
                         s: STRING.article_deleted
-                    })
+                }
+            })
                     return
                 }
                 error(resp.error);
@@ -453,7 +454,9 @@ document.querySelectorAll("#deleteArticle").forEach((delete_button) => {
                 {
                     relocate({query:{
                         s: STRING.article_published
-                    })
+                }
+            })
+                
                     return
                 }
                 error(resp.error);
