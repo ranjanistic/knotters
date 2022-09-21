@@ -1366,7 +1366,12 @@ class URL():
         def save(self, nickname: str):
             return setPathParams(self.SAVE, nickname)
 
-        PUBLISH = 'e/<str:articleID>/publish/'
+        EDIT = '<str:nickname>/edit/'
+
+        def edit(self, nickname: str):
+            return setPathParams(self.EDIT, nickname)
+
+        PUBLISH = '<str:articleID>/publish/'
 
         def publish(self, articleID: str):
             return setPathParams(self.PUBLISH, articleID)
@@ -1498,6 +1503,7 @@ class Template():
         CORE_PROJECT = "core-project.js"
         PROJECTS = "projects.js"
         ARTICLE = "article.js"
+        ARTICLE_EDIT = "article_edit.js"
 
         def getScriptTemplates(self) -> list:
             TEMPLATES = []
@@ -2338,6 +2344,12 @@ class Template():
         @property
         def article(self):
             return f'{self.DIRNAME}/{self.ARTICLE}.html'
+
+        ARTICLE_EDIT = 'article_edit'
+
+        @property
+        def articleEdit(self):
+            return f'{self.DIRNAME}/{self.ARTICLE_EDIT}.html'    
         
         BROWSE_SEARCH = 'browse/search'
 
@@ -2345,17 +2357,6 @@ class Template():
         def browse_search(self):
             return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
         
-        ARTICLE_HEAD = 'article_head'
-
-        @property
-        def article_head(self):
-            return f'{self.DIRNAME}/{self.ARTICLE_HEAD}.html'
-
-        SECTION = 'sections'
-
-        @property
-        def section(self):
-            return f'{self.DIRNAME}/{self.SECTION}.html'
     
     howto = Howto()
 

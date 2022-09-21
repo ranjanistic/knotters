@@ -884,13 +884,13 @@ const handleVideoUpload = (
                 loader(false);
             },
             preConfirm: (x) => {
-                if (String(base64String).length / 1024 / 1024 >= 50) {
-                    error(STRING.video_too_large_50M);
+                if (String(base64String).length / 1024 / 1024 >= 10) {
+                    error(STRING.video_too_large_10M);
                     return false;
                 }
                 if (setVideo){
-                    getElement(dataOutElemID).value = croppedB64;
-                    getElement(previewVideoID).src = croppedB64;
+                    getElement(dataOutElemID).value = base64String;
+                    getElement(previewVideoID).src = base64String;
                 }
                 return base64String;
             },

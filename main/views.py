@@ -671,7 +671,7 @@ def scripts_subapp(request: WSGIRequest, subapp: str, script: str) -> HttpRespon
             data = profileRenderData(request, userID=userID)
     elif subapp == HOWTO:
         nickname = request.GET.get('nickname', "")
-        if script == Template.Script.ARTICLE:
+        if script == Template.Script.ARTICLE or script == Template.Script.ARTICLE_EDIT:
             data = articleRenderData(request, nickname)
 
     stringrender = render_to_string(f"{subapp}/scripts/{script}", request=request,

@@ -187,6 +187,9 @@ class Section(models.Model):
     image = models.ImageField(upload_to=sectionMediaPath, null=True, blank=True)
     video = models.FileField(upload_to=sectionMediaPath, null=True, blank=True)
 
+    def __str__(self):
+        return self.subheading
+        
     @property
     def get_id(self):
             return self.id.hex

@@ -7,6 +7,7 @@ urlpatterns = [
     path(URL.INDEX, index),
     path(URL.Howto.CREATE, createArticle),
     path(URL.Howto.SAVE, saveArticle),
+    path(URL.Howto.EDIT, editArticle),
     path(URL.Howto.PUBLISH, publish),
     path(URL.Howto.VIEW, view),
     path(URL.Howto.SEARCH_TOPICS, topicsSearch),
