@@ -434,7 +434,8 @@ document.querySelectorAll("#deleteArticle").forEach((delete_button) => {
                 {
                     relocate({path: URLS.HOWTO, query: {
                         s: STRING.article_deleted
-                    }})
+                }
+            })
                     return
                 }
                 error(resp.error);
@@ -463,13 +464,15 @@ document.querySelectorAll("#deleteArticle").forEach((delete_button) => {
                 {
                     relocate({path: setUrlParams(URLS.Howto.VIEW, resp.nickname), query:{
                         s: STRING.article_published
-                    }})
+                }
+            })
+                
                     return
                 }
                 error(resp.error);
             }
         })
-        }
+    }
 })
 {% endif %}
 

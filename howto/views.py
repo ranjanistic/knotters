@@ -20,7 +20,7 @@ from people.methods import addTopicToDatabase
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
 from django.core import serializers
-from howto.mailers import articleAdmired
+from howto.mailers import articleAdmired, articleCreated
 
 def index(request):
     articles=Article.objects.filter(is_draft=False)
@@ -42,6 +42,7 @@ def createArticle(request: WSGIRequest):
     try:
         if Article().canCreateArticle(request.user.profile):
             article: Article = Article.objects.create(author=request.user.profile)
+            articleCreated(request, article)
             return redirect(article.getEditLink(success=Message.ARTICLE_CREATED))
         raise ValidationError(request.user.profile)
     except ValidationError as e:
@@ -52,7 +53,7 @@ def createArticle(request: WSGIRequest):
 
 
 @normal_profile_required
-@decode_JSON
+@require_JSON
 def saveArticle(request: WSGIRequest, nickname: str):
     """To save an article.
 
@@ -77,11 +78,10 @@ def saveArticle(request: WSGIRequest, nickname: str):
         return respondRedirect(APPNAME, path=URL.howto.view(nickname),success=Message.ARTICLE_UPDATED)
     except Exception as e:
         errorLog(e)
-        if json_body:
-            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
 
 
+@normal_profile_required 
 def view(request: WSGIRequest, nickname: str):
     """To view an article.
 
