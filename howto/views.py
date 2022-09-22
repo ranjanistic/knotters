@@ -1,8 +1,9 @@
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from howto.models import Article, Section, ArticleTopic, ArticleTag, ArticleUserRating
 from howto.methods import renderer, articleRenderData, rendererstr
 from main.strings import Template, Code , Message, URL, Action, setURLAlerts
-from main.methods import renderString, respondJson, errorLog, respondRedirect, base64ToFile, base64ToImageFile
+from main.methods import respondJson, errorLog, respondRedirect, base64ToFile, base64ToImageFile
 from main.decorators import require_JSON, normal_profile_required, decode_JSON
 from django.views.decorators.http import require_GET, require_POST
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -68,9 +69,9 @@ def saveArticle(request: WSGIRequest, nickname: str):
     try:
         heading = str(request.POST["heading"]).strip()
         subheading = str(request.POST["subheading"]).strip()
-        data = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
-        if not data:
-            raise Exception(data)
+        done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
+        if not done:
+            raise Exception(done)
         if json_body:
             return respondJson(Code.OK, success=Message.ARTICLE_UPDATED)
         return respondRedirect(APPNAME, path=URL.howto.view(nickname),success=Message.ARTICLE_UPDATED)
@@ -137,10 +138,15 @@ def publish(request: WSGIRequest, articleID:UUID):
     TODO: Add redis entry for 7 days which will be used to check editability of the article
     """
     try:
-        done = Article.objects.filter(id=articleID, author=request.user.profile).exclude(Q(heading__exact='') | Q(subheading__exact='')).update(is_draft=False)
-        if not done:
-          return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        return respondJson(Code.OK)
+        article:Article = Article.objects.get(id=articleID, author=request.user.profile)
+        if not article.heading or not article.subheading:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        article.is_draft=False
+        article.modifiedOn = timezone.now()
+        nickname = article.get_nickname        
+        return respondJson(Code.OK, dict(nickname=nickname))
+    except ObjectDoesNotExist:
+        return respondJson(Code.NO, error=Message.ARTICLE_NOT_FOUND)
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED)

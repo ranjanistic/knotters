@@ -20,7 +20,7 @@
             </div>
             <br />
             <div class="w3-row">
-                <div class="w3-col m3 l3 w3-padding"><span class="dead-text">{{article.createdOn}}</span></div>
+                <div class="w3-col m3 l3 w3-padding"><span class="dead-text">{{article.modifiedOn}}</span></div>
                 <div class="w3-col m7 l7 w3-padding">
                     <div id="view-articletags">
                         {% for tag in article.tags.all %}
@@ -36,6 +36,8 @@
                         <form class="no-auto" id="edit-tag-inputs">
                             {% csrf_token %}
                             <input class="tertiary" maxlength="40" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
+                            <div class="w3-show-inline-block"><button class="small" id="save-edit-articletags" data-icon="done">{% trans "Save" %}</button>
+                            <button class="small" id="discard-edit-articletags" data-icon="close">{% trans "Cancel" %}</button></div>
                             <div class="w3-row w3-padding" id="tags-viewer">
                                 {% for tag in article.tags.all %}
                                 <button type="button" class="primary small negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
@@ -45,8 +47,6 @@
                             <input id="removetagIDs" name="removetagIDs" hidden type="text" />
                             <input id="addtagIDs" name="addtagIDs" hidden type="text" />
                             <input id="addtags" name="addtags" hidden type="text" />
-                            <button class="small" id="save-edit-articletags" data-icon="done">{% trans "Save" %}</button>
-                            <button class="small" id="discard-edit-articletags" data-icon="close">{% trans "Cancel" %}</button>
                         </form>
                     </div>
                     {% endif %}
@@ -102,7 +102,6 @@
                         {% else %}
                             <br/>
                             <div class="dead-text">
-                                <i class="w3-big">scatter_plot</i>
                                 <h4>No topics yet</h4>
                             </div>
                         {% endif %}
@@ -111,11 +110,12 @@
                 </div>
                 {% if self %}
                 <div id="edit-articletopics" class="w3-right" hidden>
-                    <br/>
                     <strong class="dead-text">Total 3 topics allowed</strong>
                     <form class="no-auto" method="POST" id="edit-article-topics-form">
                         {% csrf_token %}
                         <input class="wide" placeholder="Search topics" id="topic-search-input" maxlength="35" />
+                        <div><button id="save-edit-articletopics" data-icon="done">Save</button>
+                        <button id="discard-edit-articletopics" data-icon="close">Cancel</button></div>
                         <div class="w3-row w3-padding" id="topics-viewer">
                             {% for topic in article.getTopics %}
                             <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
@@ -126,8 +126,6 @@
                         <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
                         <input id="addtopics" name="addtopics" hidden type="text" />
                         <br/>
-                        <button id="save-edit-articletopics" data-icon="done">Save</button>
-                        <button id="discard-edit-articletopics" data-icon="close">Cancel</button>
                     </form>
                 </div>
                 {% endif %}

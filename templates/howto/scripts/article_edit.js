@@ -174,6 +174,7 @@ const handleSectionCreation = () => {
     handleSectionUpdate();
     getElements(`temp-paragraphs`).forEach((temp_element) => {
         temp_element.oninput = () => {
+            show(getElement('sync-button'))
             let paragraph = temp_element.getElementsByTagName('textarea')[0].value
             sessionStorage.setItem("paragraph-input", paragraph)
         }
@@ -188,6 +189,7 @@ const handleSectionCreation = () => {
             });
             if (resp.code === code.OK) 
             {
+                hide(getElement('sync-button'))
                 temp_element.classList.remove('temp-paragraphs')
                 temp_element.classList.add('section-edit')
                 temp_element.setAttribute('sectionid', resp.sectionID)
@@ -201,6 +203,8 @@ const handleSectionCreation = () => {
                 appendHtmlContent(getElement("sidenav-edit"), article_content.sidenav_mini_content(resp.sectionID))
                 appendHtmlContent(getElement("sidenav2-edit"), article_content.sidenav_content(resp.sectionID))
                 sessionStorage.removeItem("paragraph-input")
+                temp_element.oninput = ""
+                temp_element.onchange = ""
                 handleSectionUpdate();
                 return
             }
@@ -254,6 +258,7 @@ const updateSection = async({sectionID, subheading="", paragraph="", image="", v
     });
     if (resp.code === code.OK) 
     {
+        hide(getElement('sync-button'))
         if(subheading) {
             getElement(`${sectionID}-subheading`).defaultValue = subheading
             getElement(`${sectionID}-subheading-2`).defaultValue = subheading
@@ -282,6 +287,7 @@ const updateArticleHead = async() => {
     })
     if (resp.code === code.OK) 
     {
+        hide(getElement('sync-button'))
         sessionStorage.removeItem('article-update')
         message("saving")
         return
@@ -290,10 +296,12 @@ const updateArticleHead = async() => {
 }
 
 heading.oninput = () => {
+    show(getElement('sync-button'))
     sessionStorage.setItem("article-update", JSON.stringify({heading : heading.value, subheading : subheading.value }))
 }
 
 subheading.oninput = () => {
+    show(getElement('sync-button'))
     sessionStorage.setItem("article-update", JSON.stringify({heading : heading.value, subheading : subheading.value }))
 }
 
@@ -313,6 +321,7 @@ const handleSectionUpdate = () => {
 
         if(subheading.length > 0) {
             subheading[0].oninput = () => {
+                show(getElement('sync-button'))
                 let paraElem = getElement(`${sectionID}-paragraph`)
                 let paraData = paraElem?paraElem.value:""
                 sessionStorage.setItem(`${sectionID}-${articleID}-update`, JSON.stringify({sectionID : sectionID, subheading : subheading[0].value, paragraph : paraData}))
@@ -321,22 +330,23 @@ const handleSectionUpdate = () => {
 
         if(paragraph.length > 0) {
             paragraph[0].oninput = () => {
+                show(getElement('sync-button'))
                 let subheadData = JSON.parse(sessionStorage.getItem(`${sectionID}-${articleID}-update`))
                 if(subheadData) 
                     subheadData = subheadData['subheading']
                 else
-                    getElement(`${sectionID}-subheading`).value
+                    subheadData = getElement(`${sectionID}-subheading`).value
                 sessionStorage.setItem(`${sectionID}-${articleID}-update`, JSON.stringify({sectionID : sectionID, subheading : subheadData, paragraph : paragraph[0].value}))
             }
         }
         
-        section.addEventListener('change', () =>   {
+        section.onchange = () =>  {
             let subheading = section.getElementsByClassName("subheading")
             let paragraph = section.getElementsByClassName("paragraph")
             subheading = subheading.length>0?subheading[0].value:""
             paragraph = paragraph.length>0?paragraph[0].value:""
             updateSection({sectionID, subheading, paragraph})
-        })
+        }
     })
 
     getElements("section-elements").forEach((section) => {
@@ -451,7 +461,7 @@ document.querySelectorAll("#deleteArticle").forEach((delete_button) => {
                 })
                 if(resp.code === code.OK)
                 {
-                    relocate({query:{
+                    relocate({path: setUrlParams(URLS.Howto.VIEW, resp.nickname), query:{
                         s: STRING.article_published
                     }})
                     return
@@ -533,8 +543,13 @@ const sync = async() => {
                 getElement(`${sectionID}-paragraph`).innerHTML = paragraph
             sessionStorage.removeItem(`${sectionID}-${articleID}-update`)
         })
+        hide(getElement('sync-button'))
         return
     }
     error(resp.error)
 }
 sync();
+
+getElement('sync-button').onclick = () => {
+    sync()
+}
