@@ -20,7 +20,7 @@ from people.methods import addTopicToDatabase
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
 from django.core import serializers
-from howto.mailers import articleAdmired, articleCreated , articlePublish
+from howto.mailers import articleAdmired, articleCreated , articlePublish , articleDelete
 
 def index(request):
     articles=Article.objects.filter(is_draft=False)
@@ -439,6 +439,7 @@ def deleteArticle(request, articleID):
         confirm = request.POST.get('confirm', False)
         if confirm:
             Article.objects.get(id=articleID, author=request.user.profile).delete()
+            articleDelete(request, article)
             if json_body:
                 return respondJson(Code.OK)
             return respondRedirect(APPNAME, success=Message.ARTICLE_DELETED)
