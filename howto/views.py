@@ -20,7 +20,7 @@ from people.methods import addTopicToDatabase
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
 from django.core import serializers
-from howto.mailers import articleAdmired, articleCreated
+from howto.mailers import articleAdmired, articleCreated , articlePublish
 
 def index(request):
     articles=Article.objects.filter(is_draft=False)
@@ -139,8 +139,10 @@ def publish(request: WSGIRequest, articleID:UUID):
     """
     try:
         article:Article = Article.objects.get(id=articleID, author=request.user.profile)
+        articlePublish(request, article)
         if not article.heading or not article.subheading:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        articlePublish(request, article)
         article.is_draft=False
         article.modifiedOn = timezone.now()
         nickname = article.get_nickname        
