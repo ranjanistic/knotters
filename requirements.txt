@@ -71,7 +71,7 @@ phonenumbers==8.12.47
 Pillow==9.1.0
 ply==3.11
 polib==1.1.1
-protobuf==3.20.1
+protobuf==3.20.2
 psutil==5.9.0
 py-vapid==1.8.2
 pyasn1==0.4.8
