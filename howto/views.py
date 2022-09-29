@@ -20,7 +20,7 @@ from people.methods import addTopicToDatabase
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
 from django.core import serializers
-from howto.mailers import articleAdmired, articleCreated , articlePublish , articleDelete
+from howto.mailers import articleAdmired, articleCreated , articlePublished , articleDeleted
 
 def index(request):
     articles=Article.objects.filter(is_draft=False)
@@ -104,8 +104,7 @@ def view(request: WSGIRequest, nickname: str):
     except Exception as e:
         errorLog(e)
         raise Http404(e)
-    
-        
+            
     
 def editArticle(request: WSGIRequest, nickname: str):
     """To render edit article page.
@@ -121,11 +120,11 @@ def editArticle(request: WSGIRequest, nickname: str):
     """
     try:
         data = articleRenderData(request, nickname)
-        if not data:
+        if not data or not data.get('article', None) or not data['article'].isEditable():
             raise ObjectDoesNotExist(data)
         return renderer(request, Template.Howto.ARTICLE_EDIT, data)
-    except ObjectDoesNotExist:
-        return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
@@ -135,17 +134,16 @@ def editArticle(request: WSGIRequest, nickname: str):
 @normal_profile_required   
 def publish(request: WSGIRequest, articleID:UUID):
     """To publish the article
-    TODO: Add redis entry for 7 days which will be used to check editability of the article
     """
     try:
         article:Article = Article.objects.get(id=articleID, author=request.user.profile)
-        articlePublish(request, article)
         if not article.heading or not article.subheading:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        articlePublish(request, article)
         article.is_draft=False
         article.modifiedOn = timezone.now()
-        nickname = article.get_nickname        
+        nickname = article.get_nickname
+        cache.set(f"article_editable_{articleID}", True, 70*settings.CACHE_MAX)        
+        articlePublished(request, article)
         return respondJson(Code.OK, dict(nickname=nickname))
     except ObjectDoesNotExist:
         return respondJson(Code.NO, error=Message.ARTICLE_NOT_FOUND)
@@ -438,8 +436,9 @@ def deleteArticle(request, articleID):
         json_body = request.POST.get(Code.JSON_BODY, False)
         confirm = request.POST.get('confirm', False)
         if confirm:
-            Article.objects.get(id=articleID, author=request.user.profile).delete()
-            articleDelete(request, article)
+            article: Article = Article.objects.get(id=articleID, author=request.user.profile)
+            article.delete()
+            articleDeleted(request, article)
             if json_body:
                 return respondJson(Code.OK)
             return respondRedirect(APPNAME, success=Message.ARTICLE_DELETED)
@@ -823,7 +822,7 @@ def renderArticle(request: WSGIRequest, nickname: str):
 @require_JSON
 def bulkUpdateArticle(request: WSGIRequest, articleID: str):
     """
-    To bulk upadate article's sections
+    To bulk update article's sections
     """
     try:
         article:Article = Article.objects.get(id=articleID, author=request.user.profile)

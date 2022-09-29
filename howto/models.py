@@ -93,7 +93,7 @@ class Article(models.Model):
     
     def total_admirers(self) -> int:
         """Returns the total number of admirers of the article"""
-        cacheKey = "article_total_admirers_{self.id}"
+        cacheKey = f"article_total_admirers_{self.id}"
         count = cache.get(cacheKey, None)
         if not count:
             count = self.admirers.count()
@@ -133,8 +133,8 @@ class Article(models.Model):
         return profile.is_manager() or Profile.KNOTBOT().management().has_member(profile)
     
     def isEditable(self) -> bool:
-        """TODO Returns whether the article can be edited or not"""
-        return True
+        """Returns whether the article can be edited or not"""
+        return self.is_draft or cache.get(f"article_editable_{self.id}", False)
     
     def total_ratings(self):
         """Returns the total numbers of Rating of the article"""
