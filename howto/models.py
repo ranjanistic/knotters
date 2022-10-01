@@ -21,8 +21,10 @@ class Article(models.Model):
     author = models.ForeignKey(Profile, on_delete=models.CASCADE)
     is_draft = models.BooleanField(default=True)
     nickname = models.CharField(max_length=50,null=True, blank=True)
+    preview_image = models.ImageField(null=True, blank=True)
+    preview_video = models.FileField(null=True, blank=True)
     createdOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
-    """createdOn (DateTimeField): When the competition was created"""
+    """createdOn (DateTimeField): When the article was created"""
     modifiedOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
     admirers = models.ManyToManyField(Profile, through='ArticleAdmirer', default=[
     ], related_name='article_admirers')
@@ -169,13 +171,21 @@ class Article(models.Model):
         """To check whether user has rated or not"""
         return ArticleUserRating.objects.filter(article=self, profile=profile).exists()
 
-    def rating_by_user(self,profile):
+    def rating_by_user(self, profile):
         """Returns the Rating of the article by the user"""
         rating = ArticleUserRating.objects.filter(article=self, profile=profile).first()
         if not rating:
             return 0
         return rating.score
-            
+    
+    def getImage(self):
+        """Returns any one section image if exists else returns author's profile picture"""
+        return self.preview_image.url if self.preview_image else self.author.get_dp
+    
+    def getVideo(self):
+        """Returns any one section video if exists else returns False"""
+        return self.preview_video.url if self.preview_video else False
+
 
 def sectionMediaPath(instance, filename):
     fileparts = filename.split('.')
@@ -185,7 +195,7 @@ def sectionMediaPath(instance, filename):
 class Section(models.Model):
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)
-    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, related_name = "sections", on_delete=models.CASCADE)
     subheading = models.CharField(max_length=100)
     paragraph = models.CharField(max_length=300)
     image = models.ImageField(upload_to=sectionMediaPath, null=True, blank=True)
@@ -194,6 +204,32 @@ class Section(models.Model):
     def __str__(self):
         return self.subheading
         
+    def save(self, *args, **kwargs):
+        if not self.article.preview_video and self.video:
+            self.article.preview_video = self.video
+            self.article.save()
+        if not self.article.preview_image and self.image:
+            self.article.preview_image = self.image
+            self.article.save()
+        super(Section, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.video and self.article.preview_video==self.video:
+            sections = self.article.sections.exclude(video__exact='').exclude(id=self.id)
+            if sections:
+                self.article.preview_video = sections[0].video
+                self.article.save()
+            else:
+                self.article.preview_video.delete()
+        if self.image and self.article.preview_image==self.image:
+            sections = self.article.sections.exclude(image__exact='').exclude(id=self.id)
+            if sections:
+                self.article.preview_image = sections[0].image
+                self.article.save()
+            else:
+                self.article.preview_image.delete()
+        return super(Section, self).delete(*args, **kwargs)
+
     @property
     def get_id(self):
             return self.id.hex
