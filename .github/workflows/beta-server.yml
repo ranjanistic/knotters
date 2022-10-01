@@ -9,6 +9,7 @@ on:
       - "*.md"
       - "**/*.bat"
       - "**/*.sh"
+      - "LICENSE"
 
 jobs:
   build:
