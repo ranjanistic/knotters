@@ -21,10 +21,16 @@ from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
 from django.core import serializers
 from howto.mailers import articleAdmired, articleCreated , articlePublish , articleDelete
+from django.db.models import Q
 
 def index(request):
+    # articles=Section.objects.filter(article__is_draft=False)
+
     articles=Article.objects.filter(is_draft=False)
     return renderer(request, Template.Howto.INDEX, dict(articles=articles))
+
+    
+
 
 @normal_profile_required
 @require_GET
@@ -439,7 +445,7 @@ def deleteArticle(request, articleID):
         confirm = request.POST.get('confirm', False)
         if confirm:
             Article.objects.get(id=articleID, author=request.user.profile).delete()
-            articleDelete(request, article)
+            # articleDelete(request, article)
             if json_body:
                 return respondJson(Code.OK)
             return respondRedirect(APPNAME, success=Message.ARTICLE_DELETED)
