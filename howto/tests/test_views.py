@@ -13,9 +13,7 @@ from people.models import Profile, Topic, User
 from main.env import BOTMAIL
 from howto.apps import APPNAME
 from people.tests.utils import getTestTopicsInst
-from .utils import (getArticleHeading, getArticleSubHeading, getTestImage, getTestParagraph, getTestSubhHeading,
-                    getTestTags, getTestTagsInst, getTestVideo, root)
-
+from .utils import *
 
 @tag(Code.Test.VIEW, APPNAME)
 class TestViews(TestCase):

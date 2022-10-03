@@ -153,7 +153,7 @@ class Article(models.Model):
     
     def get_avg_rating(self):
         """Returns the average Rating of the article"""
-        cacheKey = "article_avgratings_{self.id}"
+        cacheKey = f"article_avgratings_{self.id}"
         avgrating = cache.get(cacheKey, None)
         if not avgrating:
             rating_list=ArticleUserRating.objects.filter(article=self)

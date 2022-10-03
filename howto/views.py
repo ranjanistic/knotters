@@ -26,6 +26,7 @@ def index(request):
     articles=Article.objects.filter(is_draft=False)
     return renderer(request, Template.Howto.INDEX, dict(articles=articles))
 
+
 @normal_profile_required
 @require_GET
 def createArticle(request: WSGIRequest):
