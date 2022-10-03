@@ -78,10 +78,11 @@ def saveArticle(request: WSGIRequest, nickname: str):
         return respondRedirect(APPNAME, path=URL.howto.view(nickname),success=Message.ARTICLE_UPDATED)
     except Exception as e:
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
 
 
-@normal_profile_required 
 def view(request: WSGIRequest, nickname: str):
     """To view an article.
 
@@ -105,7 +106,8 @@ def view(request: WSGIRequest, nickname: str):
         errorLog(e)
         raise Http404(e)
             
-    
+
+@normal_profile_required
 def editArticle(request: WSGIRequest, nickname: str):
     """To render edit article page.
 
@@ -120,7 +122,7 @@ def editArticle(request: WSGIRequest, nickname: str):
     """
     try:
         data = articleRenderData(request, nickname)
-        if not data or not data.get('article', None) or not data['article'].isEditable():
+        if not data or not data.get('article', None) or not data['article'].isEditable() or request.user.profile!=data['article'].author:
             raise ObjectDoesNotExist(data)
         return renderer(request, Template.Howto.ARTICLE_EDIT, data)
     except ObjectDoesNotExist as o:
@@ -134,6 +136,14 @@ def editArticle(request: WSGIRequest, nickname: str):
 @normal_profile_required   
 def publish(request: WSGIRequest, articleID:UUID):
     """To publish the article
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object
+        articleID (UUID): The id of the article
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK and article's nickname, otherwise main.strings.Code.NO
     """
     try:
         article:Article = Article.objects.get(id=articleID, author=request.user.profile)
@@ -486,7 +496,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
             video = request.POST.get('video', None)
 
             if not (paragraph or image or video):
-                return redirect(article.getLink(error=Message.INVALID_REQUEST))
+                raise ValidationError(article)
 
             try:
                 imagefile = base64ToImageFile(image)
@@ -518,7 +528,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
             video = request.POST.get('video', None)
 
             if not (subheading or paragraph or image or video):
-                return redirect(article.getLink(error=Message.INVALID_REQUEST))
+                raise ValidationError(section)
                 
             changed = False
             if subheading and section.subheading != subheading:
@@ -567,9 +577,9 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
     except Exception as e:
         errorLog(e)
         if json_body:
-            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         if article:
-            return redirect(article.getLink(error=Message.INVALID_REQUEST))
+            return redirect(article.getLink(error=Message.ERROR_OCCURRED))
         raise Http404(e)
 
 
@@ -602,7 +612,7 @@ def submitArticleRating(request: WSGIRequest, articleID: UUID) -> JsonResponse:
         else:
             raise ValidationError(action)
         return respondJson(Code.OK)
-    except (ObjectDoesNotExist, ValidationError):
+    except (ObjectDoesNotExist, ValidationError, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)

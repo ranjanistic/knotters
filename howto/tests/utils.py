@@ -8,16 +8,28 @@ def root(path='/', appendslash=False):
     return f"{url.getRoot(APPNAME, not appendslash)}{path}"
 
 
-def getArticleName():
+def getArticleHeading():
+    return f'Article {uuid4().hex}'
+
+
+def getArticleSubHeading():
+    return f"{uuid4().hex} {uuid4().hex} {uuid4().hex}"
+
+
+def getTestSubhHeading():
     return f'Test {uuid4().hex}'
 
 
-def getArticleImage():
+def getTestParagraph():
+    return f'Test {uuid4().hex} {uuid4().hex} {uuid4().hex}'
+
+
+def getTestImage():
     return f"test_{uuid4().hex}.png"
 
 
-def getArticleHeading():
-    return f"{uuid4().hex} {uuid4().hex} {uuid4().hex}"
+def getTestVideo():
+    return f"test_{uuid4().hex}.mp4"
 
 
 def getTag():
