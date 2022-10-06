@@ -1,14 +1,11 @@
 from django.test import TestCase, tag
-from allauth.account.models import EmailAddress
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.utils import DatabaseError
 from auth2.tests.utils import (getTestEmail, getTestGHID, getTestName,
                                getTestPassword)
-from howto.models import Article, Section, ArticleUserRating, ArticleAdmirer, sectionMediaPath
-from howto.views import section
-from management.models import Management
-from main.strings import Action, Code, Message, template, url
-from main.tests.utils import getRandomFloat, getRandomStr
+from howto.models import Article, Section, ArticleUserRating, sectionMediaPath
+from main.strings import Code
+from main.tests.utils import getRandomFloat
 from people.models import Profile, Topic, User
 from main.env import BOTMAIL
 from howto.apps import APPNAME

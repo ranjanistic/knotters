@@ -1,12 +1,11 @@
 from json import loads as json_loads
 from django.test import TestCase, Client, tag
-from django.http import HttpResponse, HttpResponseNotAllowed
-from django.http.response import HttpResponseNotFound, HttpResponseRedirect, HttpResponseForbidden
+from django.http import HttpResponse
+from django.http.response import HttpResponseNotFound, HttpResponseRedirect
 from allauth.account.models import EmailAddress
 from auth2.tests.utils import (getTestEmail, getTestGHID, getTestName,
                                getTestPassword)
 from howto.models import Article, Section, ArticleUserRating, ArticleAdmirer
-from management.models import Management
 from main.strings import Action, Code, Message, template, url
 from main.tests.utils import getRandomFloat, getRandomStr
 from people.models import Profile, Topic, User
@@ -143,23 +142,18 @@ class TestViews(TestCase):
         self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
         resp = client.post(path=root(url.howto.save(article.get_nickname)), data=dict(
-            heading=getArticleHeading(), subheading=''), content_type=Code.APPLICATION_JSON)
-        self.assertDictEqual(json_loads(
-            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
-        resp = client.post(path=root(url.howto.save(article.get_nickname)), data=dict(
-            heading='', subheading=getArticleSubHeading()), content_type=Code.APPLICATION_JSON)
-        self.assertDictEqual(json_loads(
-            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
-        resp = client.post(path=root(url.howto.save(article.get_nickname)), data=dict(
             heading=getArticleHeading(), subheading=getArticleSubHeading()), content_type=Code.APPLICATION_JSON)
         self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK, success=Message.ARTICLE_UPDATED))
 
 
+    @tag('publish_article')
     def test_publishArticle(self):
         client = Client()
         article: Article = Article.objects.create(heading=getArticleHeading(
         ), subheading=getArticleSubHeading(), author=self.management_profile)
+        article2: Article = Article.objects.create(heading=getArticleHeading(
+        ), author=self.management_profile)
 
         client.login(email=self.email, password=self.password)
         resp = client.post(path=root(url.howto.publish(article.get_id)), content_type=Code.APPLICATION_JSON)
@@ -170,6 +164,9 @@ class TestViews(TestCase):
         client.logout()
 
         client.login(email=self.m_email, password=self.m_password)
+        resp = client.post(path=root(url.howto.publish(article2.get_id)), content_type=Code.APPLICATION_JSON)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
         resp = client.post(path=root(url.howto.publish(article.get_id)), content_type=Code.APPLICATION_JSON)
         article: Article = Article.objects.get(id=article.get_id)
         self.assertDictEqual(json_loads(

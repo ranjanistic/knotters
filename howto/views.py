@@ -23,9 +23,12 @@ from .apps import APPNAME
 from django.core import serializers
 from howto.mailers import articleAdmired, articleCreated , articlePublished , articleDeleted
 
-def index(request):
+def index(request: WSGIRequest):
     articles=Article.objects.filter(is_draft=False)
-    return renderer(request, Template.Howto.INDEX, dict(articles=articles))
+    canCreate = False
+    if request.user.is_authenticated:
+        canCreate = Article.canCreateArticle(request.user.profile)
+    return renderer(request, Template.Howto.INDEX, dict(articles=articles, canCreate=canCreate))
 
 
 @normal_profile_required
@@ -72,9 +75,16 @@ def saveArticle(request: WSGIRequest, nickname: str):
     try:
         heading = str(request.POST["heading"]).strip()
         subheading = str(request.POST["subheading"]).strip()
-        if not heading or not subheading:
+
+        if heading and subheading:
+            done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
+        elif not subheading:
+            done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading)
+        elif not heading:
+            done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(subheading=subheading)
+        else:
             raise ValidationError(heading, subheading)
-        done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
+        
         if not done:
             raise ValidationError(done)
         if json_body:

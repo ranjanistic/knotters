@@ -35,11 +35,13 @@
         <button class='big-button accent' id='close-articles-intro-banner' data-icon='flight_takeoff'>
             {% trans "Got it" %}
         </button>
+        {% if canCreate %}
         <a href="{{URLS.CREATE}}">
             <button class='big-button positive' data-icon='add'>
                 {% trans "New Article" %}
             </button>
         </a>
+        {% endif %}
     </div>
     <br/><br/>
 </div>
@@ -62,29 +64,24 @@
     </div>
     <div class="w3-row">
         {% for article in articles %}
-        <div class="w3-col {% if article.getVideo %}w3-quarter{% else %} w3-half {% endif %} w3-padding"> 
+        <div class="w3-col w3-quarter w3-padding"> 
             <a href="{{article.get_link}}">
                 <div class="pallete w3-padding">
                     {% if article.getVideo %}
                         <video autoplay muted loop width='100%' src="{{ article.getVideo }}">Video playback is not supported</video>
+                    {% else %}
+                        <img width='100%' class='preview-image' src="{{ article.getImage }}">
                     {% endif %}
                     <div class="w3-row">
-                        {% if not article.getVideo %}
-                            <div class="w3-col w3-third w3-padding">
-                                <img width='100%' class='preview-image' src="{{ article.getImage }}">
-                            </div>
-                        {% endif %}
-                        <div {% if not article.getVideo %}class="w3-col w3-twothird"{% endif %}>
-                            <h3>{{ article.heading }}</h3>
-                            <span>{{ article.subheading }}</span>
-                            <div class="w3-row w3-right {% if request.user.is_authenticated %}trigger-article-rating{% else %}trigger-login-popup{% endif %}">
-                                <div class="rate">
-                                    <span class="w3-left text-large">{{ article.get_avg_rating }}</span>
-                                    {% for i in '0123456789'|make_list %}
-                                    <input type="checkbox" required/>
-                                    <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
-                                    {% endfor %}
-                                </div>
+                        <h3>{{ article.heading }}</h3>
+                        <span>{{ article.subheading }}</span>
+                        <div class="w3-row w3-right {% if request.user.is_authenticated %}trigger-article-rating{% else %}trigger-login-popup{% endif %}">
+                            <div class="rate">
+                                <span class="w3-left text-large">{{ article.get_avg_rating }}</span>
+                                {% for i in '0123456789'|make_list %}
+                                <input type="checkbox" required/>
+                                <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
