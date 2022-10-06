@@ -1388,12 +1388,18 @@ class URL():
 
         SEARCH_TOPICS = 's/<str:articleID>/topics'
 
+        def searchTopics(self, articleID: str):
+            return setPathParams(self.SEARCH_TOPICS, articleID)
+
         EDIT_TOPICS = 'e/<str:articleID>/topics'
 
         def editTopics(self, articleID: str):
             return setPathParams(self.EDIT_TOPICS, articleID)
 
         SEARCH_TAGS = 's/<str:articleID>/tags'
+
+        def searchTags(self, articleID: str):
+            return setPathParams(self.SEARCH_TAGS, articleID)
 
         EDIT_TAGS = 'e/<str:articleID>/tags'
 

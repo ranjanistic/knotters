@@ -18,7 +18,7 @@ class Article(models.Model):
         primary_key=True, default=uuid4, editable=False)
     heading = models.CharField(max_length=100)
     subheading = models.CharField(max_length=200)
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    author = models.ForeignKey(Profile, related_name = "articles", on_delete=models.CASCADE)
     is_draft = models.BooleanField(default=True)
     nickname = models.CharField(max_length=50,null=True, blank=True)
     preview_image = models.ImageField(null=True, blank=True)
@@ -36,7 +36,7 @@ class Article(models.Model):
     """raters (ManyToManyField<Profile>): The raters of the article and their rating"""
     
     def __str__(self):
-        return self.heading
+        return self.nickname if self.nickname else self.id
 
     def save(self, *args, **kwargs):
         self.modifiedOn = timezone.now()
@@ -82,7 +82,7 @@ class Article(models.Model):
     def get_admirers(self) -> models.QuerySet:
         """Returns the admirers of this article
         """
-        cacheKey = "article_admirers_{self.id}"
+        cacheKey = f"article_admirers_{self.id}"
         admirers = cache.get(cacheKey, [])
         if not len(admirers):
             admirers = self.admirers.all()
@@ -130,9 +130,10 @@ class Article(models.Model):
         """
         return self.tags.filter()[:limit]
     
+    @classmethod
     def canCreateArticle(self, profile: Profile) -> bool:
         """Returns whether given profile can create article or not"""
-        return profile.is_manager() or Profile.KNOTBOT().management().has_member(profile)
+        return profile.is_manager() or Profile.KNOTBOT().management() and Profile.KNOTBOT().management().has_member(profile)
     
     def isEditable(self) -> bool:
         """Returns whether the article can be edited or not"""
@@ -185,6 +186,14 @@ class Article(models.Model):
     def getVideo(self):
         """Returns any one section video if exists else returns False"""
         return self.preview_video.url if self.preview_video else False
+    
+    def totalTopics(self) -> int:
+        """Returns the total number of topics of the article"""
+        return self.topics.count()
+    
+    def totalTags(self) -> int:
+        """Returns the total number of tags of the article"""
+        return self.tags.count()
 
 
 def sectionMediaPath(instance, filename):

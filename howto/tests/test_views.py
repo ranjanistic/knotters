@@ -5,10 +5,10 @@ from django.http.response import HttpResponseNotFound, HttpResponseRedirect, Htt
 from allauth.account.models import EmailAddress
 from auth2.tests.utils import (getTestEmail, getTestGHID, getTestName,
                                getTestPassword)
-from howto.models import Article, Section, ArticleUserRating
+from howto.models import Article, Section, ArticleUserRating, ArticleAdmirer
 from management.models import Management
 from main.strings import Action, Code, Message, template, url
-from main.tests.utils import getRandomFloat
+from main.tests.utils import getRandomFloat, getRandomStr
 from people.models import Profile, Topic, User
 from main.env import BOTMAIL
 from howto.apps import APPNAME
@@ -21,8 +21,6 @@ class TestViews(TestCase):
     def setUpTestData(self) -> None:
         self.bot, _ = User.objects.get_or_create(email=BOTMAIL, defaults=dict(
             first_name='knottersbot', email=BOTMAIL, password=getTestPassword()))
-        self.management: Management = Management.objects.create(
-            profile=Profile.KNOTBOT())
         self.client = Client()
         self.email = getTestEmail()
         self.ghID = getTestGHID()
@@ -30,18 +28,13 @@ class TestViews(TestCase):
         self.user = User.objects.create_user(
             email=self.email, password=self.password, first_name=getTestName())
         self.profile = Profile.objects.get(user=self.user)
-        self.moduser: User = User.objects.create_user(
-            email=getTestEmail(), password=self.password, first_name=getTestName())
-        self.modprofile = Profile.objects.get(user=self.moduser)
-        self.modprofile.is_moderator = True
-        self.modprofile.save()
         self.m_email = getTestEmail()
         self.m_password = getTestPassword()
         self.management_user: User = User.objects.create_user(
             email=self.m_email, password=self.m_password, first_name=getTestName())
         self.management_profile: Profile = Profile.objects.get(
             user=self.management_user)
-        self.management.people.add(self.management_profile)
+        self.management_profile.convertToManagement()
         EmailAddress.objects.get_or_create(
             user=self.user, email=self.email, verified=True, primary=True)
         EmailAddress.objects.get_or_create(
@@ -141,14 +134,22 @@ class TestViews(TestCase):
         resp = client.post(path=root(url.howto.save(article.get_nickname)), data=dict(
             heading=getArticleHeading(), subheading=getArticleSubHeading()), content_type=Code.APPLICATION_JSON)
         self.assertDictEqual(json_loads(
-            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.ERROR_OCCURRED))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
         client.logout()
 
         client.login(email=self.m_email, password=self.m_password)
         resp = client.post(path=root(url.howto.save(article.get_nickname)), data=dict(
             heading=getArticleHeading()), content_type=Code.APPLICATION_JSON)
         self.assertDictEqual(json_loads(
-            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.ERROR_OCCURRED))
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
+        resp = client.post(path=root(url.howto.save(article.get_nickname)), data=dict(
+            heading=getArticleHeading(), subheading=''), content_type=Code.APPLICATION_JSON)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
+        resp = client.post(path=root(url.howto.save(article.get_nickname)), data=dict(
+            heading='', subheading=getArticleSubHeading()), content_type=Code.APPLICATION_JSON)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
         resp = client.post(path=root(url.howto.save(article.get_nickname)), data=dict(
             heading=getArticleHeading(), subheading=getArticleSubHeading()), content_type=Code.APPLICATION_JSON)
         self.assertDictEqual(json_loads(
@@ -264,6 +265,123 @@ class TestViews(TestCase):
         self.assertFalse(Section.objects.filter(id=section.get_id).exists())
 
 
+    def test_topicsSearch(self):
+        client = Client()
+        article: Article = Article.objects.create(heading=getArticleHeading(
+        ), subheading=getArticleSubHeading(), author=self.management_profile)
+
+        resp = client.post(follow=True, path=root(
+            url.howto.searchTopics(article.get_id)))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        client.login(email=self.m_email, password=self.m_password)
+        resp = client.post(follow=True, path=root(
+            url.howto.searchTopics(article.get_id)))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
+        resp = client.post(follow=True, path=root(url.howto.searchTopics(article.get_id)), data={
+                                'query': getRandomStr()})
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(json_loads(
+            resp.content.decode(Code.UTF_8))['code'], Code.OK)
+
+
+    @tag('articleTopicUp')
+    def test_topicsUpdate(self):
+        client = Client()
+        article: Article = Article.objects.create(heading=getArticleHeading(
+        ), subheading=getArticleSubHeading(), author=self.management_profile)
+
+        resp = client.post(follow=True, path=root(url.howto.editTopics(article.get_id)), data={
+                                'addtopicIDs': str()})
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        topics = Topic.objects.bulk_create(getTestTopicsInst(2))
+        addTopicIDs = ''
+        for top in topics:
+            addTopicIDs = f"{addTopicIDs},{top.getID()}"
+        
+        client.login(email=self.m_email, password=self.m_password)
+        resp = client.post(follow=True, path=root(url.howto.editTopics(article.get_id)), data={
+                                'addtopicIDs': addTopicIDs})
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.howto.article)
+        self.assertEqual(article.totalTopics(), 2)
+
+
+    def test_tagsSearch(self):
+        client = Client()
+        article: Article = Article.objects.create(heading=getArticleHeading(
+        ), subheading=getArticleSubHeading(), author=self.management_profile)
+
+        resp = client.post(follow=True, path=root(
+            url.howto.searchTags(article.get_id)))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        client.login(email=self.m_email, password=self.m_password)
+        resp = client.post(follow=True, path=root(
+            url.howto.searchTags(article.get_id)))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_REQUEST))
+
+        resp = client.post(follow=True, path=root(
+            url.howto.searchTags(article.get_id)), data={
+                                'query': getRandomStr()})
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertEqual(json_loads(
+            resp.content.decode(Code.UTF_8))['code'], Code.OK)
+
+
+    @tag('articleTagsUp')
+    def test_tagsUpdate(self):
+        client = Client()
+        article: Article = Article.objects.create(heading=getArticleHeading(
+        ), subheading=getArticleSubHeading(), author=self.management_profile)
+
+        resp = client.post(follow=True, path=root(url.howto.editTags(article.get_id)), data={
+                                'addtagIDs': []})
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.auth.login)
+
+        tags = Tag.objects.bulk_create(getTestTagsInst(4))
+        addTagIDs = []
+        for tag in tags:
+            addTagIDs.append(tag.getID())
+        
+        client.login(email=self.m_email, password=self.m_password)
+        resp = client.post(follow=True, path=root(url.howto.editTags(article.get_id)), data={
+                                'addtagIDs': ",".join(addTagIDs)})
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.howto.article)
+        self.assertEqual(article.totalTags(), 4)
+
+
+    def test_toggleAdmiration(self):
+        client = Client()
+        published_article: Article = Article.objects.create(heading=getArticleHeading(
+        ), subheading=getArticleSubHeading(), author=self.management_profile, is_draft=False)
+
+        client.login(email=self.email, password=self.password)
+
+        resp = client.post(path=root(url.howto.toggle_admiration(published_article.get_id)))
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+
+        resp = client.post(follow=True, path=root(url.howto.toggle_admiration(published_article.get_id)), data=dict(admire = 'true'))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.howto.article)
+        self.assertTrue(ArticleAdmirer.objects.filter(profile=self.profile, article=published_article).exists())
+
+        resp = client.post(follow=True, path=root(url.howto.toggle_admiration(published_article.get_id)), data=dict(admire = 'false'))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.howto.article)
+        self.assertFalse(ArticleAdmirer.objects.filter(profile=self.profile, article=published_article).exists())
+
+
     def test_submitArticleRating(self):
         client = Client()
         article: Article = Article.objects.create(heading=getArticleHeading(
@@ -299,4 +417,3 @@ class TestViews(TestCase):
         self.assertDictEqual(json_loads(
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertTrue(ArticleUserRating.objects.filter(profile=self.profile, article=article, score=score).exists())
-

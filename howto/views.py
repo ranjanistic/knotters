@@ -1,3 +1,4 @@
+from re import sub
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from howto.models import Article, Section, ArticleTopic, ArticleTag, ArticleUserRating
@@ -41,7 +42,7 @@ def createArticle(request: WSGIRequest):
         HttpResponseRedirect: The redirect to the article page if created successfully, else 404.
     """
     try:
-        if Article().canCreateArticle(request.user.profile):
+        if Article.canCreateArticle(request.user.profile):
             article: Article = Article.objects.create(author=request.user.profile)
             articleCreated(request, article)
             return redirect(article.getEditLink(success=Message.ARTICLE_CREATED))
@@ -71,12 +72,18 @@ def saveArticle(request: WSGIRequest, nickname: str):
     try:
         heading = str(request.POST["heading"]).strip()
         subheading = str(request.POST["subheading"]).strip()
+        if not heading or not subheading:
+            raise ValidationError(heading, subheading)
         done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
         if not done:
-            raise Exception(done)
+            raise ValidationError(done)
         if json_body:
             return respondJson(Code.OK, success=Message.ARTICLE_UPDATED)
         return respondRedirect(APPNAME, path=URL.howto.view(nickname),success=Message.ARTICLE_UPDATED)
+    except (KeyError, ValidationError) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         if json_body:
@@ -842,9 +849,17 @@ def bulkUpdateArticle(request: WSGIRequest, articleID: str):
         section_update = request.POST['section_update']
         
         if article_update:
-            article.heading = article_update['heading']
-            article.subheading = article_update['subheading']
-            article.save()
+            updated = False
+            heading = article_update['heading']
+            subheading = article_update['subheading']
+            if heading:
+                article.heading = heading
+                updated = True
+            if subheading:
+                article.subheading = subheading
+                updated = True
+            if updated:
+                article.save()
 
         section = None
         if section_create_paragraph:
@@ -852,10 +867,12 @@ def bulkUpdateArticle(request: WSGIRequest, articleID: str):
 
         if len(section_update)>0:
             for data in section_update:
-                if data['paragraph']:
-                    done = Section.objects.filter(id=data['sectionID'], article=article).update(subheading=data['subheading'], paragraph=data['paragraph'])
+                subheading = data['subheading'] if data['subheading'] else 'Untitled Section'
+                paragraph = data['paragraph']
+                if paragraph:
+                    done = Section.objects.filter(id=data['sectionID'], article=article).update(subheading=subheading, paragraph=paragraph)
                 else:
-                    done = Section.objects.filter(id=data['sectionID'],article=article).update(subheading=section_update[0]['subheading'])
+                    done = Section.objects.filter(id=data['sectionID'], article=article).update(subheading=subheading)
                 if not done:
                     raise Exception
             
