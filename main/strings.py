@@ -1428,11 +1428,6 @@ class URL():
 
         BROWSE_SEARCH = 'browse/search/'
 
-        RENDER_ARTICLE = 'render/article/<str:nickname>'
-
-        def render_article(self, articleID: str):
-            return setPathParams(self.RENDER_ARTICLE, articleID)
-
         ARTICLE_BULK_UPDATE = 'update/article/<str:articleID>'
         
         def article_bulk_update(self, articleID: str):

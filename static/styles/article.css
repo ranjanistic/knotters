@@ -52,6 +52,13 @@
     width: 100%;
 }
 
+.rate-small > label:before{
+    font-size: 1.3rem;
+}
+
+.admire {
+    display: inline-block;
+}
 @media only screen and (min-width: 600px) {
     .section-video {
         width: 80%;

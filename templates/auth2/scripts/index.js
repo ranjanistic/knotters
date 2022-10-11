@@ -424,6 +424,11 @@ initializeTabsView({
                             const obj = getFormDataById(
                                 "edit-nickname-form"
                             );
+                            if(!obj.nickname)
+                            {
+                                error("Nickname cannot be empty")
+                                return
+                            }
                             const resp = await postRequest2({
                                 path: setUrlParams(URLS.NICKNAMEEDIT),
                                 data: {

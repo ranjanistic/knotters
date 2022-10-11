@@ -100,11 +100,13 @@ class TestViews(TestCase):
         self.assertEqual(resp.status_code, HttpResponse.status_code)
         self.assertTemplateUsed(resp, template.howto.article)
 
-
+    @tag('editArticle')
     def test_editArticle(self):
         client = Client()
         article: Article = Article.objects.create(heading=getArticleHeading(
         ), subheading=getArticleSubHeading(), author=self.management_profile)
+        published_article: Article = Article.objects.create(heading=getArticleHeading(
+        ), subheading=getArticleSubHeading(), author=self.management_profile, is_draft=False)
 
         resp = client.get(path=root(url.howto.edit(article.get_nickname)))
         self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
@@ -116,6 +118,11 @@ class TestViews(TestCase):
         client.login(email=self.email, password=self.password)
         resp = client.get(path=root(url.howto.edit(article.get_nickname)))
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+        resp = client.get(path=root(url.howto.edit(published_article.get_nickname)))
+        self.assertEqual(resp.status_code, HttpResponseRedirect.status_code)
+        resp = client.get(follow=True, path=root(url.howto.edit(published_article.get_nickname)))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+        self.assertTemplateUsed(resp, template.howto.article)
         client.logout()
 
         client.login(email=self.m_email, password=self.m_password)

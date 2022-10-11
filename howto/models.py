@@ -16,8 +16,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 class Article(models.Model):
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)
-    heading = models.CharField(max_length=100)
-    subheading = models.CharField(max_length=200)
+    heading = models.CharField(max_length=75)
+    subheading = models.CharField(max_length=250)
     author = models.ForeignKey(Profile, related_name = "articles", on_delete=models.CASCADE)
     is_draft = models.BooleanField(default=True)
     nickname = models.CharField(max_length=50,null=True, blank=True)
@@ -205,8 +205,8 @@ class Section(models.Model):
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)
     article = models.ForeignKey(Article, related_name = "sections", on_delete=models.CASCADE)
-    subheading = models.CharField(max_length=100)
-    paragraph = models.CharField(max_length=300)
+    subheading = models.CharField(max_length=75)
+    paragraph = models.CharField(max_length=500)
     image = models.ImageField(upload_to=sectionMediaPath, null=True, blank=True)
     video = models.FileField(upload_to=sectionMediaPath, null=True, blank=True)
 

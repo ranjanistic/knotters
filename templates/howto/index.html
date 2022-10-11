@@ -10,55 +10,47 @@
 <link rel="stylesheet" href="{% static 'styles/article.css' %}">
 {% endblock %}
 
-{% block title %}
-{% trans "HowTo" %}
-{% endblock %}
-{% block nav_text %}
-{% trans "HowTo" %}
-{% endblock %}
-{% block content %}
+{% block meta_description %}Detailed guides to help you grow.{% endblock %}
+{% block og_url %}{{URLS.HOWTO}}{% endblock %}
+{% block og_title %}{{SUBAPPNAME|capfirst}}{% endblock %}
+{% block og_description %}Detailed guides to help you grow.{% endblock %}
+{% block og_site_name %}{{SUBAPPNAME|capfirst}}{% endblock %}
 
-<div class="w3-row w3-padding welcome-row first-time-view" id='articles-intro-banner'>
-    <br/>
-    <div class='w3-row w3-padding'>
-        <h1 class="w3-jumbo w3-hide-small">{% trans "Articles" %}</h1>
-        <h2 class="w3-hide-medium w3-hide-large">{% trans "Articles" %}</h1>
-    </div>
-    <br/>
-    <div class='w3-row w3-padding'>
-        <strong class='text-large'>
-            {% trans "Detailed guides to help you grow" %}
-        </strong>
-    </div>
-    <br/><br/>
-    <div class='w3-row w3-padding'>
-        <button class='big-button accent' id='close-articles-intro-banner' data-icon='flight_takeoff'>
-            {% trans "Got it" %}
-        </button>
-        {% if canCreate %}
-        <a href="{{URLS.CREATE}}">
-            <button class='big-button positive' data-icon='add'>
-                {% trans "New Article" %}
-            </button>
-        </a>
-        {% endif %}
-    </div>
-    <br/><br/>
-</div>
+{% block tw_url %}{{URLS.HOWTO}}{% endblock %}
+{% block tw_title %}{{SUBAPPNAME|capfirst}}{% endblock %}
+{% block tw_description %}Detailed guides to help you grow.{% endblock %}
+{% block tw_site_name %}{{SUBAPPNAME|capfirst}}{% endblock %}
+
+{% block themecolor %}positive{% endblock %}
+{% block title %}{{SUBAPPNAME|capfirst}}{% endblock %} 
+
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+{% block nav_back_theme %}positive{% endblock %}
+
+{% block nav_href %}/{% endblock %}
+{% block nav_text %}{% endblock %}
+
+{% block nav_extra_links %}
+    {% if canCreate %}
+    <a href="{{URLS.CREATE}}"><button title="{% trans "New Article" %}" class="positive" data-icon="add"><span class="w3-hide-small">{% trans "New Article" %}</span></button></a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
 <div class="w3-row tertiary" style="background-image: url('{{ICON_SHADOW}}');">
-    <div class="w3-row" >
-        <div class="w3-row tertiary w3-padding" id="mainframe">
-            <div class="w3-col w3-quarter w3-padding-small"></div>
-                <form class="no-auto" id="search-articles-form">
-                <div class="w3-col w3-half w3-center w3-padding-small">
-                    <input class="wide primary bold border-positive" type="search" inputmode="search" placeholder="{% trans "Search articles as topic:translation, or anything" %}" id="browse-search-input" />
-                </div>
-                <div class="w3-col w3-quarter w3-padding-small" id="browse-search-actions" hidden>
-                    <button type="button" class="negative w3-right browse-search-articles" data-icon="close" id="browse-search-clear"></button>
-                    <button type="button" class="positive w3-right browse-search-articles" data-icon="search" id="browse-search-exec"></button>
-                </form>
-            </div>
+    <div class="w3-row tertiary w3-padding" id="mainframe">
+        <div class="w3-col w3-quarter w3-padding-small">
         </div>
+        <form class="no-auto" id="search-articles-form">
+            <div class="w3-col w3-half w3-center w3-padding-small">
+                <input class="wide primary bold border-positive" type="search" inputmode="search" placeholder="{% trans "Search articles as topic:translation, or anything" %}" id="browse-search-input" />
+            </div>
+            <div class="w3-col w3-quarter w3-padding-small" id="browse-search-actions" hidden>
+                <button type="button" class="negative w3-right browse-search-articles" data-icon="close" id="browse-search-clear"></button>
+                <button type="button" class="positive w3-right browse-search-articles" data-icon="search" id="browse-search-exec"></button>
+            </div>
+        </form>
     </div>
     <div class="w3-row search-view" data-search-type="articles" id='browse-search-view'>
     </div>
@@ -66,32 +58,30 @@
         {% for article in articles %}
         <div class="w3-col w3-quarter w3-padding"> 
             <a href="{{article.get_link}}">
-                <div class="pallete w3-padding">
+                <div class="pallete no-pad">
                     {% if article.getVideo %}
-                        <video autoplay muted loop width='100%' src="{{ article.getVideo }}">Video playback is not supported</video>
+                        <video class="primary pallete no-pad wide" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
                     {% else %}
-                        <img width='100%' class='preview-image' src="{{ article.getImage }}">
+                        <img class="primary pallete no-pad wide" src="{{ article.getImage }}">
                     {% endif %}
                     <div class="w3-row">
-                        <h3>{{ article.heading }}</h3>
-                        <span>{{ article.subheading }}</span>
-                        <div class="w3-row w3-right {% if request.user.is_authenticated %}trigger-article-rating{% else %}trigger-login-popup{% endif %}">
-                            <div class="rate">
-                                <span class="w3-left text-large">{{ article.get_avg_rating }}</span>
-                                {% for i in '0123456789'|make_list %}
-                                <input type="checkbox" required/>
-                                <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
-                                {% endfor %}
-                            </div>
+                        <div class="w3-padding">
+                            <h3>{{ article.heading }}</h3>
+                            <span>{{ article.subheading | truncatewords:50}}</span>
+                        </div>
+                        <div class="rate rate-small w3-right">
+                            <span class="w3-left text-small">{{ article.get_avg_rating }}</span>
+                            {% for i in '0123456789'|make_list %}
+                            <input type="checkbox" required/>
+                            <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
+                            {% endfor %}
                         </div>
                     </div>
-                    <br />
                 </div>
             </a>
         </div>
         {% endfor %}
     </div>
-
     <br />
 </div>
 {% endblock %}

@@ -73,8 +73,8 @@ def saveArticle(request: WSGIRequest, nickname: str):
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        heading = str(request.POST["heading"]).strip()
-        subheading = str(request.POST["subheading"]).strip()
+        heading = str(request.POST["heading"]).strip()[:75]
+        subheading = str(request.POST["subheading"]).strip()[:250]
 
         if heading and subheading:
             done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
@@ -140,8 +140,10 @@ def editArticle(request: WSGIRequest, nickname: str):
     """
     try:
         data = articleRenderData(request, nickname)
-        if not data or not data.get('article', None) or not data['article'].isEditable() or request.user.profile!=data['article'].author:
+        if not data or not data.get('article', None):
             raise ObjectDoesNotExist(data)
+        if not data['article'].isEditable() or request.user.profile!=data['article'].author:
+            return redirect(data['article'].getLink())
         return renderer(request, Template.Howto.ARTICLE_EDIT, data)
     except ObjectDoesNotExist as o:
         raise Http404(o)
@@ -508,8 +510,8 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
     try:
         article: Article = Article.objects.get(id=articleID, author=request.user.profile)
         if action == Action.CREATE:
-            subheading = request.POST.get('subheading', "Untitled Section")
-            paragraph = request.POST.get('paragraph', "")
+            subheading = request.POST.get('subheading', "Untitled Section")[:75]
+            paragraph = request.POST.get('paragraph', "")[:500]
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
 
@@ -540,8 +542,8 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
         section: Section = Section.objects.get(id=id, article=article)
 
         if action == Action.UPDATE:
-            subheading = request.POST.get('subheading', "")
-            paragraph = request.POST.get('paragraph', "")
+            subheading = request.POST.get('subheading', "")[:75]
+            paragraph = request.POST.get('paragraph', "")[:500]
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
 
@@ -558,6 +560,8 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
             if image or video:
                 try:
                     newimgfile = base64ToImageFile(image)
+                    if section.image == section.article.preview_image:
+                        section.article.preview_image = None
                     section.image.delete(save=False)
                     section.image = newimgfile
                     changed = True
@@ -566,6 +570,8 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
 
                 try:
                     newvidfile = base64ToFile(video)
+                    if section.image == section.article.preview_video:
+                        section.article.preview_video = None
                     section.video.delete(save=False)
                     section.video = newvidfile
                     changed = True
@@ -830,23 +836,7 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
     
-
-def renderArticle(request: WSGIRequest, nickname: str):
-    """
-    """
-    try:
-        data = articleRenderData(request, nickname)
-        if not data:
-            raise ObjectDoesNotExist(data)
-        serialized_sections = serializers.serialize('python', data['sections'])
-        return respondJson(Code.OK, dict(sections = serialized_sections))
-    except ObjectDoesNotExist:
-        return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
-    except Exception as e:
-        errorLog(e)
-        raise Http404(e)
-
-
+    
 @require_JSON
 def bulkUpdateArticle(request: WSGIRequest, articleID: str):
     """

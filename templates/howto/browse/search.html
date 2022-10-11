@@ -15,12 +15,19 @@
             <div class="swiper-slide w3-animate-zoom">
                 <div class="pallete w3-center no-pad">
                     <a href="{{article.get_link}}">
-                        {{article.heading}}
+                        {% if article.getVideo %}
+                            <video class="primary pallete no-pad wide" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
+                        {% else %}
+                            <img class="primary pallete no-pad wide" src="{{ article.getImage }}">
+                        {% endif %}
                     </a>
-                    <div class="w3-row w3-padding-small">
-                        <div class="w3-row w3-padding-small">
-                            <span>{{ article.subheading }}</span>
+                    <div class="w3-row">
+                        <div class="w3-padding">
+                            <h3>{{ article.heading }}</h3>
+                            <span>{{ article.subheading | truncatewords:50}}</span>
                         </div>
+                    </div>
+                    <div class="w3-row w3-padding-small">
                         <div class="w3-col m10 l10 s10 w3-left">
                         {% for topic in article.getPalleteTopics %}
                         <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
@@ -55,12 +62,19 @@
             <div class="w3-col w3-animate-zoom">
                 <div class="pallete pallete_i w3-center no-pad">
                     <a href="{{article.get_link}}">
-                        {{ article.heading }}
+                        {% if article.getVideo %}
+                            <video class="primary pallete no-pad wide" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
+                        {% else %}
+                            <img class="primary pallete no-pad wide" src="{{ article.getImage }}">
+                        {% endif %}
                     </a>
-                    <div class="w3-row w3-padding-small">
-                        <div class="w3-row w3-padding-small">
-                            <span>{{ article.subheading }}</span>
+                    <div class="w3-row">
+                        <div class="w3-padding">
+                            <h3>{{ article.heading | truncatewords:5}}</h3>
+                            <span>{{ article.subheading | truncatewords:20}}</span>
                         </div>
+                    </div>
+                    <div class="w3-row w3-padding-small">
                         <div class="w3-col m10 l10 s10 w3-left">
                         {% for topic in article.getPalleteTopics %}
                         <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">

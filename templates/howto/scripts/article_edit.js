@@ -3,18 +3,12 @@ const isRater = "{{isRater}}"==='True'
 const articleID = "{{ article.id }}"
 const canEdit = "{{ article.isEditable }}"==="True"
 
-const fetchSections = async() => {
-    const data = await getRequest2({
-        path: setUrlParams(URLS.RENDER_ARTICLE, "{{article.get_nickname}}")
-    })
-    console.log(data['sections'])
-}
 
 const article_content = {
     paragraph_input :
     `<div class="w3-row w3-padding temp-para-parent">
         <div class="temp-paragraphs">
-            <textarea class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph"></textarea>
+            <textarea maxlength='500' class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph"></textarea>
         </div>
         <br />
     </div>`,
@@ -27,7 +21,7 @@ const article_content = {
         return `
         <div class="w3-row w3-padding section-content" sectionid="${ sectionID }">
             <div class="section-edit" sectionid="${ sectionID }">
-                <textarea id="${ sectionID }-paragraph" class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph">${paragraph}</textarea>
+                <textarea maxlength='500' id="${ sectionID }-paragraph" class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph">${paragraph}</textarea>
             </div>
             <br />
         </div>`
@@ -72,7 +66,7 @@ const article_content = {
         <div class="w3-row w3-margin-bottom section-content" sectionid="${ sectionID }">
             <div class="w3-col s10 m10 l10">
                 <div class="section-edit" sectionid="${sectionID}">
-                    <input id="${sectionID}-subheading" type="text" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="Untitled Section"/>
+                    <input maxlength='75' id="${sectionID}-subheading" type="text" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="Untitled Section"/>
                 </div>
             </div>
             <div class="w3-col s2 m2 l2">
@@ -85,7 +79,7 @@ const article_content = {
         <div class="w3-row w3-margin-bottom section-content" sectionid="${ sectionID }">
             <div class="w3-col s10 m10 l10">
                 <div class="section-edit section-elements" sectionid="${sectionID}" hasImage="${hasImage}" hasVideo="${hasVideo}">
-                    <input id="${sectionID}-subheading-2" type="text" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="Untitled Section"/>
+                    <input maxlength='75' id="${sectionID}-subheading-2" type="text" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="Untitled Section"/>
                 </div>
             </div>
             <div class="w3-col s2 m2 l2">
@@ -298,6 +292,7 @@ const updateArticleHead = async() => {
 heading.oninput = () => {
     show(getElement('sync-button'))
     sessionStorage.setItem("article-update", JSON.stringify({heading : heading.value, subheading : subheading.value }))
+        
 }
 
 subheading.oninput = () => {
@@ -305,11 +300,21 @@ subheading.oninput = () => {
     sessionStorage.setItem("article-update", JSON.stringify({heading : heading.value, subheading : subheading.value }))
 }
 
-heading.onchange = async() => {
+heading.onchange = async(e) => {
+    if(!e.target.value)
+    {
+        error("Field cannot be empty")
+        return
+    }
     updateArticleHead();
 }
 
-subheading.onchange = async() => {
+subheading.onchange = async(e) => {
+    if(!e.target.value)
+    {
+        error("Field cannot be empty")
+        return
+    }
     updateArticleHead();
 }
 
@@ -340,7 +345,12 @@ const handleSectionUpdate = () => {
             }
         }
         
-        section.onchange = () =>  {
+        section.onchange = (e) =>  {
+            if(!e.target.value)
+            {
+                error("Field cannot be empty")
+                return
+            }
             let subheading = section.getElementsByClassName("subheading")
             let paragraph = section.getElementsByClassName("paragraph")
             subheading = subheading.length>0?subheading[0].value:""
@@ -532,16 +542,23 @@ const sync = async() => {
             handleSectionUpdate()
         }
         if(article_update) {
-            getElement('heading').value = article_update.heading
-            getElement('subheading').value = article_update.subheading
+            let heading = article_update.heading
+            let subheading = article_update.subheading
+            if(heading)
+                getElement('heading').value = heading
+            if(subheading)
+                getElement('subheading').value = subheading
             sessionStorage.removeItem('article-update')
         }
         section_update.forEach((data) => {
             let sectionID = data.sectionID
             let subheading = data.subheading
             let paragraph = data.paragraph
-            getElement(`${sectionID}-subheading`).defaultValue = subheading
-            getElement(`${sectionID}-subheading`+"-2").defaultValue = subheading
+            if(subheading)
+            {
+                getElement(`${sectionID}-subheading`).defaultValue = subheading
+                getElement(`${sectionID}-subheading`+"-2").defaultValue = subheading
+            }
             if(paragraph)
                 getElement(`${sectionID}-paragraph`).innerHTML = paragraph
             sessionStorage.removeItem(`${sectionID}-${articleID}-update`)
