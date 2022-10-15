@@ -34,36 +34,7 @@ jobs:
     - name: Create Environment
       run: |
         touch ${{ secrets.ENVPATH }}
-        echo "PROJECTKEY=${{ secrets.PROJECTKEY }}" >> ${{ secrets.ENVPATH }}
-        echo "PUBNAME=${{ secrets.PUBNAME }}" >> ${{ secrets.ENVPATH }}
-        echo "ENV=${{ secrets.ENV }}" >> ${{ secrets.ENVPATH }}
-        echo "HOSTS=${{ secrets.HOSTS }}" >> ${{ secrets.ENVPATH }}
-        echo "DB_NAME=${{ secrets.DBTESTNAME }}" >> ${{ secrets.ENVPATH }}
-        echo "DB_URL=${{ secrets.DBTESTLINK }}" >> ${{ secrets.ENVPATH }}
-        echo "DB_USERNAME=${{ secrets.DBTESTUSER }}" >> ${{ secrets.ENVPATH }}
-        echo "DB_PASSWORD=${{ secrets.DBTESTPASS }}" >> ${{ secrets.ENVPATH }}
-        echo "MAIL_USERNAME=${{ secrets.MAILUSER }}" >> ${{ secrets.ENVPATH }}
-        echo "MAIL_PASSWORD=${{ secrets.MAILPASS }}" >> ${{ secrets.ENVPATH }}
-        echo "BOTMAIL=${{ secrets.BOTMAIL }}" >> ${{ secrets.ENVPATH }}
-        echo "ADMINPATH=${{ secrets.ADMINPATH }}" >> ${{ secrets.ENVPATH }}
-        echo "GITHUBBOT_SECRET=${{ secrets.GITHUBBOTTOKEN }}" >> ${{ secrets.ENVPATH }}
-        echo "DISCORDBOT_SECRET=${{ secrets.DISCORDBOTTOKEN }}" >> ${{ secrets.ENVPATH }}
-        echo "SITE=${{ secrets.SITE }}" >> ${{ secrets.ENVPATH }}
-        echo "SENDER_SECRET=${{ secrets.SENDERTOKEN }}" >> ${{ secrets.ENVPATH }}
-        echo "MEDIA_URL=${{ secrets.MEDIA_URL }}" >> ${{ secrets.ENVPATH }}
-        echo "STATIC_URL=${{ secrets.STATIC_URL }}" >> ${{ secrets.ENVPATH }}
-        echo "STATIC_ROOT=${{ secrets.STATIC_ROOT }}" >> ${{ secrets.ENVPATH }}
-        echo "SERVER_EMAIL=${{ secrets.SERVER_EMAIL }}" >> ${{ secrets.ENVPATH }}
-        echo "GH_HOOK_SECRET=${{ secrets.GH_HOOK_SECRET }}" >> ${{ secrets.ENVPATH }}
-        echo "REDIS_LOCATION=${{ secrets.REDIS_LOCATION }}" >> ${{ secrets.ENVPATH }}
-        echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> ${{ secrets.ENVPATH }}
-        echo "RECAPTCHA_KEY=${{ secrets.RECAPTCHA_KEY }}" >> ${{ secrets.ENVPATH }}
-        echo "RECAPTCHA_SECRET=${{ secrets.RECAPTCHA_SECRET }}" >> ${{ secrets.ENVPATH }}
-        echo "VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}" >> ${{ secrets.ENVPATH }}
-        echo "VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}" >> ${{ secrets.ENVPATH }}
-        echo "VAPID_ADMIN_MAIL=${{ secrets.VAPID_ADMIN_MAIL }}" >> ${{ secrets.ENVPATH }}
-        echo "LOCALE_ABS_PATH=${{ secrets.LOCALE_ABS_PATH }}" >> ${{ secrets.ENVPATH }}
-        echo "CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}" >> ${{ secrets.ENVPATH }}
+        echo "${{ secrets.ENV_TEST }}" > ${{ secrets.ENVPATH }}
         cp ${{ secrets.ENVPATH }} ${{ secrets.ENVPATH }}.testing
     - name: Run migrations
       run: |
@@ -103,9 +74,8 @@ jobs:
         pip install -r requirements.txt
     - name: Setup environment
       run: |
-        rm -f ${{ secrets.ENVPATH }}
+        echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
         gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }}
-    - name: Run migrations
       run: |
         python3 manage.py makemigrations --noinput
         python3 manage.py migrate --noinput
@@ -137,6 +107,7 @@ jobs:
         git pull origin main --depth=100
     - name: Restart services
       run: |
+        echo "${{ secrets.ENV_TEST }}" > ${{ secrets.ENVPATH }}
         systemctl --user restart knotters.gunicorn.service
         systemctl --user restart knotters.cluster0
 #        systemctl --user restart knotters.cluster1
