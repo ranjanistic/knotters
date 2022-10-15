@@ -27,7 +27,6 @@ jobs:
     - name: Create Environment
       run: |
         echo "${{ secrets.ENV_TEST }}" > ${{ secrets.ENVPATH }}
-        touch ${{ secrets.ENVPATH }}
         cp ${{ secrets.ENVPATH }} ${{ secrets.ENVPATH }}.testing
     - name: Run migrations
       run: |
@@ -36,6 +35,4 @@ jobs:
     - name: Run tests
       run: |
         python3 manage.py test --noinput --verbosity=1 --parallel
-    - name: Clear environment
-      run: |
-        rm -f ${{ secrets.ENVPATH }}
+   

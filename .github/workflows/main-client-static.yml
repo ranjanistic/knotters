@@ -23,7 +23,6 @@ jobs:
         pip install -r requirements.txt
     - name: Create Environment
       run: |
-        touch ${{ secrets.ENVPATH }}
         echo "${{ secrets.ENV_TEST }}" > ${{ secrets.ENVPATH }}
         cp ${{ secrets.ENVPATH }} ${{ secrets.ENVPATH }}.testing
     - name: Run migrations
@@ -33,9 +32,6 @@ jobs:
     - name: Run tests
       run: |
         python3 manage.py test --noinput --verbosity=1 --parallel
-    - name: Clear environment
-      run: |
-        rm -f ${{ secrets.ENVPATH }}
 
   build:
     needs: [testing]
@@ -65,15 +61,11 @@ jobs:
     - name: Setup environment
       run: |
         echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
-        gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }}
     - name: Run migrations
       run: |
         python3 manage.py makemigrations --noinput
         python3 manage.py migrate --noinput
-    - name: Clear environment
-      run: |
-        rm -f ${{ secrets.ENVPATH }}
-
+   
   client_deploy:
     needs: [build]
     runs-on: [self-hosted,deployment,production]
@@ -89,7 +81,6 @@ jobs:
     - name: Setup environment
       run: |
         echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
-        gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }}
     - name: Release new version
       run: |
         ~/Env/knotters/bin/python3 genversion.py
@@ -97,8 +88,5 @@ jobs:
         ~/Env/knotters/bin/python3 manage.py preparestatics /var/www/knotters/errors/
     - name: Restart server
       run: |
-        echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
         systemctl --user restart knotters.gunicorn.service
-    - name: Clear environment
-      run: |
-        rm -f ${{ secrets.ENVPATH }}
+    

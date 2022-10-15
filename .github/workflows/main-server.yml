@@ -33,7 +33,6 @@ jobs:
         pip install -r requirements.txt
     - name: Create Environment
       run: |
-        touch ${{ secrets.ENVPATH }}
         echo "${{ secrets.ENV_TEST }}" > ${{ secrets.ENVPATH }}
         cp ${{ secrets.ENVPATH }} ${{ secrets.ENVPATH }}.testing
     - name: Run migrations
@@ -43,9 +42,6 @@ jobs:
     - name: Run tests
       run: |
         python3 manage.py test --noinput --verbosity=1 --parallel
-    - name: Clear environment
-      run: |
-        rm -f ${{ secrets.ENVPATH }}
 
   build:
     needs: [testing]
@@ -75,16 +71,12 @@ jobs:
     - name: Setup environment
       run: |
         echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
-        gpg --pinentry-mode loopback --passphrase "${{ secrets.KNOTTERSBOTGPG }}" -o ${{ secrets.ENVPATH }} -d ${{ secrets.ENVGPGPATH }}
       run: |
         python3 manage.py makemigrations --noinput
         python3 manage.py migrate --noinput
     - name: Synchronise notifications
       run: |
         python3 manage.py syncnotifications --noinput
-    - name: Clear environment
-      run: |
-        rm -f ${{ secrets.ENVPATH }}
 
   deploy:
     needs: [build]
@@ -105,12 +97,12 @@ jobs:
     - name: Merge changes
       run: |
         git pull origin main --depth=100
+    - name: Setup environment
+      run: |
+        echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
     - name: Restart services
       run: |
-        echo "${{ secrets.ENV_TEST }}" > ${{ secrets.ENVPATH }}
         systemctl --user restart knotters.gunicorn.service
         systemctl --user restart knotters.cluster0
 #        systemctl --user restart knotters.cluster1
-    - name: Clear environment
-      run: |
-        rm -f ${{ secrets.ENVPATH }}
+    
