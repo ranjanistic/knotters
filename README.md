@@ -28,6 +28,7 @@ _`python3` (python), `pip` (python package manager) - these cmdlets may vary dep
 
 For setting up mongodb first time locally, check [these steps](https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-18-04-source)
 
+
 For setting up redis first time locally, check [these steps](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04)
 
 For WSL users, commands like `systemctl` may not be present, therefore proceed accordingly. (E.g. use `service` command for `systemctl`)
@@ -193,6 +194,12 @@ git checkout -b <your-branch-name>
 git status
 ```
 
+Activate environment if not activated
+
+```bash
+source ~/Knotters/knottersenv/bin/activate
+```
+
 Then run the main server process (assuming port 8000 is free)
 
 ```bash
@@ -221,7 +228,7 @@ This should fix the issue for you.
 
 Make sure that [`main/.env.testing`](main/.env.testing) is set appropriately.
 
-**NOTE: BEFORE RUNNUNG TESTS, PLEASE REMOVE ALL REDIS RELATED VALUES FROM YOUR `.env.testing` FILE.**
+**NOTE: BEFORE RUNNING TESTS, PLEASE REMOVE ALL REDIS RELATED VALUES FROM YOUR `main/.env.testing` FILE.**
 
 ```bash
 python3 manage.py test

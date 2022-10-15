@@ -7,6 +7,7 @@ on:
       - '**.md'
       - '**/*.md'
       - '*.md'
+      - "LICENSE"
       - 'static/**'
       - '.gitignore'
       - ".github/**"

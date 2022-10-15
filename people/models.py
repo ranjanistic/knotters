@@ -2050,7 +2050,7 @@ class CoreContributor(models.Model):
             return self.about
         if self.profile and self.profile.getBio():
             return self.profile.getBio()
-        return "Contributed to Knotters"
+        return "Contributed to Knotters as a core contributor."
 
     @property
     def get_link(self) -> str:

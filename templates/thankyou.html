@@ -29,7 +29,7 @@
         <h3><span class="pallete-slab tertiary">{% trans "Core Contributors" %}</span></h3>
         <strong class="text-medium"><div class="pallete-slab tertiary">{% trans "Thank you for contributing and making what Knotters is today" %}</div></strong>
     </div>
-    <div class="w3-row">
+    <div class="w3-row w3-padding">
         {% for contributor in contributors %}
         <div class="w3-col w3-quarter w3-padding"> 
             <a href="{{contributor.get_link|or:URLS.PEOPLE}}" {% if contributor.get_link %}target="_blank" rel="noreferrer"
