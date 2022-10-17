@@ -45,7 +45,7 @@ djongo==1.3.6
 dnspython==2.2.1
 ecdsa==0.17.0
 environ==1.0
-fido2==0.9.2
+fido2==1.1.0
 frozenlist==1.3.0
 fuzzywuzzy==0.18.0
 google-api-core==2.7.2
