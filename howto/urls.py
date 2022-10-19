@@ -20,6 +20,5 @@ urlpatterns = [
     path(URL.Howto.TOGGLE_ADMIRATION, toggleAdmiration),
     path(URL.Howto.ADMIRATIONS, articleAdmirations),
     path(URL.Howto.BROWSE_SEARCH, browseSearch),
-    path(URL.Howto.RENDER_ARTICLE, renderArticle),
     path(URL.Howto.ARTICLE_BULK_UPDATE, bulkUpdateArticle)
 ]

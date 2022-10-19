@@ -6,6 +6,8 @@
 {% load cache %}
 {% load custom_tags %}
 
+{% block nav_href %}{{ URLS.HOWTO }}{% endblock %}
+
 {% block content %}
 {% if self and article.isEditable %}
 <div id="edit-article">
@@ -14,10 +16,10 @@
             <div id="article-head">
                 <div class="article-edit" id="article-head-edit">
                     <div class="w3-row w3-padding-small">
-                        <textarea class="article-edit wide heading-input" id="heading" name="heading" placeholder="Heading">{{ article.heading }}</textarea>
+                        <textarea maxlength='75' class="article-edit wide heading-input" id="heading" name="heading" placeholder="Heading">{{ article.heading }}</textarea>
                     </div>
                     <div class="w3-row w3-padding-small">
-                        <textarea class="article-edit wide text-medium" rows='5' name="subheading" id="subheading" placeholder="Subheading">{{ article.subheading }}</textarea>
+                        <textarea maxlength='250' class="article-edit wide text-medium" rows='5' name="subheading" id="subheading" placeholder="Subheading">{{ article.subheading }}</textarea>
                     </div>
                 </div>
             </div>
@@ -129,17 +131,17 @@
                 <div class="w3-row align w3-padding">
                     {% if article.is_draft%}
                         <button id="publishArticle" class="accent w3-large w3-animate-zoom">
-                            Publish Article
+                            Publish
                         </button>
                     {% endif %}
-                    <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete Article</button> 
+                    <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete</button> 
                 </div>
                 <div id="sidenav-edit">
                     {% for section in sections %}
                         <div class="w3-row w3-margin-bottom section-content" sectionid="{{ section.id }}">
                             <div class="w3-col s10 m10 l10">
                                 <div class="section-edit" sectionid="{{ section.id }}">
-                                    <input id="{{ section.id }}-subheading" type="text" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="{{section.subheading}}"/>
+                                    <input maxlength='75' id="{{ section.id }}-subheading" type="text" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="{{section.subheading}}"/>
                                 </div>
                             </div>
                             <div class="w3-col s2 m2 l2">
@@ -152,13 +154,13 @@
         </div>
         <div class="w3-row section-body">
             <div class="sidenav w3-hide-small tertiary w3-center w3-padding text-medium">
-                <div class="w3-row w3-padding">
+                <div class="w3-row align">
                     {% if article.is_draft %}
                         <button id="publishArticle" class="accent w3-large w3-animate-zoom">
-                            Publish Article
+                            Publish
                         </button>
                     {% endif %}
-                    <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete Article</button> 
+                    <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete</button> 
                 </div>
                 <br />
                 <div id="sidenav2-edit">
@@ -166,7 +168,7 @@
                     <div class="w3-row w3-margin-bottom section-content" sectionid="{{ section.id }}">
                         <div class="w3-col s10 m10 l10">
                             <div class="section-edit section-elements" sectionid="{{ section.id }}" hasImage="{%if section.image %}true{% else %}false{% endif %}" hasVideo="{%if section.video %}true{% else %}false{% endif %}">
-                                <input type="text" id="{{ section.id }}-subheading-2" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="{{section.subheading}}"/>
+                                <input maxlength='75' type="text" id="{{ section.id }}-subheading-2" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="{{section.subheading}}"/>
                             </div>
                         </div>
                         <div class="w3-col s2 m2 l2">
@@ -184,7 +186,7 @@
                             <div class="w3-row w3-padding section-content" sectionid="{{ section.id }}">
                                 {% if section.paragraph %}
                                 <div class="section-edit" sectionid="{{ section.id }}">
-                                    <textarea id="{{ section.id }}-paragraph" class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph">{{ section.paragraph }}</textarea>
+                                    <textarea maxlength='500' id="{{ section.id }}-paragraph" class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph">{{ section.paragraph }}</textarea>
                                 </div>
                                 {% endif %}
                                 {% if section.image %}
@@ -219,13 +221,13 @@
                     </div>
                     <div class="w3-row">
                         <div class="w3-center">
-                            <button id="add-paragraph" class="small w3-padding w3-margin" data-icon="add">
+                            <button id="add-paragraph" class="primary small w3-padding w3-margin border-joy" data-icon="add">
                                 Add Paragraph
                             </button>
-                            <button id="add-image" class="small w3-padding w3-margin" data-icon="add">
+                            <button id="add-image" class="primary small w3-padding w3-margin border-joy" data-icon="add">
                                 Add Image
                             </button>
-                            <button id="add-video" class="small w3-padding w3-margin" data-icon="add">
+                            <button id="add-video" class="primary small w3-padding w3-margin border-joy" data-icon="add">
                                 Add Video
                             </button>
                         </div>

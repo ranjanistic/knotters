@@ -6,7 +6,14 @@
 {% load cache %}
 {% load custom_tags %}
 
+{% block nav_href %}{{ URLS.HOWTO }}{% endblock %}
+
 {% block content %}
+{% if article.is_draft %}
+<div class="w3-row accent w3-padding w3-center">
+    <strong class="">This is a preview which is visible to you only. The article is not published yet.</strong>
+</div>
+{% endif %}
 <div id="view-article">
     <div class="w3-row">
         <div class="w3-col m8 l8">
@@ -20,8 +27,8 @@
             </div>
             <br />
             <div class="w3-row">
-                <div class="w3-col m3 l3 w3-padding"><span class="dead-text">{{article.modifiedOn}}</span></div>
-                <div class="w3-col m7 l7 w3-padding">
+                <div class="w3-col m5 l3 w3-padding"><span class="dead-text">{{article.modifiedOn}}</span></div>
+                <div class="w3-col m7 l9 w3-padding">
                     <div id="view-articletags">
                         {% for tag in article.tags.all %}
                         <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
@@ -29,6 +36,16 @@
                             <strong class="dead-text">{% trans "No tags assigned" %}</strong>
                         {% endfor %}
                         {% if self %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
+                        {% if request.user.is_authenticated %}
+                            <form class="admire" method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
+                                {% csrf_token %}
+                                <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
+                                <button type="submit" class="{% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration" ></button>
+                            </form>
+                            {% else %}
+                            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="primary" data-icon="volunteer_activism"></button></a>
+                            {% endif %}
+                            <a id="show-admirations"><strong>{{ article.total_admirers }}&nbsp;admirer{{ article.total_admirers|pluralize }}</strong></a>
                     </div>
                     {% if self %}
                     <div id="edit-articletags">
@@ -51,18 +68,6 @@
                     </div>
                     {% endif %}
                 </div>
-                <div class="w3-col l2 m2 w3-padding" >
-                    {% if request.user.is_authenticated %}
-                    <form method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
-                        {% csrf_token %}
-                        <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
-                        <button type="submit" class="{% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration" ></button>
-                    </form>
-                    {% else %}
-                    <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="primary" data-icon="volunteer_activism"></button></a>
-                    {% endif %}
-                    <a id="show-admirations"><strong>{{ article.total_admirers }}&nbsp;admirer{{ article.total_admirers|pluralize }}</strong></a>
-                </div> 
             </div>
         </div>
         <div class="w3-col m4 l4 w3-right">

@@ -1,3 +1,4 @@
+from re import sub
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from howto.models import Article, Section, ArticleTopic, ArticleTag, ArticleUserRating
@@ -19,17 +20,18 @@ from django.db.models.query_utils import Q
 from people.methods import addTopicToDatabase
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
-from django.core import serializers
-from howto.mailers import articleAdmired, articleCreated , articlePublish , articleDelete
-from django.db.models import Q
+from howto.mailers import articleAdmired, articleCreated , articlePublished , articleDeleted
 
-def index(request):
-    # articles=Section.objects.filter(article__is_draft=False)
-
-    articles=Article.objects.filter(is_draft=False)
+def index(request: WSGIRequest):
+    cacheKey = "howto_index_page"
+    articles = cache.get(cacheKey, [])
+    count = len(articles)
+    if not count:
+        articles=Article.objects.filter(is_draft=False)
+        count = len(articles)
+    if count:
+        cache.set(cacheKey, articles, settings.CACHE_INSTANT)
     return renderer(request, Template.Howto.INDEX, dict(articles=articles))
-
-    
 
 
 @normal_profile_required
@@ -46,7 +48,7 @@ def createArticle(request: WSGIRequest):
         HttpResponseRedirect: The redirect to the article page if created successfully, else 404.
     """
     try:
-        if Article().canCreateArticle(request.user.profile):
+        if request.user.profile.canCreateArticle():
             article: Article = Article.objects.create(author=request.user.profile)
             articleCreated(request, article)
             return redirect(article.getEditLink(success=Message.ARTICLE_CREATED))
@@ -74,20 +76,35 @@ def saveArticle(request: WSGIRequest, nickname: str):
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        heading = str(request.POST["heading"]).strip()
-        subheading = str(request.POST["subheading"]).strip()
-        done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
+        heading = str(request.POST["heading"]).strip()[:75]
+        subheading = str(request.POST["subheading"]).strip()[:250]
+
+        if heading and subheading:
+            done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading, subheading=subheading)
+        elif not subheading:
+            done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(heading=heading)
+        elif not heading:
+            done = Article.objects.filter(nickname=nickname, author=request.user.profile).update(subheading=subheading)
+        else:
+            raise ValidationError(heading, subheading)
+        
         if not done:
-            raise Exception(done)
+            raise ValidationError(done)
+        cache.delete(f"article_{nickname}")
         if json_body:
             return respondJson(Code.OK, success=Message.ARTICLE_UPDATED)
         return respondRedirect(APPNAME, path=URL.howto.view(nickname),success=Message.ARTICLE_UPDATED)
+    except (KeyError, ValidationError) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
 
 
-@normal_profile_required 
 def view(request: WSGIRequest, nickname: str):
     """To view an article.
 
@@ -110,9 +127,9 @@ def view(request: WSGIRequest, nickname: str):
     except Exception as e:
         errorLog(e)
         raise Http404(e)
-    
-        
-    
+            
+
+@normal_profile_required
 def editArticle(request: WSGIRequest, nickname: str):
     """To render edit article page.
 
@@ -127,11 +144,13 @@ def editArticle(request: WSGIRequest, nickname: str):
     """
     try:
         data = articleRenderData(request, nickname)
-        if not data:
+        if not data or not data.get('article', None):
             raise ObjectDoesNotExist(data)
+        if not data['article'].isEditable() or request.user.profile!=data['article'].author:
+            return redirect(data['article'].getLink())
         return renderer(request, Template.Howto.ARTICLE_EDIT, data)
-    except ObjectDoesNotExist:
-        return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
+    except ObjectDoesNotExist as o:
+        raise Http404(o)
     except Exception as e:
         errorLog(e)
         raise Http404(e)
@@ -141,17 +160,24 @@ def editArticle(request: WSGIRequest, nickname: str):
 @normal_profile_required   
 def publish(request: WSGIRequest, articleID:UUID):
     """To publish the article
-    TODO: Add redis entry for 7 days which will be used to check editability of the article
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object
+        articleID (UUID): The id of the article
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK and article's nickname, otherwise main.strings.Code.NO
     """
     try:
         article:Article = Article.objects.get(id=articleID, author=request.user.profile)
-        articlePublish(request, article)
         if not article.heading or not article.subheading:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        articlePublish(request, article)
         article.is_draft=False
         article.modifiedOn = timezone.now()
-        nickname = article.get_nickname        
+        nickname = article.get_nickname
+        cache.set(f"article_editable_{articleID}", True, 70*settings.CACHE_MAX)        
+        articlePublished(request, article)
         return respondJson(Code.OK, dict(nickname=nickname))
     except ObjectDoesNotExist:
         return respondJson(Code.NO, error=Message.ARTICLE_NOT_FOUND)
@@ -444,8 +470,13 @@ def deleteArticle(request, articleID):
         json_body = request.POST.get(Code.JSON_BODY, False)
         confirm = request.POST.get('confirm', False)
         if confirm:
-            Article.objects.get(id=articleID, author=request.user.profile).delete()
-            # articleDelete(request, article)
+            article: Article = Article.objects.get(id=articleID, author=request.user.profile)
+            deleted = article.delete()[0]
+            if not deleted:
+                raise ValidationError(deleted)
+            cache.delete(f"article_{article.nickname}")
+            cache.delete(f"article_sections_{articleID}")
+            articleDeleted(request, article)
             if json_body:
                 return respondJson(Code.OK)
             return respondRedirect(APPNAME, success=Message.ARTICLE_DELETED)
@@ -487,13 +518,13 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
     try:
         article: Article = Article.objects.get(id=articleID, author=request.user.profile)
         if action == Action.CREATE:
-            subheading = request.POST.get('subheading', "Untitled Section")
-            paragraph = request.POST.get('paragraph', "")
+            subheading = request.POST.get('subheading', "Untitled Section")[:75]
+            paragraph = request.POST.get('paragraph', "")[:500]
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
 
             if not (paragraph or image or video):
-                return redirect(article.getLink(error=Message.INVALID_REQUEST))
+                raise ValidationError(article)
 
             try:
                 imagefile = base64ToImageFile(image)
@@ -511,6 +542,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
                 image=imagefile,
                 video=videofile
             )
+            cache.delete(f"article_sections_{article.id}")
             if json_body:
                 return respondJson(Code.OK, dict(sectionID=section.id))
             return redirect(article.getLink(success=Message.SECTION_CREATED))
@@ -519,13 +551,13 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
         section: Section = Section.objects.get(id=id, article=article)
 
         if action == Action.UPDATE:
-            subheading = request.POST.get('subheading', "")
-            paragraph = request.POST.get('paragraph', "")
+            subheading = request.POST.get('subheading', "")[:75]
+            paragraph = request.POST.get('paragraph', "")[:500]
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
 
             if not (subheading or paragraph or image or video):
-                return redirect(article.getLink(error=Message.INVALID_REQUEST))
+                raise ValidationError(section)
                 
             changed = False
             if subheading and section.subheading != subheading:
@@ -537,6 +569,8 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
             if image or video:
                 try:
                     newimgfile = base64ToImageFile(image)
+                    if section.image == section.article.preview_image:
+                        section.article.preview_image = None
                     section.image.delete(save=False)
                     section.image = newimgfile
                     changed = True
@@ -545,12 +579,15 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
 
                 try:
                     newvidfile = base64ToFile(video)
+                    if section.image == section.article.preview_video:
+                        section.article.preview_video = None
                     section.video.delete(save=False)
                     section.video = newvidfile
                     changed = True
                 except:
                     newvidfile = None
             if changed:
+                cache.delete(f"article_sections_{article.id}")
                 section.save()
             if json_body:
                 return respondJson(Code.OK, message=Message.SECTION_UPDATED)
@@ -560,6 +597,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
             done = section.delete()[0] >= 1
             if not done:
                 raise ObjectDoesNotExist(section)
+            cache.delete(f"article_sections_{article.id}")
             if json_body:
                 return respondJson(Code.OK, message=Message.SECTION_DELETED)
             return redirect(article.getLink(success=Message.SECTION_DELETED))
@@ -574,9 +612,9 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
     except Exception as e:
         errorLog(e)
         if json_body:
-            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         if article:
-            return redirect(article.getLink(error=Message.INVALID_REQUEST))
+            return redirect(article.getLink(error=Message.ERROR_OCCURRED))
         raise Http404(e)
 
 
@@ -609,7 +647,7 @@ def submitArticleRating(request: WSGIRequest, articleID: UUID) -> JsonResponse:
         else:
             raise ValidationError(action)
         return respondJson(Code.OK)
-    except (ObjectDoesNotExist, ValidationError):
+    except (ObjectDoesNotExist, ValidationError, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)
@@ -809,27 +847,11 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
     
-
-def renderArticle(request: WSGIRequest, nickname: str):
-    """
-    """
-    try:
-        data = articleRenderData(request, nickname)
-        if not data:
-            raise ObjectDoesNotExist(data)
-        serialized_sections = serializers.serialize('python', data['sections'])
-        return respondJson(Code.OK, dict(sections = serialized_sections))
-    except ObjectDoesNotExist:
-        return respondRedirect(APPNAME, error=Message.ARTICLE_NOT_FOUND)
-    except Exception as e:
-        errorLog(e)
-        raise Http404(e)
-
-
+    
 @require_JSON
 def bulkUpdateArticle(request: WSGIRequest, articleID: str):
     """
-    To bulk upadate article's sections
+    To bulk update article's sections
     """
     try:
         article:Article = Article.objects.get(id=articleID, author=request.user.profile)
@@ -838,9 +860,17 @@ def bulkUpdateArticle(request: WSGIRequest, articleID: str):
         section_update = request.POST['section_update']
         
         if article_update:
-            article.heading = article_update['heading']
-            article.subheading = article_update['subheading']
-            article.save()
+            updated = False
+            heading = article_update['heading']
+            subheading = article_update['subheading']
+            if heading:
+                article.heading = heading
+                updated = True
+            if subheading:
+                article.subheading = subheading
+                updated = True
+            if updated:
+                article.save()
 
         section = None
         if section_create_paragraph:
@@ -848,10 +878,12 @@ def bulkUpdateArticle(request: WSGIRequest, articleID: str):
 
         if len(section_update)>0:
             for data in section_update:
-                if data['paragraph']:
-                    done = Section.objects.filter(id=data['sectionID'], article=article).update(subheading=data['subheading'], paragraph=data['paragraph'])
+                subheading = data['subheading'] if data['subheading'] else 'Untitled Section'
+                paragraph = data['paragraph']
+                if paragraph:
+                    done = Section.objects.filter(id=data['sectionID'], article=article).update(subheading=subheading, paragraph=paragraph)
                 else:
-                    done = Section.objects.filter(id=data['sectionID'],article=article).update(subheading=section_update[0]['subheading'])
+                    done = Section.objects.filter(id=data['sectionID'], article=article).update(subheading=subheading)
                 if not done:
                     raise Exception
             

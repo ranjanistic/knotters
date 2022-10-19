@@ -113,6 +113,9 @@ class Code():
     RESOLVED = "resolved"
     UNRESOLVED = "unresolved"
 
+    PUBLISHED = 'published'
+    DRAFTED = 'drafted'
+
     SETTING = "setting"
     INVALID_DIVISION = "INVALID_DIVISION"
     SWASSETS = 'swassets'
@@ -449,6 +452,7 @@ class Profile():
     OVERVIEW = "overview"
     PROJECTS = "projects"
     ACHEIVEMENTS = "acheivements"
+    ARTICLES = "articles"
     FRAMEWORKS = "frameworks"
     CONTRIBUTION = "contribution"
     ACTIVITY = "activity"
@@ -1388,12 +1392,18 @@ class URL():
 
         SEARCH_TOPICS = 's/<str:articleID>/topics'
 
+        def searchTopics(self, articleID: str):
+            return setPathParams(self.SEARCH_TOPICS, articleID)
+
         EDIT_TOPICS = 'e/<str:articleID>/topics'
 
         def editTopics(self, articleID: str):
             return setPathParams(self.EDIT_TOPICS, articleID)
 
         SEARCH_TAGS = 's/<str:articleID>/tags'
+
+        def searchTags(self, articleID: str):
+            return setPathParams(self.SEARCH_TAGS, articleID)
 
         EDIT_TAGS = 'e/<str:articleID>/tags'
 
@@ -1421,11 +1431,6 @@ class URL():
             return setPathParams(self.ADMIRATIONS, articleID)
 
         BROWSE_SEARCH = 'browse/search/'
-
-        RENDER_ARTICLE = 'render/article/<str:nickname>'
-
-        def render_article(self, articleID: str):
-            return setPathParams(self.RENDER_ARTICLE, articleID)
 
         ARTICLE_BULK_UPDATE = 'update/article/<str:articleID>'
         

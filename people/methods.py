@@ -20,7 +20,7 @@ from main.strings import profile as profileString
 from moderation.models import Moderation
 from projects.models import BaseProject, Project
 from requests import get as getRequest
-
+from howto.models import Article
 from .apps import APPNAME
 from .models import (Framework, Profile, ProfileSetting, Topic, User,
                      defaultImagePath, isPictureDeletable)
@@ -142,7 +142,7 @@ def addTopicToDatabase(topic: str, creator: Profile = None, tags: list = []) -> 
     return topicObj
 
 
-PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS, profileString.FRAMEWORKS,
+PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS, profileString.FRAMEWORKS, profileString.ARTICLES, 
                     profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,
                     profileString.ACHEIVEMENTS, profileString.COMPETITIONS, profileString.MENTORSHIP, profileString.PEOPLE]
 
@@ -265,6 +265,16 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             data[Code.RESULTS] = results
             data[Code.JUDGEMENTS] = judements
             data[Code.MODERATIONS] = moderations
+        elif section == profileString.ARTICLES:
+            articles = cache.get(cachekey, [])
+            if not len(articles):
+                articles = Article.objects.filter(author=profile).order_by("-createdOn").distinct()
+                cache.set(cachekey, articles, settings.CACHE_INSTANT)
+            data[Code.PUBLISHED] = list(
+                    filter(lambda p: not p.is_draft, articles))
+            if selfprofile:
+                data[Code.DRAFTED] = list(
+                    filter(lambda p: p.is_draft, articles))
         elif section == profileString.FRAMEWORKS:
             frameworks = cache.get(cachekey, [])
             if not len(frameworks):
