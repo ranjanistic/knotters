@@ -20,15 +20,18 @@ from django.db.models.query_utils import Q
 from people.methods import addTopicToDatabase
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from .apps import APPNAME
-from django.core import serializers
 from howto.mailers import articleAdmired, articleCreated , articlePublished , articleDeleted
 
 def index(request: WSGIRequest):
-    articles=Article.objects.filter(is_draft=False)
-    canCreate = False
-    if request.user.is_authenticated:
-        canCreate = Article.canCreateArticle(request.user.profile)
-    return renderer(request, Template.Howto.INDEX, dict(articles=articles, canCreate=canCreate))
+    cacheKey = "howto_index_page"
+    articles = cache.get(cacheKey, [])
+    count = len(articles)
+    if not count:
+        articles=Article.objects.filter(is_draft=False)
+        count = len(articles)
+    if count:
+        cache.set(cacheKey, articles, settings.CACHE_INSTANT)
+    return renderer(request, Template.Howto.INDEX, dict(articles=articles))
 
 
 @normal_profile_required
@@ -45,7 +48,7 @@ def createArticle(request: WSGIRequest):
         HttpResponseRedirect: The redirect to the article page if created successfully, else 404.
     """
     try:
-        if Article.canCreateArticle(request.user.profile):
+        if request.user.profile.canCreateArticle():
             article: Article = Article.objects.create(author=request.user.profile)
             articleCreated(request, article)
             return redirect(article.getEditLink(success=Message.ARTICLE_CREATED))
@@ -87,6 +90,7 @@ def saveArticle(request: WSGIRequest, nickname: str):
         
         if not done:
             raise ValidationError(done)
+        cache.delete(f"article_{nickname}")
         if json_body:
             return respondJson(Code.OK, success=Message.ARTICLE_UPDATED)
         return respondRedirect(APPNAME, path=URL.howto.view(nickname),success=Message.ARTICLE_UPDATED)
@@ -467,7 +471,11 @@ def deleteArticle(request, articleID):
         confirm = request.POST.get('confirm', False)
         if confirm:
             article: Article = Article.objects.get(id=articleID, author=request.user.profile)
-            article.delete()
+            deleted = article.delete()[0]
+            if not deleted:
+                raise ValidationError(deleted)
+            cache.delete(f"article_{article.nickname}")
+            cache.delete(f"article_sections_{articleID}")
             articleDeleted(request, article)
             if json_body:
                 return respondJson(Code.OK)
@@ -534,6 +542,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
                 image=imagefile,
                 video=videofile
             )
+            cache.delete(f"article_sections_{article.id}")
             if json_body:
                 return respondJson(Code.OK, dict(sectionID=section.id))
             return redirect(article.getLink(success=Message.SECTION_CREATED))
@@ -578,6 +587,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
                 except:
                     newvidfile = None
             if changed:
+                cache.delete(f"article_sections_{article.id}")
                 section.save()
             if json_body:
                 return respondJson(Code.OK, message=Message.SECTION_UPDATED)
@@ -587,6 +597,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
             done = section.delete()[0] >= 1
             if not done:
                 raise ObjectDoesNotExist(section)
+            cache.delete(f"article_sections_{article.id}")
             if json_body:
                 return respondJson(Code.OK, message=Message.SECTION_DELETED)
             return redirect(article.getLink(success=Message.SECTION_DELETED))

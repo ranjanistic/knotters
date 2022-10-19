@@ -1,6 +1,6 @@
 from django.core.handlers.wsgi import WSGIRequest
 from howto.models import Article, Section
-from main.methods import renderView, renderString
+from main.methods import errorLog, renderView, renderString
 from howto.apps import APPNAME
 from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import HttpResponse
@@ -39,12 +39,15 @@ def articleRenderData(request:WSGIRequest, nickname: str):
     Returns context data to render article page
     """
     try:
-        article: Article = Article.objects.get(nickname=nickname)
+
+        article: Article = Article.get_cache_one(nickname)
+        if not article:
+            raise ObjectDoesNotExist(article)
         authenticated = request.user.is_authenticated
         self: bool = authenticated and request.user.profile == article.author
         if not self and article.is_draft:
             return False
-        sections = Section.objects.filter(article=article)
+        sections = article.getSections()
         isAdmirer = request.user.is_authenticated and article.isAdmirer(
             request.user.profile)
         isRater = False if not request.user.is_authenticated else article.is_rated_by(

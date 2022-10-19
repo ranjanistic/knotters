@@ -43,6 +43,20 @@ class Article(models.Model):
         super(Article, self).save(*args, **kwargs)
     
     @property
+    def CACHE_KEYS(self):
+        class CKEYS():
+            article_sections = f"article_sections_{self.id}"
+            article_admireres = f"article_admirers_{self.id}"
+            total_admirers = f"article_total_admirers_{self.id}"
+            article_totalratings = f"article_totalratings_{self.id}"
+            article_avgratings = f"article_avgratings_{self.id}"
+            article_topics = f"article_topics_{self.id}"
+            article_tags = f"article_tags_{self.id}"
+            article_topics_count = f"article_topics_count_{self.id}"
+            article_tags_count = f"article_tags_count_{self.id}"
+        return CKEYS()
+
+    @property
     def get_id(self) -> str:
         return self.id.hex
     
@@ -67,6 +81,29 @@ class Article(models.Model):
             self.save()
         return self.nickname
 
+    @classmethod
+    def get_cache_one(self, nickname) -> "Article":
+        """Returns article instance matching nickname preferably from cache. Returns false if no matching article is found"""
+        cacheKey = f"article_{nickname}"
+        article = cache.get(cacheKey, None)
+        if not article:
+            article: Article = Article.objects.filter(nickname=nickname).first()
+            if not article:
+                return False
+            if article.is_draft:
+                return article 
+            cache.set(cacheKey, article, settings.CACHE_LONG)
+        return article
+
+    def getSections(self) -> models.QuerySet:
+        """Returns the sections of this article"""
+        cacheKey = self.CACHE_KEYS.article_sections
+        sections = cache.get(cacheKey, [])
+        if not len(sections):
+            sections = self.sections.all()
+            cache.set(cacheKey, sections, settings.CACHE_LONG)
+        return sections
+
     def get_link(self) -> str:
         """Returns the link to the article"""
         return self.getLink()
@@ -82,7 +119,7 @@ class Article(models.Model):
     def get_admirers(self) -> models.QuerySet:
         """Returns the admirers of this article
         """
-        cacheKey = f"article_admirers_{self.id}"
+        cacheKey = self.CACHE_KEYS.article_admireres
         admirers = cache.get(cacheKey, [])
         if not len(admirers):
             admirers = self.admirers.all()
@@ -95,7 +132,7 @@ class Article(models.Model):
     
     def total_admirers(self) -> int:
         """Returns the total number of admirers of the article"""
-        cacheKey = f"article_total_admirers_{self.id}"
+        cacheKey = self.CACHE_KEYS.total_admirers
         count = cache.get(cacheKey, None)
         if not count:
             count = self.admirers.count()
@@ -103,7 +140,12 @@ class Article(models.Model):
         return count
 
     def getTopics(self) -> list:
-        return self.topics.all()
+        cacheKey = self.CACHE_KEYS.article_topics
+        topics = cache.get(cacheKey, None)
+        if not topics:
+            topics = self.topics.all()
+            cache.set(cacheKey, topics, settings.CACHE_INSTANT)
+        return topics
     
     def getPalleteTopics(self, limit: int = 2) -> models.QuerySet:
         """Returns the topics of the article to be used in the pallete
@@ -114,10 +156,15 @@ class Article(models.Model):
         Returns:
             models.QuerySet<Topic>: The topic instances of the article to be used in the pallete
         """
-        return self.topics.filter()[:limit]
+        return self.getTopics()[:limit]
     
     def getTags(self) -> list:
-        return self.tags.all()
+        cacheKey = self.CACHE_KEYS.article_tags
+        tags = cache.get(cacheKey, None)
+        if not tags:
+            tags = self.tags.all()
+            cache.set(cacheKey, tags, settings.CACHE_INSTANT)
+        return tags
     
     def getPalleteTags(self, limit: int = 2) -> models.QuerySet:
         """Returns the tags of the article to be used in the pallete
@@ -128,12 +175,7 @@ class Article(models.Model):
         Returns:
             models.QuerySet<Tag>: The tag instances of the article to be used in the pallete
         """
-        return self.tags.filter()[:limit]
-    
-    @classmethod
-    def canCreateArticle(self, profile: Profile) -> bool:
-        """Returns whether given profile can create article or not"""
-        return profile.is_manager() or Profile.KNOTBOT().management() and Profile.KNOTBOT().management().has_member(profile)
+        return self.getTags()[:limit]
     
     def isEditable(self) -> bool:
         """Returns whether the article can be edited or not"""
@@ -141,7 +183,12 @@ class Article(models.Model):
     
     def total_ratings(self):
         """Returns the total numbers of Rating of the article"""
-        return ArticleUserRating.objects.filter(article=self).count()
+        cacheKey = self.CACHE_KEYS.article_totalratings
+        total_ratings = cache.get(cacheKey, None)
+        if total_ratings is None:
+            total_ratings = ArticleUserRating.objects.filter(article=self).count()
+            cache.set(cacheKey, total_ratings, settings.CACHE_INSTANT)
+        return total_ratings
     
     def get_rating_out_of_ten(self):
         """Returns the Rating out of 10 of the article"""
@@ -154,7 +201,7 @@ class Article(models.Model):
     
     def get_avg_rating(self):
         """Returns the average Rating of the article"""
-        cacheKey = f"article_avgratings_{self.id}"
+        cacheKey = self.CACHE_KEYS.article_avgratings
         avgrating = cache.get(cacheKey, None)
         if not avgrating:
             rating_list=ArticleUserRating.objects.filter(article=self)
@@ -189,11 +236,21 @@ class Article(models.Model):
     
     def totalTopics(self) -> int:
         """Returns the total number of topics of the article"""
-        return self.topics.count()
+        cacheKey = self.CACHE_KEYS.article_topics_count
+        count = cache.get(cacheKey, None)
+        if count is None:
+            count = self.topics.count()
+            cache.set(cacheKey, count, settings.CACHE_INSTANT)
+        return count
     
     def totalTags(self) -> int:
         """Returns the total number of tags of the article"""
-        return self.tags.count()
+        cacheKey = self.CACHE_KEYS.article_tags_count
+        count = cache.get(cacheKey, None)
+        if count is None:
+            count = self.tags.count()
+            cache.set(cacheKey, count, settings.CACHE_INSTANT)
+        return count
 
 
 def sectionMediaPath(instance, filename):

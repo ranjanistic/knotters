@@ -546,6 +546,10 @@ class Profile(models.Model):
             cache.set(cacheKey, exists,
                       settings.CACHE_MAX if exists else settings.CACHE_SHORT)
         return exists
+    
+    def canCreateArticle(self) -> bool:
+        """Returns True if profile can create article"""
+        return self.is_manager() or Profile.KNOTBOT().management() and Profile.KNOTBOT().management().has_member(self)
 
     def phone_number(self) -> "PhoneNumber":
         """Returns the primary & verified phone number instance of the user.

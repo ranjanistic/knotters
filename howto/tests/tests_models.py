@@ -64,9 +64,6 @@ class ArticleAttributeTest(TestCase):
     @tag('article_methods')
     def test_article_methods(self):
         self.assertEqual(self.article.__str__(), self.article.nickname if self.article.nickname else self.article.id)
-
-        self.assertFalse(Article.canCreateArticle(self.profile))
-        self.assertTrue(Article.canCreateArticle(self.management_profile))
         
         self.article.admirers.add(self.profile)
         self.assertTrue(self.article.isAdmirer(self.profile))

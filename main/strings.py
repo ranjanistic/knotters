@@ -113,6 +113,9 @@ class Code():
     RESOLVED = "resolved"
     UNRESOLVED = "unresolved"
 
+    PUBLISHED = 'published'
+    DRAFTED = 'drafted'
+
     SETTING = "setting"
     INVALID_DIVISION = "INVALID_DIVISION"
     SWASSETS = 'swassets'
@@ -449,6 +452,7 @@ class Profile():
     OVERVIEW = "overview"
     PROJECTS = "projects"
     ACHEIVEMENTS = "acheivements"
+    ARTICLES = "articles"
     FRAMEWORKS = "frameworks"
     CONTRIBUTION = "contribution"
     ACTIVITY = "activity"

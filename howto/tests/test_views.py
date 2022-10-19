@@ -48,7 +48,7 @@ class TestViews(TestCase):
         self.assertTemplateUsed(resp, template.index)
         self.assertTemplateUsed(resp, template.howto.index)
 
-
+    @tag('createArticle')
     def test_createArticle(self):
         client = Client()
         resp = client.get(path=root(url.howto.CREATE))

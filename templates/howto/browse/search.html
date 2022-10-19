@@ -16,9 +16,9 @@
                 <div class="pallete w3-center no-pad">
                     <a href="{{article.get_link}}">
                         {% if article.getVideo %}
-                            <video class="primary pallete no-pad wide" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
+                            <video class="primary pallete no-pad search-media" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
                         {% else %}
-                            <img class="primary pallete no-pad wide" src="{{ article.getImage }}">
+                            <img class="primary pallete no-pad search-media" src="{{ article.getImage }}">
                         {% endif %}
                     </a>
                     <div class="w3-row">
@@ -63,9 +63,9 @@
                 <div class="pallete pallete_i w3-center no-pad">
                     <a href="{{article.get_link}}">
                         {% if article.getVideo %}
-                            <video class="primary pallete no-pad wide" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
+                            <video class="primary pallete no-pad search-media" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
                         {% else %}
-                            <img class="primary pallete no-pad wide" src="{{ article.getImage }}">
+                            <img class="primary pallete no-pad search-media" src="{{ article.getImage }}">
                         {% endif %}
                     </a>
                     <div class="w3-row">

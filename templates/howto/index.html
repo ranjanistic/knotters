@@ -32,7 +32,7 @@
 {% block nav_text %}{% endblock %}
 
 {% block nav_extra_links %}
-    {% if canCreate %}
+    {% if request.user.is_authenticated and request.user.profile.canCreateArticle %}
     <a href="{{URLS.CREATE}}"><button title="{% trans "New Article" %}" class="positive" data-icon="add"><span class="w3-hide-small">{% trans "New Article" %}</span></button></a>
     {% endif %}
 {% endblock %}
@@ -56,13 +56,13 @@
     </div>
     <div class="w3-row">
         {% for article in articles %}
-        <div class="w3-col w3-quarter w3-padding"> 
+        <div class="w3-col m4 l3 w3-padding"> 
             <a href="{{article.get_link}}">
                 <div class="pallete no-pad">
                     {% if article.getVideo %}
-                        <video class="primary pallete no-pad wide" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
+                        <video class="pallete pallete-media no-pad" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
                     {% else %}
-                        <img class="primary pallete no-pad wide" src="{{ article.getImage }}">
+                        <img class="pallete pallete-media no-pad" src="{{ article.getImage }}">
                     {% endif %}
                     <div class="w3-row">
                         <div class="w3-padding">

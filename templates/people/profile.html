@@ -282,7 +282,12 @@
             <button title="Competitions" id="competitions" class="nav-tab" data-icon="psychology"><span class="w3-hide-small w3-hide-medium">{% trans "Competitions" %}</span></button>
             <button title="People" id="people" class="nav-tab" data-icon="group"><span class="w3-hide-small w3-hide-medium">{% trans "People" %}</span></button>
             {% endif %}
+            {% comment %}
             <button title="Community Frameshots" id="frameworks" class="nav-tab" data-icon="vertical_split"><span class="w3-hide-small w3-hide-medium">{% trans "Frameshots" %}</span></button>
+            {% endcomment %}
+            {% if person.profile.canCreateArticle %}
+            <button title="Articles" id="articles" class="nav-tab" data-icon="article"><span class="w3-hide-small w3-hide-medium">{% trans "Articles" %}</span></button>
+            {% endif %}
             {% if person.profile.is_moderator %}
             <button title="Moderation record" id="moderation" class="nav-tab" data-icon="schema"><span class="w3-hide-small w3-hide-medium">{% trans "Moderation" %}</span></button>
             {% endif %}

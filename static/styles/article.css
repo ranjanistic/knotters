@@ -59,6 +59,18 @@
 .admire {
     display: inline-block;
 }
+
+.pallete-media {
+    width:  100%;
+    height: 18rem;
+    object-fit: cover;
+}
+
+.search-media {
+    width:  100%;
+    height: 15rem;
+    object-fit: cover;
+}
 @media only screen and (min-width: 600px) {
     .section-video {
         width: 80%;
