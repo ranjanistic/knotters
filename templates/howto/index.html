@@ -21,30 +21,33 @@
 {% block tw_description %}Detailed guides to help you grow.{% endblock %}
 {% block tw_site_name %}{{SUBAPPNAME|capfirst}}{% endblock %}
 
-{% block themecolor %}positive{% endblock %}
+{% block themecolor %}accent{% endblock %}
 {% block title %}{{SUBAPPNAME|capfirst}}{% endblock %} 
 
 {% block nav_back_show %}{% endblock %}
 {% block nav_icon_hide %}{% endblock %}
-{% block nav_back_theme %}positive{% endblock %}
+{% block nav_back_theme %}accent{% endblock %}
 
 {% block nav_href %}/{% endblock %}
 {% block nav_text %}{% endblock %}
 
+{% block nav_noauth_people %}
+{% endblock %}
+
 {% block nav_extra_links %}
     {% if request.user.is_authenticated and request.user.profile.canCreateArticle %}
-    <a href="{{URLS.CREATE}}"><button title="{% trans "New Article" %}" class="positive" data-icon="add"><span class="w3-hide-small">{% trans "New Article" %}</span></button></a>
+    <a href="{{URLS.CREATE}}"><button title="{% trans "New Article" %}" class="accent" data-icon="add"><span class="w3-hide-small">{% trans "New Article" %}</span></button></a>
     {% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="w3-row tertiary" style="background-image: url('{{ICON_SHADOW}}');">
+<div class="w3-row tertiary">
     <div class="w3-row tertiary w3-padding" id="mainframe">
         <div class="w3-col w3-quarter w3-padding-small">
         </div>
         <form class="no-auto" id="search-articles-form">
             <div class="w3-col w3-half w3-center w3-padding-small">
-                <input class="wide primary bold border-positive" type="search" inputmode="search" placeholder="{% trans "Search articles as topic:translation, or anything" %}" id="browse-search-input" />
+                <input class="wide primary bold border-accent" type="search" inputmode="search" placeholder="{% trans "Search articles as topic:translation, or anything" %}" id="browse-search-input" />
             </div>
             <div class="w3-col w3-quarter w3-padding-small" id="browse-search-actions" hidden>
                 <button type="button" class="negative w3-right browse-search-articles" data-icon="close" id="browse-search-clear"></button>
@@ -83,6 +86,11 @@
         {% endfor %}
     </div>
     <br />
+    <div class="w3-row w3-padding w3-center dead-text">
+        <div class="material-icons w3-jumbo">done</div>
+        <h3 class="dead-text">{% trans "That's all here for now, you can search for more." %}</h3>
+       <br/><br/>
+      </div>
 </div>
 {% endblock %}
 {% block scripts %}

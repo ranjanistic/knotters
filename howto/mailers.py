@@ -44,7 +44,7 @@ def articleCreated(request: WSGIRequest, article: Article):
     To notify author that article has been created
     """
     device, email = False, False
-    if DeviceNotificationSubscriber.objects.filter(user=article.author.user, device_notification__notification__code=NotificationCode.CREATED_ARTICLE).exists():
+    if DeviceNotificationSubscriber.objects.filter(user=article.author.user, device_notification__notification__code=NotificationCode.ARTICLE_CREATED).exists():
         device = user_device_notify(article.author.user, "Article Created",
                             f"You have successfully created an article.",
                             article.getLink(),
@@ -58,7 +58,7 @@ def articleCreated(request: WSGIRequest, article: Article):
                                 'action': "action2"}
                                 ])
 
-    if EmailNotificationSubscriber.objects.filter(user=article.author.user, email_notification__notification__code=NotificationCode.CREATED_ARTICLE).exists():
+    if EmailNotificationSubscriber.objects.filter(user=article.author.user, email_notification__notification__code=NotificationCode.ARTICLE_CREATED).exists():
         email = sendActionEmail(
             to=article.author.getEmail(),
             username=article.author.getFName(),
@@ -83,7 +83,7 @@ def articlePublished(request: WSGIRequest, article: Article):
     To notify author of article that their article has been published successfully
     """
     device, email = False, False
-    if DeviceNotificationSubscriber.objects.filter(user=article.author.user, device_notification__notification__code=NotificationCode. ARTICLE_PUBLISH).exists():
+    if DeviceNotificationSubscriber.objects.filter(user=article.author.user, device_notification__notification__code=NotificationCode. ARTICLE_PUBLISHED).exists():
         device = user_device_notify(article.author.user, "Article Published",
                             f"Your article - {article.get_nickname} - has been successfully published.",
                             article.getLink(),
@@ -93,7 +93,7 @@ def articlePublished(request: WSGIRequest, article: Article):
                                 'action': "action1"},
                                 ])
 
-    if EmailNotificationSubscriber.objects.filter(user=article.author.user, email_notification__notification__code=NotificationCode.ARTICLE_PUBLISH).exists():
+    if EmailNotificationSubscriber.objects.filter(user=article.author.user, email_notification__notification__code=NotificationCode.ARTICLE_PUBLISHED).exists():
         email = sendActionEmail(
             to=article.author.getEmail(),
             username=article.author.getFName(),

@@ -32,7 +32,7 @@ const article_content = {
         <div class="w3-row w3-padding section-content" sectionid="${ sectionID }">
             <input type='file' hidden id='section-file-${sectionID}' accept="image/png, image/jpg, image/jpeg"/>
             <div class="w3-center">
-                <img class="primary w3-round-xlarge" src="${imageData}"  id="imageOutput-${sectionID}" style="opacity:0.5" />
+                <img class="primary w3-round-xlarge pallete-media" src="${imageData}"  id="imageOutput-${sectionID}" style="opacity:0.5" />
             </div>
             <div class="dead-text w3-center w3-padding" id='add-image-view-${sectionID}'>
                 <button type="button" class="small accent" data-icon="upload">
@@ -261,7 +261,6 @@ const updateSection = async({sectionID, subheading="", paragraph="", image="", v
             getElement(`${sectionID}-paragraph`).innerHTML = paragraph
         }
         sessionStorage.removeItem(`${sectionID}-${articleID}-update`)
-        message("saving")
         return
     }
     error(resp.error);
@@ -283,7 +282,6 @@ const updateArticleHead = async() => {
     {
         hide(getElement('sync-button'))
         sessionStorage.removeItem('article-update')
-        message("saving")
         return
     }
     error(resp.error);
