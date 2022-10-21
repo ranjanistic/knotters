@@ -8,6 +8,15 @@
 
 {% block nav_href %}{{ URLS.HOWTO }}{% endblock %}
 
+{% block nav_extra_links %}
+{% if article.is_draft %}
+{% else %}
+    {% if request.user.is_authenticated and request.user.profile.canCreateArticle %}
+    <a href="{{URLS.CREATE}}"><button title="{% trans "New Article" %}" class="accent" data-icon="add"><span class="w3-hide-small">{% trans "New Article" %}</span></button></a>
+    {% endif %}
+{% endif %}
+{% endblock %}
+
 {% block content %}
 {% if article.is_draft %}
 <div class="w3-row accent w3-padding w3-center">
@@ -74,11 +83,9 @@
             <div class="w3-row w3-padding w3-right-align">
                 <a href="{{article.author.getLink}}">
                     <img class="w3-circle w3-right" src="{{article.author.getDP}}" width="50"/>
-                    <strong class="text-medium text-primary">{{article.author.getName}}</strong>
-                    {% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}
-                    <br />
+                    <h4 class="text-medium text-primary" style="margin-bottom:0px">{{article.author.getName}}{% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h4>
                     {% for label in article.author.get_labels %}
-                        <strong class="w3-tiny w3-round w3-tag {{label.theme}} w3-padding-small">{{label.name}}</strong>
+                        <strong class="w3-tiny w3-round w3-tag {{label.theme}}">{{label.name}}</strong>
                     {% endfor %}
                     <span class="dead-text">{{article.author.getXP}}</span>
                 </a>
@@ -146,16 +153,19 @@
                         <i class="w3-xlarge material-icons text-primary" id="closenav">close</i>
                     </div>
                     <div id="sidenav-view">
-                        {% if self %}
-                            <div class="w3-row align w3-padding">
-                                <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete Article</button> 
-                            </div>
-                        {% endif %}
+                        <div class="w3-row align">
+                            {% if article.isEditable %}
+                                <a href="{{article.getEditLink}}"><button class="accent w3-large w3-animate-zoom" data-icon="edit">
+                                    Edit
+                                </button></a>
+                            {% endif %}
+                            <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit" data-icon="delete">Delete</button> 
+                        </div>
                         <br />
                         {% for section in sections %}
-                        <div class="w3-row">
-                            <a class="text-primary" href="#view-section-{{ section.id }}">
-                                <strong>{{section.subheading}}</strong>
+                        <div class="w3-row w3-left-align">
+                            <a class="text-tertiary" href="#view-section-{{ section.id }}">
+                                {{section.subheading}}
                             </a>
                         </div>
                         <br />
@@ -169,15 +179,20 @@
                 <div class="sidenav w3-hide-small tertiary w3-center w3-padding text-medium">
                     <div id="sidenav2-view">
                         {% if self %}
-                            <div class="w3-row align w3-padding">
-                                <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete Article</button> 
-                            </div>
+                        <div class="w3-row align">
+                            {% if article.isEditable %}
+                                <a href="{{article.getEditLink}}"><button class="accent w3-large w3-animate-zoom" data-icon="edit">
+                                    Edit
+                                </button></a>
+                            {% endif %}
+                            <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit" data-icon="delete">Delete</button> 
+                        </div>
                         {% endif %}
                         <br />
                         {% for section in sections %}
-                        <div class="w3-row">
-                            <a class="text-primary" href="#view-section-{{ section.id }}">
-                                <strong>{{section.subheading}}</strong>
+                        <div class="w3-row w3-left-align">
+                            <a class="text-tertiary" href="#view-section-{{ section.id }}">
+                                {{section.subheading}}
                             </a>
                         </div>
                         <br />
@@ -196,7 +211,7 @@
                                 {% endif %}
                                 <div class="w3-row w3-center" style="padding-bottom:1rem">
                                     {% if section.image %}
-                                    <img class="primary w3-round-xlarge" src="{{ section.get_image }}"/>
+                                    <img class="primary w3-round-xlarge preview-type-image section-media" src="{{ section.get_image }}"/>
                                     <br/>
                                     {% endif %}
                                     {% if section.video %}

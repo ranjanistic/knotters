@@ -6,6 +6,9 @@
 {% load cache %}
 {% load custom_tags %}
 
+{% block nav_extra_links %}
+{% endblock %}
+
 {% block nav_href %}{{ URLS.HOWTO }}{% endblock %}
 
 {% block content %}
@@ -114,10 +117,10 @@
                 {% endif %}
             </div>
             <div class="w3-row">
-                <button id="sync-button" class="w3-right w3-margin-right w3-margin-top positive" hidden><i>sync</i>Save Changes</button>
+                <button id="sync-button" class="w3-right w3-margin-right w3-margin-top accent" hidden><i>sync</i>Save Changes</button>
             </div>
             <div class="w3-row">
-                <a href="{{ URLS.Howto.VIEW|params:article.get_nickname }}" target="_blank"><button id="preview-button" class="w3-right w3-margin positive" data-icon="preview">Preview</button></a>
+                <a href="{{ URLS.Howto.VIEW|params:article.get_nickname }}" target="_blank"><button id="preview-button" class="w3-right w3-margin accent" data-icon="preview">Preview</button></a>
             </div>
         </div>
     </div>
@@ -141,7 +144,7 @@
                         <div class="w3-row w3-margin-bottom section-content" sectionid="{{ section.id }}">
                             <div class="w3-col s10 m10 l10">
                                 <div class="section-edit" sectionid="{{ section.id }}">
-                                    <input maxlength='75' id="{{ section.id }}-subheading" type="text" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="{{section.subheading}}"/>
+                                    <input maxlength='75' id="{{ section.id }}-subheading" type="text" class="primary w3-input subheading" name="subheading" placeholder="Section heading" value="{{section.subheading}}"/>
                                 </div>
                             </div>
                             <div class="w3-col s2 m2 l2">
@@ -168,7 +171,7 @@
                     <div class="w3-row w3-margin-bottom section-content" sectionid="{{ section.id }}">
                         <div class="w3-col s10 m10 l10">
                             <div class="section-edit section-elements" sectionid="{{ section.id }}" hasImage="{%if section.image %}true{% else %}false{% endif %}" hasVideo="{%if section.video %}true{% else %}false{% endif %}">
-                                <input maxlength='75' type="text" id="{{ section.id }}-subheading-2" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="{{section.subheading}}"/>
+                                <input maxlength='75' type="text" id="{{ section.id }}-subheading-2" class="primary w3-input subheading" name="subheading" placeholder="Section heading" value="{{section.subheading}}"/>
                             </div>
                         </div>
                         <div class="w3-col s2 m2 l2">
@@ -186,13 +189,13 @@
                             <div class="w3-row w3-padding section-content" sectionid="{{ section.id }}">
                                 {% if section.paragraph %}
                                 <div class="section-edit" sectionid="{{ section.id }}">
-                                    <textarea maxlength='500' id="{{ section.id }}-paragraph" class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph">{{ section.paragraph }}</textarea>
+                                    <textarea maxlength='500' id="{{ section.id }}-paragraph" class="wide paragraph" name='paragraph' rows="3" placeholder="Paragraph">{{ section.paragraph }}</textarea>
                                 </div>
                                 {% endif %}
                                 {% if section.image %}
                                     <input type='file' hidden id='section-file-{{section.id}}' accept="image/png, image/jpg, image/jpeg"/>
                                     <div class="w3-center">
-                                        <img class="primary w3-round-xlarge" src="{{ section.get_image }}" alt="{{ section.subheading }}" id="imageOutput-{{section.id}}" style="opacity:0.5" />
+                                        <img class="primary w3-round-xlarge section-media preview-type-image" src="{{ section.get_image }}" alt="{{ section.subheading }}" id="imageOutput-{{section.id}}" style="opacity:0.5" />
                                     </div>
                                     <div class="dead-text w3-center w3-padding" id='add-image-view-{{section.id}}'>
                                         <button type="button" class="small accent" data-icon="upload">
