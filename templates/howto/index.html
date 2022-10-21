@@ -63,14 +63,22 @@
             <a href="{{article.get_link}}">
                 <div class="pallete no-pad">
                     {% if article.getVideo %}
-                        <video class="pallete pallete-media no-pad" autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
+                    <div class="pallete no-pad pallete-media">
+                        <video autoplay muted loop src="{{ article.getVideo }}">Video playback is not supported</video>
+                    </div>
                     {% else %}
-                        <img class="pallete pallete-media no-pad" src="{{ article.getImage }}">
+                    <div class="pallete no-pad pallete-media">
+                        <img src="{{ article.getImage }}">
+                    </div>
                     {% endif %}
                     <div class="w3-row">
-                        <div class="w3-padding">
-                            <h3>{{ article.heading }}</h3>
-                            <span>{{ article.subheading | truncatewords:50}}</span>
+                        <div class="w3-padding article-details">
+                            <div class="article-heading">
+                                <h3>{{ article.heading }}</h3>
+                            </div>
+                            <div class="article-subheading">
+                                {{ article.subheading | truncatewords:30}}
+                            </div>
                         </div>
                         <div class="rate rate-small w3-right">
                             <span class="w3-left text-small">{{ article.get_avg_rating }}</span>

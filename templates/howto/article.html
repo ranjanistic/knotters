@@ -153,11 +153,14 @@
                         <i class="w3-xlarge material-icons text-primary" id="closenav">close</i>
                     </div>
                     <div id="sidenav-view">
-                        {% if self %}
-                            <div class="w3-row align w3-padding">
-                                <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit">Delete<br/>Article</button> 
-                            </div>
-                        {% endif %}
+                        <div class="w3-row align">
+                            {% if article.isEditable %}
+                                <a href="{{article.getEditLink}}"><button class="accent w3-large w3-animate-zoom" data-icon="edit">
+                                    Edit
+                                </button></a>
+                            {% endif %}
+                            <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit" data-icon="delete">Delete</button> 
+                        </div>
                         <br />
                         {% for section in sections %}
                         <div class="w3-row w3-left-align">
@@ -208,7 +211,7 @@
                                 {% endif %}
                                 <div class="w3-row w3-center" style="padding-bottom:1rem">
                                     {% if section.image %}
-                                    <img class="primary w3-round-xlarge preview-type-image pallete-media" src="{{ section.get_image }}"/>
+                                    <img class="primary w3-round-xlarge preview-type-image section-media" src="{{ section.get_image }}"/>
                                     <br/>
                                     {% endif %}
                                     {% if section.video %}

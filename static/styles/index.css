@@ -788,6 +788,7 @@ button.border-negative{
 }
 .search-media {
     width:  100%;
+    min-height: 12rem;
     max-height: 15rem;
-    object-fit: scale-down;
+    object-fit: contain;
 }

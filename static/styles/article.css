@@ -60,13 +60,41 @@
     display: inline-block;
 }
 
-.pallete-media {
+.section-media {
     max-width:  100%;
     max-height: 18rem;
     object-fit: scale-down;
 }
+.pallete-media {
+    height: 15rem;
+}
+
+.pallete-media > img {
+    height: 100%;
+    object-fit: contain;
+}
+
+.pallete-media > video {
+    height: 100%;
+    width: 100%;
+}
+
+.article-details {
+    height: auto;
+    overflow-y: hidden;
+}
+.article-heading {
+    height: auto;
+}
+
+.article-subheading {
+    overflow-y: hidden;
+}
 
 @media only screen and (min-width: 600px) {
+    .article-details {
+        height: 18rem
+    }
     .section-video {
         width: 80%;
     }
