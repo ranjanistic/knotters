@@ -195,7 +195,7 @@
                                 {% if section.image %}
                                     <input type='file' hidden id='section-file-{{section.id}}' accept="image/png, image/jpg, image/jpeg"/>
                                     <div class="w3-center">
-                                        <img class="primary w3-round-xlarge section-media" src="{{ section.get_image }}" alt="{{ section.subheading }}" id="imageOutput-{{section.id}}" style="opacity:0.5" />
+                                        <img class="primary w3-round-xlarge section-media preview-type-image" src="{{ section.get_image }}" alt="{{ section.subheading }}" id="imageOutput-{{section.id}}" style="opacity:0.5" />
                                     </div>
                                     <div class="dead-text w3-center w3-padding" id='add-image-view-{{section.id}}'>
                                         <button type="button" class="small accent" data-icon="upload">
