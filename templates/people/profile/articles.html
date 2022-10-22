@@ -6,8 +6,79 @@
 
 <div class="w3-row">
   {% if self %}
+  <div class="w3-hide-small w3-hide-medium">
+    <div class="w3-col w3-half w3-padding-small">
+      <div class="pallete active text-active" style="min-height:65vh; max-height:85vh;">
+        <center class="align">
+        <i title="Visible to everyone" class="w3-large">lock_open</i>
+        <h6>{% trans "Published" %}</h6>
+        </center>
+        <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
+        {% for article in published %}
+        <div class="w3-row pallete-slab no-pad">
+          <div class="w3-col l4 m4 s4">
+              <a href="{{article.getLink}}">
+                  <img class="primary pallete" src="{{ article.getImage }}" alt="{{ article.get_nickname }}" width="100%" height="100%" style="border-right: 4px solid; min-height:5rem" />
+              </a>
+          </div>
+          <div class="w3-col l8 m8 s8" >
+              <div class="w3-row w3-padding">
+              {% if article.isEditable %}<a href="{{article.getEditLink}}"><i class="edit-action w3-right">edit</i></a>{% endif %}
+              <h6>{{ article.heading | truncatewords:5 }}</h6>
+              {{article.subheading | truncatewords:10}}
+              </div>
+          </div>
+        </div>
+        {% empty %}
+        <br/>
+        <div class="w3-row w3-center">
+        <i class="w3-jumbo">sentiment_dissatisfied</i>
+        <h6>{% trans "No published articles, yet." %}</h4>
+        <strong>{% trans "Don't worry. Keep exploring." %}</strong>
+        </div>
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+    
+    <div class="w3-col w3-half w3-padding-small">
+      <div class="pallete accent text-accent" style="min-height:65vh; max-height:85vh;">
+        <center class="align">
+        <i  title="Private to you" class="w3-large">lock</i>
+        <h6 class="text-accent">{% trans "Drafted" %}</h6>
+        </center>
+        <div class="w3-row" style="min-height:55vh; max-height:75vh;overflow-y:scroll">
+        {% for article in drafted %}
+        <div class="w3-row pallete-slab no-pad">
+          <div class="w3-col l4 m4 s4">
+              <a href="{{article.getEditLink}}">
+                  <img class="primary pallete" src="{{ article.getImage }}" alt="{{ article.get_nickname }}" width="100%" height="100%" style="border-right: 4px solid" />
+              </a>
+          </div>
+          <div class="w3-col l8 m8 s8" >
+              <div class="w3-row w3-padding">
+                <h6>{% if article.heading %}{{ article.heading | truncatewords:5 }}{% else %}Untitled Article{% endif %}</h6>
+                {{article.subheading | truncatewords:10}}
+              </div>
+          </div>
+        </div>
+        {% empty %}
+        <br/>
+        <div class="w3-row w3-center">
+        <a href="{{URLS.Howto.CREATE}}" class="text-accent">
+          <i class="w3-jumbo">add_circle</i>
+        </a>
+        <h6>{% trans "Create" %}</h6>
+        <strong>{% trans "Start small. Dream big." %}</strong>
+        </div>
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="w3-hide-large">
     <div class="swiper-container">
-      <div class="swiper-wrapper" style="min-width:380px;max-width:50%">
+      <div class="swiper-wrapper">
       <div class="swiper-slide">
         <div class="pallete active text-active" style="min-height:65vh; max-height:85vh;">
           <center class="align">
@@ -78,7 +149,7 @@
       </div>
       </div>
     </div>
-  
+  </div>
   {% else %}
     {% for article in published %} 
     <div class="w3-col w3-third w3-padding-small">

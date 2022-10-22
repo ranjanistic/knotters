@@ -8,7 +8,7 @@ const article_content = {
     paragraph_input :
     `<div class="w3-row w3-padding temp-para-parent">
         <div class="temp-paragraphs">
-            <textarea maxlength='500' class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph"></textarea>
+            <textarea maxlength='500' class="wide paragraph" name='paragraph' rows="3" placeholder="Paragraph"></textarea>
         </div>
         <br />
     </div>`,
@@ -66,7 +66,7 @@ const article_content = {
         <div class="w3-row w3-margin-bottom section-content" sectionid="${ sectionID }">
             <div class="w3-col s10 m10 l10">
                 <div class="section-edit" sectionid="${sectionID}">
-                    <input maxlength='75' id="${sectionID}-subheading" type="text" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="Untitled Section"/>
+                    <input maxlength='75' id="${sectionID}-subheading" type="text" class="primary w3-input subheading" name="subheading" placeholder="Section heading" value="Untitled Section"/>
                 </div>
             </div>
             <div class="w3-col s2 m2 l2">
@@ -79,7 +79,7 @@ const article_content = {
         <div class="w3-row w3-margin-bottom section-content" sectionid="${ sectionID }">
             <div class="w3-col s10 m10 l10">
                 <div class="section-edit section-elements" sectionid="${sectionID}" hasImage="${hasImage}" hasVideo="${hasVideo}">
-                    <input maxlength='75' id="${sectionID}-subheading-2" type="text" class="primary w3-input subheading" name="subheading" placeholder="Subheading" value="Untitled Section"/>
+                    <input maxlength='75' id="${sectionID}-subheading-2" type="text" class="primary w3-input subheading" name="subheading" placeholder="Section heading" value="Untitled Section"/>
                 </div>
             </div>
             <div class="w3-col s2 m2 l2">
