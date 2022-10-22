@@ -6,11 +6,34 @@
 {% load cache %}
 {% load custom_tags %}
 
+
+{% block meta_description %}{{article.subheading}}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_url %}{{article.getLink}}{% endblock %}
+{% block og_title %}{{article.heading}}{% endblock %}
+{% block og_description %}{{article.subheading}}{% endblock %}
+{% block og_image_url %}{{ article.getImage }}{% endblock %}
+
+{% block metatags %}
+{% if article.getVideo %}
+<meta property="og:video" content="{{SITE}}{{article.getVideo}}" />
+{% endif %}
+<meta property="article:author" content="{{SITE}}{{article.author.getLink}}" />
+<meta property="article:published_time" content="{{article.modifiedOn}}" />
+{% endblock %}
+
+{% block tw_url %}{{article.getLink}}{% endblock %}
+{% block tw_title %}{{article.heading}}{% endblock %}
+
+
+{% block tw_description %}{{article.subheading}}{% endblock %}
+
+{% block title %}{% if article.is_draft %}(Preview) {% endif %}{{article.heading}}{% endblock %} 
+
 {% block nav_href %}{{ URLS.HOWTO }}{% endblock %}
 
 {% block nav_extra_links %}
-{% if article.is_draft %}
-{% else %}
+{% if not article.is_draft %}
     {% if request.user.is_authenticated and request.user.profile.canCreateArticle %}
     <a href="{{URLS.CREATE}}"><button title="{% trans "New Article" %}" class="accent" data-icon="add"><span class="w3-hide-small">{% trans "New Article" %}</span></button></a>
     {% endif %}
@@ -153,6 +176,7 @@
                         <i class="w3-xlarge material-icons text-primary" id="closenav">close</i>
                     </div>
                     <div id="sidenav-view">
+                        {% if self %}
                         <div class="w3-row align">
                             {% if article.isEditable %}
                                 <a href="{{article.getEditLink}}"><button class="accent w3-large w3-animate-zoom" data-icon="edit">
@@ -161,6 +185,7 @@
                             {% endif %}
                             <button id="deleteArticle" class="negative w3-large w3-animate-zoom" type="submit" data-icon="delete">Delete</button> 
                         </div>
+                        {% endif %}
                         <br />
                         {% for section in sections %}
                         <div class="w3-row w3-left-align">

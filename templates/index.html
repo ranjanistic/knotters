@@ -23,7 +23,7 @@
 
         <meta property="og:locale" content="en-US" />
         <meta name="image" property="og:image" content="{% block og_image_url_full %}{{SITE}}{% block og_image_url %}{% static 'graphics/self/1024/icon-square.png' %}{% endblock %}{% endblock %}" />
-        <meta property="og:type" content="social" />
+        <meta property="og:type" content="{% block og_type %}social{% endblock %}" />
         <meta property="og:url" content="{{SITE}}{% block og_url %}{% endblock %}" />
         <meta property="og:title" content="{% block og_title %}{% trans "Home" %}{% endblock %} &#183; {{APPNAME}}" />
         <meta property="og:description" content="{% block og_description %}{{DESCRIPTION|safe}}{% endblock %}" />
@@ -44,6 +44,7 @@
         <meta name="apple-mobile-web-app-title" content="{{APPNAME}}" />
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="{% static 'graphics/self/1024/icon-circle.webp' %}" />
+        {% block metatags %}{% endblock %}
         <link rel="apple-touch-icon" href="{% static 'graphics/self/1024/icon-circle.webp' %}" />
         <link rel="apple-touch-startup-image" href="{% static 'graphics/self/1024/icon-circle.webp' %}" />
         <link rel="icon" href="{% block icon %}{% static 'graphics/self/64/icon-circle.webp' %}{% endblock %}" class="darkimg">
