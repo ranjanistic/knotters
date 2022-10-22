@@ -66,6 +66,7 @@ class NotificationCode():
     REPORTED_PROJECT = 10
     REPORTED_SNAPSHOT = 10
     # Admire Notifications = 11
+    ADMIRED_ARTICLE = 11
     ADMIRED_USER = 11
     ADMIRED_PROJECT = 11
     ADMIRED_COMPETITION = 11
@@ -83,6 +84,10 @@ class NotificationCode():
     MANAGEMENT_INVITATION_ACCEPTED = 14
     #Legal Updates = 15
     ALERT_LEGAL_UPDATE = 15
+    #Article Updates = 16
+    ARTICLE_CREATED = 16
+    ARTICLE_PUBLISHED = 16
+    ARTICLE_DELETED = 16
 
     def getDetails(self) -> list:
         """Returns a list of notification dict data
@@ -126,6 +131,10 @@ class NotificationCode():
             "name": _("Achievements and Milestones"),
             "code":  self.MILESTONE_NOTIF,
             "description": _("Achieved a new milestone in terms of XPs, or any other achievements."),
+        },{
+            "name": _("Article updates"),
+            "code":  self.ARTICLE_CREATED,
+            "description": _("Creation, deletion and other things."),
         },{
             "name": _("Reports or Guideline violations"),
             "code":  self.REPORTED_USER,

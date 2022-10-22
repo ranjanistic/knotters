@@ -18,8 +18,7 @@
       <div id="edit-nickname">
       <form class="no-auto" method="POST" action="{{URLS.NICKNAMEEDIT}}" id="edit-nickname-form">
       {% csrf_token %}
-      <input class="primary" type="text" autocomplete="nickname" autocapitalize placeholder="Your nickname" maxlength="70" required
-       value="{{request.user.profile.get_nickname}}" name="nickname" id="nickname" />
+      <input class="primary" type="text" autocomplete="nickname" autocapitalize placeholder="Your nickname" maxlength="70" value="{{request.user.profile.get_nickname}}" name="nickname" id="nickname" />
       <button id="save-edit-nickname"><i class="material-icons">done</i>Save</button>
       <button id="discard-edit-nickname"><i class="material-icons">close</i>Discard</button>
       </form>

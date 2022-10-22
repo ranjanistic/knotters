@@ -25,6 +25,7 @@ from .models import (BaseProject, Category, CoreProject,
                      CoreProjectVerificationRequest, FileExtension,
                      FreeProject, FreeProjectVerificationRequest, License,
                      Project, ProjectSocial, Tag)
+from people.models import Topic
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -1251,6 +1252,44 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
     except:
         return False, format_exc()
 
+
+def topicSearchList(query: str, excluding, limit: int, cacheKey: str):
+    """
+    Returns topics list
+    """
+    topicslist = cache.get(cacheKey, [])
+    if not len(topicslist):
+        topics = Topic.objects.exclude(id__in=excluding).filter(
+            Q(name__istartswith=query)
+            | Q(name__iexact=query)
+            | Q(name__icontains=query)
+        )[:limit]
+        topicslist = list(map(lambda topic: dict(
+            id=topic.get_id,
+            name=topic.name
+        ), topics))
+        cache.set(cacheKey, topicslist, settings.CACHE_INSTANT)
+    return topicslist
+
+def tagSearchList(query: str, excludeIDs, limit: int, cacheKey: str):
+    """
+    Returns tags list
+    """
+    tags = cache.get(cacheKey, [])
+    if not len(tags):
+        tags = Tag.objects.exclude(id__in=excludeIDs).filter(
+            Q(name__istartswith=query)
+            | Q(name__iendswith=query)
+            | Q(name__iexact=query)
+            | Q(name__icontains=query)
+        )[:limit]
+        cache.set(cacheKey, tags, settings.CACHE_SHORT)
+
+    tagslist = list(map(lambda tag: dict(
+        id=tag.getID(),
+        name=tag.name
+    ), tags[:limit]))
+    return tagslist
 
 def transfer_approved_project_moderation(sender:Profile, receiver: Profile):
     """To transfer all approved projects of leaving moderator"""

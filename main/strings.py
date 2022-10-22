@@ -12,6 +12,7 @@ from management.apps import APPNAME as MANAGEMENT
 from moderation.apps import APPNAME as MODERATION
 from people.apps import APPNAME as PEOPLE
 from projects.apps import APPNAME as PROJECTS
+from howto.apps import APPNAME as HOWTO
 
 from .env import CDN_URL
 
@@ -111,6 +112,9 @@ class Code():
     MODERATION = "moderation"
     RESOLVED = "resolved"
     UNRESOLVED = "unresolved"
+
+    PUBLISHED = 'published'
+    DRAFTED = 'drafted'
 
     SETTING = "setting"
     INVALID_DIVISION = "INVALID_DIVISION"
@@ -217,7 +221,15 @@ class Message():
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
     LOGIN_REQUIRED = _("Please login to continue.")
     EMAIL_NOT_VERIFIED = _("Please verify your account email address.")
-
+    ARTICLE_CREATED = _("Article created successfully.")
+    ARTICLE_DELETED = _("Article deleted successfully.")
+    ARTICLE_NOT_FOUND =_("Article not found.")
+    ARTICLE_UPDATED = _("Article updated successfully.")
+    ARTICLE_DRAFTED = _("Article drafted successfully.")
+    ARTICLE_PUBLISHED = _("Article published successfully.")
+    SECTION_CREATED =_("Section created successfully.")
+    SECTION_DELETED = _("Section deleted successfully.")
+    SECTION_UPDATED = _("Section updated successfully.")
     RESULT_DECLARED = _("Results declared!")
     RESULT_NOT_DECLARED = _("Results not declared.")
     RESULT_DECLARING = _("Results declaration in progress")
@@ -395,7 +407,7 @@ class Action():
 
 action = Action()
 
-DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2]
+DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2, HOWTO]
 
 
 class Project():
@@ -440,6 +452,7 @@ class Profile():
     OVERVIEW = "overview"
     PROJECTS = "projects"
     ACHEIVEMENTS = "acheivements"
+    ARTICLES = "articles"
     FRAMEWORKS = "frameworks"
     CONTRIBUTION = "contribution"
     ACTIVITY = "activity"
@@ -585,6 +598,7 @@ class URL():
     MANAGEMENT = f'{MANAGEMENT}/'
     FAME_WALL = 'wall-of-fame/'
     REDIRECTOR = 'redirector/'
+    HOWTO = f'{HOWTO}/'
 
     def redirector(self, to='/'):
         return f"{self.REDIRECTOR}?n={to}"
@@ -637,6 +651,8 @@ class URL():
             return f"/{self.MODERATION if withslash else self.MODERATION.strip('/')}"
         elif fromApp == MANAGEMENT:
             return f"/{self.MANAGEMENT if withslash else self.MANAGEMENT.strip('/')}"
+        elif fromApp == HOWTO:
+            return f"/{self.HOWTO if withslash else self.HOWTO.strip('/')}"
         else:
             return self.ROOT if withslash else self.ROOT.strip('/')
 
@@ -1343,20 +1359,107 @@ class URL():
                 URLS[key] = f"{url.getRoot(MANAGEMENT)}{setPathParams(urls[key])}"
             return URLS
 
-    managemnt = Management()
     management = Management()
+    
+    class Howto():
+
+        CREATE = 'create/'
+
+        SAVE = 'save/<str:nickname>/'
+
+        def save(self, nickname: str):
+            return setPathParams(self.SAVE, nickname)
+
+        EDIT = '<str:nickname>/edit/'
+
+        def edit(self, nickname: str):
+            return setPathParams(self.EDIT, nickname)
+
+        PUBLISH = '<str:articleID>/publish/'
+
+        def publish(self, articleID: str):
+            return setPathParams(self.PUBLISH, articleID)
+
+        SECTION = 'e/<str:articleID>/section/<str:action>'
+
+        def section(self, articleID: str, action: str):
+            return setPathParams(self.SECTION, articleID, action)
+
+        DELETE = 'e/<str:articleID>/delete/'
+
+        def delete(self, articleID: str):
+            return setPathParams(self.DELETE, articleID)
+
+        SEARCH_TOPICS = 's/<str:articleID>/topics'
+
+        def searchTopics(self, articleID: str):
+            return setPathParams(self.SEARCH_TOPICS, articleID)
+
+        EDIT_TOPICS = 'e/<str:articleID>/topics'
+
+        def editTopics(self, articleID: str):
+            return setPathParams(self.EDIT_TOPICS, articleID)
+
+        SEARCH_TAGS = 's/<str:articleID>/tags'
+
+        def searchTags(self, articleID: str):
+            return setPathParams(self.SEARCH_TAGS, articleID)
+
+        EDIT_TAGS = 'e/<str:articleID>/tags'
+
+        def editTags(self, articleID: str):
+            return setPathParams(self.EDIT_TAGS, articleID)
+
+        VIEW = '<str:nickname>/'
+
+        def view(self, nickname: str):
+            return setPathParams(self.VIEW, nickname)
+        
+        RATING = 'rating/submit/<str:articleID>'
+
+        def rating(self, articleID: str):
+            return setPathParams(self.RATING, articleID)
+
+        TOGGLE_ADMIRATION = 'admiration/<str:articleID>'
+
+        def toggle_admiration(self, articleID: str):
+            return setPathParams(self.TOGGLE_ADMIRATION, articleID)
+        
+        ADMIRATIONS = 'admirations/<str:articleID>'
+
+        def admirations(self, articleID: str):
+            return setPathParams(self.ADMIRATIONS, articleID)
+
+        BROWSE_SEARCH = 'browse/search/'
+
+        ARTICLE_BULK_UPDATE = 'update/article/<str:articleID>'
+        
+        def article_bulk_update(self, articleID: str):
+            return setPathParams(self.ARTICLE_BULK_UPDATE, articleID)   
+
+        def getURLSForClient(self) -> dict:
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Howto, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(HOWTO)}{setPathParams(urls[key])}"
+            return URLS
+    
+    howto = Howto()
 
     def getURLSForClient(self) -> dict:
-        URLS = dict()
+            URLS = dict()
 
-        def cond(key, value):
-            return str(key).isupper()
-        urls = classAttrsToDict(URL, cond)
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL, cond)
 
-        for key in urls:
-            URLS[key] = f"{url.getRoot() if urls[key] != url.getRoot() else ''}{setPathParams(urls[key])}"
-        return URLS
-
+            for key in urls:
+                URLS[key] = f"{url.getRoot() if urls[key] != url.getRoot() else ''}{setPathParams(urls[key])}"
+            return URLS
 
 url = URL()
 
@@ -1409,6 +1512,8 @@ class Template():
         TOPIC = "topic.js"
         CORE_PROJECT = "core-project.js"
         PROJECTS = "projects.js"
+        ARTICLE = "article.js"
+        ARTICLE_EDIT = "article_edit.js"
 
         def getScriptTemplates(self) -> list:
             TEMPLATES = []
@@ -1508,12 +1613,13 @@ class Template():
     DONATION = "donation"
 
     THANKYOU = "thankyou"
+    
 
     @property
     def thankyou(self):
         return f'{self.THANKYOU}.html'
     
-
+    
     @property
     def donation(self):
         return f'{self.DONATION}.html'
@@ -2234,6 +2340,35 @@ class Template():
 
     management = Management()
 
+    class Howto():
+        DIRNAME = HOWTO
+
+        INDEX = 'index'
+
+        @property
+        def index(self):
+            return f'{self.DIRNAME}/{self.INDEX}.html'
+        
+        ARTICLE = 'article'
+
+        @property
+        def article(self):
+            return f'{self.DIRNAME}/{self.ARTICLE}.html'
+
+        ARTICLE_EDIT = 'article_edit'
+
+        @property
+        def articleEdit(self):
+            return f'{self.DIRNAME}/{self.ARTICLE_EDIT}.html'    
+        
+        BROWSE_SEARCH = 'browse/search'
+
+        @property
+        def browse_search(self):
+            return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
+        
+    
+    howto = Howto()
 
 template = Template()
 

@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
 from github.Organization import Organization
-from main.strings import PEOPLE, Code, Message, url
+from main.strings import PEOPLE, Code, Message, Profile, url
 
 from .apps import APPNAME
 
@@ -346,6 +346,10 @@ class Management(models.Model):
             models.QuerySet<Profile>: Mentors in this management (active and inactive)
         """
         return self.people.filter(is_mentor=True, to_be_zombie=False)
+    
+    def has_member(self, profile: Profile) -> bool:
+        """ Returns whether given profile is part of management or not"""
+        return self.people.filter(id=profile.id).exists()
 
 
 class ManagementPerson(models.Model):

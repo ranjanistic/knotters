@@ -424,6 +424,11 @@ initializeTabsView({
                             const obj = getFormDataById(
                                 "edit-nickname-form"
                             );
+                            if(!obj.nickname)
+                            {
+                                error("Nickname cannot be empty")
+                                return
+                            }
                             const resp = await postRequest2({
                                 path: setUrlParams(URLS.NICKNAMEEDIT),
                                 data: {
@@ -437,6 +442,7 @@ initializeTabsView({
                             }
                             error(resp.error);
                             getElement("edit-nickname-button").click()
+                            getElement("nickname").focus()
                         };
                 const pauseModDialog = async () => {
                     if ("{{request.user.profile.mod_isPending}}"=="True")

@@ -6,6 +6,7 @@ from uuid import UUID
 from people.views import browseSearch as peopleSearch
 from projects.views import browseSearch as projectsSearch
 from compete.views import browseSearch as competeSearch
+from howto.views import browseSearch as howtoSearch
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.github.provider import GitHubProvider
@@ -54,9 +55,10 @@ from .env import ADMINPATH, ISBETA, ISPRODUCTION
 from .mailers import featureRelease
 from .methods import (errorLog, getDeepFilePaths, renderData, renderString,
                       renderView, respondJson, respondRedirect, verify_captcha)
-from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS,
+from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS, HOWTO,
                       URL, Browse, Code, Event, Message, Template,
                       setPathParams, setURLAlerts)
+from howto.methods import articleRenderData
 
 
 @require_GET
@@ -241,7 +243,9 @@ def search_results(request: WSGIRequest) -> HttpResponse:
         projects = response2.content.decode(Code.UTF_8)
         response3 = competeSearch(request)
         compete = response3.content.decode(Code.UTF_8)
-        return respondJson(Code.OK, dict(people=people, projects=projects, compete=compete))
+        response4 = howtoSearch(request)
+        howto = response4.content.decode(Code.UTF_8)
+        return respondJson(Code.OK, dict(people=people, projects=projects, compete=compete, howto=howto))
     except (KeyError, ValidationError) as e:
         if json_body:
             return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -665,6 +669,11 @@ def scripts_subapp(request: WSGIRequest, subapp: str, script: str) -> HttpRespon
         userID = request.GET.get('id', None)
         if script == Template.Script.PROFILE:
             data = profileRenderData(request, userID=userID)
+    elif subapp == HOWTO:
+        nickname = request.GET.get('nickname', "")
+        if script == Template.Script.ARTICLE or script == Template.Script.ARTICLE_EDIT:
+            data = articleRenderData(request, nickname)
+
     stringrender = render_to_string(f"{subapp}/scripts/{script}", request=request,
                                     context=renderData(fromApp=request.GET.get('fromApp', subapp), data=data))
     if not settings.DEBUG:
@@ -1114,6 +1123,12 @@ class ServiceWorker(TemplateView):
                 setPathParams(f"/{URL.PEOPLE}{URL.People.BROWSE_SEARCH}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.BROWSE_SEARCH}"),
                 setPathParams(f"/{URL.PROJECTS}{URL.Projects.LICENSE_SEARCH}"),
+                setPathParams(f"/{URL.HOWTO}{URL.INDEX}"),
+                setPathParams(f"/{URL.HOWTO}{URL.Howto.CREATE}"),
+                setPathParams(f"/{URL.HOWTO}{URL.Howto.EDIT}"),
+                setPathParams(f"/{URL.HOWTO}{URL.Howto.VIEW}"),
+                setPathParams(f"/{URL.HOWTO}{URL.Howto.ADMIRATIONS}"),
+                setPathParams(f"/{URL.HOWTO}{URL.Howto.BROWSE_SEARCH}"),
                 setPathParams(f"/{URL.VIEW_SNAPSHOT}"),
                 setPathParams(f"/{URL.BRANDING}"),
                 setPathParams(f"/{URL.BROWSER}"),

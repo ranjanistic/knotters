@@ -31,7 +31,7 @@ from webpush import send_group_notification, send_user_notification
 
 from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISPRODUCTION, ISTESTING
 from .strings import (AUTH, AUTH2, COMPETE, DOCS, MANAGEMENT, MODERATION,
-                      PEOPLE, PROJECTS, Code, url)
+                      PEOPLE, PROJECTS, HOWTO, Code, url)
 
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
@@ -54,7 +54,8 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
         DOCS.capitalize(): url.docs.getURLSForClient(),
         COMPETE.capitalize(): url.compete.getURLSForClient(),
         MODERATION.capitalize(): url.moderation.getURLSForClient(),
-        MANAGEMENT.capitalize(): url.management.getURLSForClient()
+        MANAGEMENT.capitalize(): url.management.getURLSForClient(),
+        HOWTO.capitalize(): url.howto.getURLSForClient(),
     }
     URLS = dict(
         **URLS,
@@ -74,6 +75,8 @@ def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
         URLS = dict(**URLS, **URLS[MODERATION.capitalize()])
     if fromApp == MANAGEMENT:
         URLS = dict(**URLS, **URLS[MANAGEMENT.capitalize()])
+    if fromApp == HOWTO:
+        URLS = dict(**URLS, **URLS[HOWTO.capitalize()])
 
     return dict(**data, URLS=URLS, ROOT=url.getRoot(fromApp), SUBAPPNAME=fromApp, DEBUG=settings.DEBUG)
 
