@@ -72,6 +72,7 @@ jobs:
     - name: Setup environment
       run: |
         echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
+    - name: Run migrations
       run: |
         python3 manage.py makemigrations --noinput
         python3 manage.py migrate --noinput

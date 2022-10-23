@@ -24,9 +24,10 @@
 
 {% block tw_url %}{{article.getLink}}{% endblock %}
 {% block tw_title %}{{article.heading}}{% endblock %}
-
-
 {% block tw_description %}{{article.subheading}}{% endblock %}
+{% block tw_image_url %}{{ article.getImage }}{% endblock %}
+
+{% block ld_image_url %}{{ article.getImage }}{% endblock %}
 
 {% block title %}{% if article.is_draft %}(Preview) {% endif %}{{article.heading}}{% endblock %} 
 
