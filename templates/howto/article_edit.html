@@ -35,9 +35,11 @@
                         {% for tag in article.tags.all %}
                         <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
                         {% empty %}
-                            <strong class="dead-text">{% trans "No tags assigned" %}</strong>
+                        {% if self %}
+                            <button class="accent w3-padding-small edit-action small" data-edittarget="articletags" data-icon="add">Add tags</button>
+                        {% endif %}
                         {% endfor %}
-                        {% if self %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
+                        {% if self and article.tags.all|length > 0 %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
                     </div>
                     {% if self %}
                     <div id="edit-articletags">
@@ -66,11 +68,9 @@
             <div class="w3-row w3-padding w3-right-align">
                 <a href="{{article.author.getLink}}">
                     <img class="w3-circle w3-right" src="{{article.author.getDP}}" width="50"/>
-                    <strong class="text-medium text-primary">{{article.author.getName}}</strong>
-                    {% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}
-                    <br />
+                    <h4 class="text-medium text-primary" style="margin-bottom:0px">{{article.author.getName}}{% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h4>
                     {% for label in article.author.get_labels %}
-                        <strong class="w3-tiny w3-round w3-tag {{label.theme}} w3-padding-small">{{label.name}}</strong>
+                        <strong class="w3-tiny w3-round w3-tag {{label.theme}}">{{label.name}}</strong>
                     {% endfor %}
                     <span class="dead-text">{{article.author.getXP}}</span>
                 </a>
@@ -79,22 +79,17 @@
                 <div id="view-articletopics" class="w3-right">
                     {% for topic in article.topics.all %}
                         <a href="{{URLS.HOWTO}}?search=topic:{{topic}}">
-                            <button class="button topic-name primary border-joy">
+                            <button class="button topic-name primary border-joy small">
                             {{topic}}
                             </button>
                         </a>
                     {% empty %}
                         {% if self %}
                             <br/>
-                            <button class="accent edit-action w3-padding" data-edittarget="articletopics" data-icon="add">Add topics</button>
-                        {% else %}
-                            <br/>
-                            <div class="dead-text">
-                                <h4>No topics yet</h4>
-                            </div>
+                            <button class="accent w3-padding-small edit-action small" data-edittarget="articletopics" data-icon="add">Add topics</button>
                         {% endif %}
                     {% endfor %}
-                    {% if self and article.topics.all|length > 0 %}<i class="edit-action" data-edittarget="articletopics">edit</i>{% endif %}
+                    {% if self and article.topics.all|length > 0 %}<button class="small edit-action" data-icon="edit" data-edittarget="articletopics"></button>{% endif %}
                 </div>
                 {% if self %}
                 <div id="edit-articletopics" class="w3-right" hidden>
@@ -191,7 +186,7 @@
                             <div class="w3-row w3-padding section-content" sectionid="{{ section.id }}">
                                 {% if section.paragraph %}
                                 <div class="section-edit" sectionid="{{ section.id }}">
-                                    <textarea maxlength='500' id="{{ section.id }}-paragraph" class="wide paragraph" name='paragraph' rows="3" placeholder="Paragraph">{{ section.paragraph }}</textarea>
+                                    <textarea maxlength='500' id="{{ section.id }}-paragraph" class="wide paragraph" name='paragraph' rows="9" placeholder="Paragraph">{{ section.paragraph }}</textarea>
                                 </div>
                                 {% endif %}
                                 {% if section.image %}

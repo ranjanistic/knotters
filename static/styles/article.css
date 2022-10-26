@@ -48,6 +48,10 @@
     flex: 65%;
 }
 
+.paragraph {
+    word-break: break-all;
+ }
+ 
 .section-video {
     width: 100%;
 }
