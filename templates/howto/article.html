@@ -52,10 +52,10 @@
         <div class="w3-col m8 l8">
             <div id="article-head">
                 <div id="article-head-view">
-                    <div class="w3-row w3-padding" id="heading-view">
-                        <h1>{%if article.heading %}{{ article.heading}}{% else %}Untitled Article{% endif %}</h1>
+                    <div class="w3-row w3-padding paragraph" id="heading-view">
+                        <h1>{%if article.heading %}{{ article.heading }}{% else %}Untitled Article{% endif %}</h1>
                     </div>
-                    <div class="w3-row text-medium w3-padding" id="subheading-view">{{article.subheading}}</div>
+                    <div class="w3-row text-large w3-padding paragraph" id="subheading-view">{{article.subheading|urlize|linktags|urlize_blank|linebreaksbr}}</div>
                 </div>
             </div>
             <br />
@@ -118,7 +118,7 @@
             </div>
             <div class="w3-row w3-right {% if request.user.is_authenticated %}trigger-article-rating{% else %}trigger-login-popup{% endif %}">
                 <div class="rate">
-                    <span class="w3-left text-large">{{ article.get_avg_rating }}</span>
+                    <span class="w3-left text-large">{{ article.total_ratings|display_number }}</span>
                     {% for i in '0123456789'|make_list %}
                     <input type="checkbox" required/>
                     <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
@@ -135,7 +135,6 @@
                         </a>
                     {% empty %}
                         {% if self %}
-                            <br/>
                             <button class="accent w3-padding-small edit-action small" data-edittarget="articletopics" data-icon="add">Add topics</button>
                         {% endif %}
                     {% endfor %}
@@ -187,8 +186,8 @@
                         <br />
                         {% for section in sections %}
                         <div class="w3-row w3-left-align">
-                            <a class="text-tertiary" href="#view-section-{{ section.id }}">
-                                {{section.subheading}}
+                            <a class="text-tertiary paragraph" href="#view-section-{{ section.id }}">
+                                <strong>{{section.subheading}}</strong>
                             </a>
                         </div>
                         <br />
@@ -214,8 +213,8 @@
                         <br />
                         {% for section in sections %}
                         <div class="w3-row w3-left-align">
-                            <a class="text-tertiary" href="#view-section-{{ section.id }}">
-                                {{section.subheading}}
+                            <a class="text-tertiary paragraph" href="#view-section-{{ section.id }}">
+                                <strong>{{section.subheading}}</strong>
                             </a>
                         </div>
                         <br />
@@ -230,9 +229,8 @@
                         <div class="w3-row">
                             <div class="w3-row w3-padding" id="view-section-{{section.id}}" sectionid="{{section.id}}">
                                 {% if section.paragraph %}
-                                <div class="text-tertiary text-medium paragraph">
-                                <span>{{section.paragraph}}</span>
-                                </div>
+                                <span class="text-tertiary text-medium paragraph">
+                                {{section.paragraph|urlize|linktags|urlize_blank|linebreaksbr}}</span>
                                 <br/>
                                 {% endif %}
                                 <div class="w3-row w3-center" style="padding-bottom:1rem">

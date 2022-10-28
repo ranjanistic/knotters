@@ -15,7 +15,7 @@ def articleAdmired(request: WSGIRequest, article: Article):
         return device, email 
     if DeviceNotificationSubscriber.objects.filter(user=article.author.user, device_notification__notification__code=NotificationCode.ADMIRED_ARTICLE).exists():
         device = user_device_notify(article.author.user, "Article Admired",
-                            f"Your article - {article.get_nickname} - has been admired by {request.user.first_name}",
+                            f"Your article \"{article.heading}\" has been admired by {request.user.first_name}",
                             article.getLink(),
                             actions=[{
                                 'title': 'View Article',
@@ -28,7 +28,7 @@ def articleAdmired(request: WSGIRequest, article: Article):
             to=article.author.getEmail(),
             username=article.author.getFName(),
             subject=f"Article Admired",
-            header=f"This is to inform you that your article - {article.get_nickname} - has been admired by {request.user.first_name}.",
+            header=f"This is to inform you that your article \"{article.heading}\" has been admired by {request.user.first_name}.",
             actions=[{
                 'text': 'View article',
                 'url': article.get_link()
@@ -85,7 +85,7 @@ def articlePublished(request: WSGIRequest, article: Article):
     device, email = False, False
     if DeviceNotificationSubscriber.objects.filter(user=article.author.user, device_notification__notification__code=NotificationCode. ARTICLE_PUBLISHED).exists():
         device = user_device_notify(article.author.user, "Article Published",
-                            f"Your article - {article.get_nickname} - has been successfully published.",
+                            f"Your article \"{article.heading}\" has been successfully published.",
                             article.getLink(),
                             actions=[{
                                 'title': 'View Article',
@@ -98,7 +98,7 @@ def articlePublished(request: WSGIRequest, article: Article):
             to=article.author.getEmail(),
             username=article.author.getFName(),
             subject=f"Article Published",
-            header=f"This is to inform you that your article - {article.get_nickname} - has been successfully published.",
+            header=f"This is to inform you that your article \"{article.heading}\" has been successfully published.",
             actions=[{
                 'text': 'View article',
                 'url': article.get_link()
@@ -118,7 +118,7 @@ def articleDeleted(request: WSGIRequest, article: Article):
         return device, email 
     if DeviceNotificationSubscriber.objects.filter(user=article.author.user, device_notification__notification__code=NotificationCode. ARTICLE_DELETED).exists():
         device = user_device_notify(article.author.user, "Article Deleted",
-                            f"Your article - {article.get_nickname} - has been successfully deleted."
+                            f"Your article \"{article.heading}\" has been successfully deleted."
                             )
 
     if EmailNotificationSubscriber.objects.filter(user=article.author.user, email_notification__notification__code=NotificationCode.ARTICLE_DELETED).exists():
@@ -126,7 +126,7 @@ def articleDeleted(request: WSGIRequest, article: Article):
             to=article.author.getEmail(),
             username=article.author.getFName(),
             subject=f"Article Deleted",
-            header=f"This is to inform you that your article - {article.get_nickname} - has been successfully deleted.",
+            header=f"This is to inform you that your article \"{article.heading}\" has been successfully deleted.",
             footer=f"You can create more articles anytime.",
             conclusion=f"If this action is unfamiliar, then you may contact us."
         )

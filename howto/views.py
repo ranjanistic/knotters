@@ -519,7 +519,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
         article: Article = Article.objects.get(id=articleID, author=request.user.profile)
         if action == Action.CREATE:
             subheading = request.POST.get('subheading', "Untitled Section")[:75]
-            paragraph = request.POST.get('paragraph', "")[:500]
+            paragraph = request.POST.get('paragraph', "")[:1200]
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
 
@@ -552,7 +552,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
 
         if action == Action.UPDATE:
             subheading = request.POST.get('subheading', "")[:75]
-            paragraph = request.POST.get('paragraph', "")[:500]
+            paragraph = request.POST.get('paragraph', "")[:1200]
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
 

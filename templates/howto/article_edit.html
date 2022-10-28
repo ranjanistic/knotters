@@ -85,7 +85,6 @@
                         </a>
                     {% empty %}
                         {% if self %}
-                            <br/>
                             <button class="accent w3-padding-small edit-action small" data-edittarget="articletopics" data-icon="add">Add topics</button>
                         {% endif %}
                     {% endfor %}
@@ -186,7 +185,7 @@
                             <div class="w3-row w3-padding section-content" sectionid="{{ section.id }}">
                                 {% if section.paragraph %}
                                 <div class="section-edit" sectionid="{{ section.id }}">
-                                    <textarea maxlength='500' id="{{ section.id }}-paragraph" class="wide paragraph" name='paragraph' rows="9" placeholder="Paragraph">{{ section.paragraph }}</textarea>
+                                    <textarea maxlength='1200' id="{{ section.id }}-paragraph" class="wide paragraph" name='paragraph' rows="9" placeholder="Paragraph">{{ section.paragraph }}</textarea>
                                 </div>
                                 {% endif %}
                                 {% if section.image %}

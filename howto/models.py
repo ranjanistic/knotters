@@ -263,7 +263,7 @@ class Section(models.Model):
         primary_key=True, default=uuid4, editable=False)
     article = models.ForeignKey(Article, related_name = "sections", on_delete=models.CASCADE)
     subheading = models.CharField(max_length=75)
-    paragraph = models.CharField(max_length=500)
+    paragraph = models.CharField(max_length=1200)
     image = models.ImageField(upload_to=sectionMediaPath, null=True, blank=True)
     video = models.FileField(upload_to=sectionMediaPath, null=True, blank=True)
 
