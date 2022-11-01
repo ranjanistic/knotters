@@ -52,10 +52,10 @@
         <div class="w3-col m8 l8">
             <div id="article-head">
                 <div id="article-head-view">
-                    <div class="w3-row w3-padding" id="heading-view">
-                        <h1>{%if article.heading %}{{ article.heading}}{% else %}Untitled Article{% endif %}</h1>
+                    <div class="w3-row w3-padding paragraph" id="heading-view">
+                        <h1>{%if article.heading %}{{ article.heading }}{% else %}Untitled Article{% endif %}</h1>
                     </div>
-                    <div class="w3-row text-medium w3-padding" id="subheading-view">{{article.subheading}}</div>
+                    <div class="w3-row text-large w3-padding paragraph" id="subheading-view">{{article.subheading|urlize|linktags|urlize_blank|linebreaksbr}}</div>
                 </div>
             </div>
             <br />
@@ -66,9 +66,11 @@
                         {% for tag in article.tags.all %}
                         <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
                         {% empty %}
-                            <strong class="dead-text">{% trans "No tags assigned" %}</strong>
+                            {% if self %}
+                            <button class="accent w3-padding-small edit-action small" data-edittarget="articletags" data-icon="add">Add tags</button>
+                            {% endif %}
                         {% endfor %}
-                        {% if self %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
+                        {% if self and article.tags.all|length > 0 %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
                         {% if request.user.is_authenticated %}
                             <form class="admire" method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
                                 {% csrf_token %}
@@ -116,7 +118,7 @@
             </div>
             <div class="w3-row w3-right {% if request.user.is_authenticated %}trigger-article-rating{% else %}trigger-login-popup{% endif %}">
                 <div class="rate">
-                    <span class="w3-left text-large">{{ article.get_avg_rating }}</span>
+                    <span class="w3-left text-large">{{ article.total_ratings|display_number }}</span>
                     {% for i in '0123456789'|make_list %}
                     <input type="checkbox" required/>
                     <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
@@ -127,22 +129,16 @@
                 <div id="view-articletopics" class="w3-right">
                     {% for topic in article.topics.all %}
                         <a href="{{URLS.HOWTO}}?search=topic:{{topic}}">
-                            <button class="button topic-name primary border-joy">
+                            <button class="button topic-name primary border-joy small">
                             {{topic}}
                             </button>
                         </a>
                     {% empty %}
                         {% if self %}
-                            <br/>
-                            <button class="accent edit-action w3-padding" data-edittarget="articletopics" data-icon="add">Add topics</button>
-                        {% else %}
-                            <br/>
-                            <div class="dead-text">
-                                <h4>No topics yet</h4>
-                            </div>
+                            <button class="accent w3-padding-small edit-action small" data-edittarget="articletopics" data-icon="add">Add topics</button>
                         {% endif %}
                     {% endfor %}
-                    {% if self and article.topics.all|length > 0 %}<i class="edit-action" data-edittarget="articletopics">edit</i>{% endif %}
+                    {% if self and article.topics.all|length > 0 %}<button class="small edit-action" data-icon="edit" data-edittarget="articletopics"></button>{% endif %}
                 </div>
                 {% if self %}
                 <div id="edit-articletopics" class="w3-right" hidden>
@@ -190,8 +186,8 @@
                         <br />
                         {% for section in sections %}
                         <div class="w3-row w3-left-align">
-                            <a class="text-tertiary" href="#view-section-{{ section.id }}">
-                                {{section.subheading}}
+                            <a class="text-tertiary paragraph" href="#view-section-{{ section.id }}">
+                                <span class="section-head">{{section.subheading}}</span>
                             </a>
                         </div>
                         <br />
@@ -217,9 +213,8 @@
                         <br />
                         {% for section in sections %}
                         <div class="w3-row w3-left-align">
-                            <a class="text-tertiary" href="#view-section-{{ section.id }}">
-                                {{section.subheading}}
-                            </a>
+                            <a class="text-tertiary paragraph" href="#view-section-{{ section.id }}">
+                                <span class="section-head">{{section.subheading}}</span>                            </a>
                         </div>
                         <br />
                         {% endfor %}
@@ -233,7 +228,9 @@
                         <div class="w3-row">
                             <div class="w3-row w3-padding" id="view-section-{{section.id}}" sectionid="{{section.id}}">
                                 {% if section.paragraph %}
-                                <span class="text-tertiary text-medium ">{{section.paragraph}}</span><br/>
+                                <span class="text-tertiary text-medium paragraph">
+                                {{section.paragraph|urlize|linktags|urlize_blank|linebreaksbr}}</span>
+                                <br/>
                                 {% endif %}
                                 <div class="w3-row w3-center" style="padding-bottom:1rem">
                                     {% if section.image %}

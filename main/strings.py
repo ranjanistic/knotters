@@ -538,6 +538,7 @@ class Browse():
     LATEST_COMPETITIONS = "latest-competitions"
     TRENDING_MENTORS = "trending-mentors"
     TRENDING_MODERATORS = "trending-moderators"
+    TRENDING_ARTICLES = "trending-articles"
     DISPLAY_MENTORS = "display-mentors"
     CORE_MEMBERS = "core-members"
     TOPIC_PROJECTS = "topic-wise-projects"
@@ -2366,7 +2367,9 @@ class Template():
         @property
         def browse_search(self):
             return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
-        
+
+        BROWSE_TRENDING_ARTICLES = 'browse/trending-articles'
+
     
     howto = Howto()
 

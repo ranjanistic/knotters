@@ -63,7 +63,7 @@ class ArticleAttributeTest(TestCase):
 
     @tag('article_methods')
     def test_article_methods(self):
-        self.assertEqual(self.article.__str__(), self.article.nickname if self.article.nickname else self.article.id)
+        self.assertEqual(self.article.__str__(), self.article.nickname if self.article.nickname else self.article.get_id)
         
         self.article.admirers.add(self.profile)
         self.assertTrue(self.article.isAdmirer(self.profile))

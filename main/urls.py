@@ -92,11 +92,11 @@ urlpatterns = [
     path(URL.BASE_GITHUB_EVENTS, githubEventsListener),
     path(URL.VIEW_SNAPSHOT, snapshot),
     path(URL.DONATE, donation),
+    path(URL.THANKYOU, thankyou),
     # dev/admin
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template),
     path(ADMINPATH, admin.site.urls),
-    path(URL.THANKYOU, thankyou),
 ]
 
 if not ISPRODUCTION:

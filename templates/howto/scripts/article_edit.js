@@ -8,7 +8,7 @@ const article_content = {
     paragraph_input :
     `<div class="w3-row w3-padding temp-para-parent">
         <div class="temp-paragraphs">
-            <textarea maxlength='500' class="wide paragraph" name='paragraph' rows="3" placeholder="Paragraph"></textarea>
+            <textarea maxlength='1200' class="wide paragraph" name='paragraph' rows="9" placeholder="Paragraph"></textarea>
         </div>
         <br />
     </div>`,
@@ -21,7 +21,7 @@ const article_content = {
         return `
         <div class="w3-row w3-padding section-content" sectionid="${ sectionID }">
             <div class="section-edit" sectionid="${ sectionID }">
-                <textarea maxlength='500' id="${ sectionID }-paragraph" class="wide paragraph" name='paragraph' rows="3" placeholder="paragraph">${paragraph}</textarea>
+                <textarea maxlength='1200' id="${ sectionID }-paragraph" class="wide paragraph" name='paragraph' rows="9" placeholder="Paragraph">${paragraph}</textarea>
             </div>
             <br />
         </div>`

@@ -73,19 +73,32 @@
                     {% endif %}
                     <div class="w3-row">
                         <div class="w3-padding article-details">
-                            <div class="article-heading">
-                                <h3>{{ article.heading }}</h3>
-                            </div>
-                            <div class="article-subheading">
-                                {{ article.subheading | truncatewords:30}}
-                            </div>
+                            <h3 class="primary paragraph">{{ article.heading }}</h3>
+                            <span class="primary paragraph">{{ article.subheading | truncatewords:30}}</span>
                         </div>
-                        <div class="rate rate-small w3-right">
-                            <span class="w3-left text-small">{{ article.get_avg_rating }}</span>
-                            {% for i in '0123456789'|make_list %}
-                            <input type="checkbox" required/>
-                            <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
-                            {% endfor %}
+                    </div>
+                    <div class="w3-row">
+                        <div class="w3-padding-small">
+                            {% if article.getPalleteTopics %}
+                                <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
+                                    <button class="w3-tiny primary border-joy">{{article.getPalleteTopics|first}}</button>
+                                </a>
+                                {% else %}
+                                    {% if article.getPalleteTags %}
+                                        <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=tag:"}}{{tag}}">
+                                            <button class="w3-tiny primary">#{{article.getPalleteTags|first}}</button>
+                                        </a>
+                                    {% endif%}
+                            {% endif %}
+                        </div>
+                        <div >
+                            <div class="rate rate-small w3-right">
+                                <span class="w3-left text-small">{{ article.total_ratings|display_number }}</span>
+                                {% for i in '0123456789'|make_list %}
+                                <input type="checkbox" required/>
+                                <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 </div>

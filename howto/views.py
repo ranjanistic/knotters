@@ -178,6 +178,7 @@ def publish(request: WSGIRequest, articleID:UUID):
         nickname = article.get_nickname
         cache.set(f"article_editable_{articleID}", True, 70*settings.CACHE_MAX)        
         articlePublished(request, article)
+        article.author.increaseXP(by=5, reason="Published an article")
         return respondJson(Code.OK, dict(nickname=nickname))
     except ObjectDoesNotExist:
         return respondJson(Code.NO, error=Message.ARTICLE_NOT_FOUND)
@@ -477,6 +478,8 @@ def deleteArticle(request, articleID):
             cache.delete(f"article_{article.nickname}")
             cache.delete(f"article_sections_{articleID}")
             articleDeleted(request, article)
+            if not article.is_draft:
+                article.author.decreaseXP(by=5, reason="Deleted an article")
             if json_body:
                 return respondJson(Code.OK)
             return respondRedirect(APPNAME, success=Message.ARTICLE_DELETED)
@@ -519,7 +522,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
         article: Article = Article.objects.get(id=articleID, author=request.user.profile)
         if action == Action.CREATE:
             subheading = request.POST.get('subheading', "Untitled Section")[:75]
-            paragraph = request.POST.get('paragraph', "")[:500]
+            paragraph = request.POST.get('paragraph', "")[:1200]
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
 
@@ -552,7 +555,7 @@ def section(request: WSGIRequest, articleID: UUID, action: str):
 
         if action == Action.UPDATE:
             subheading = request.POST.get('subheading', "")[:75]
-            paragraph = request.POST.get('paragraph', "")[:500]
+            paragraph = request.POST.get('paragraph', "")[:1200]
             image = request.POST.get('image', None)
             video = request.POST.get('video', None)
 
@@ -679,10 +682,12 @@ def toggleAdmiration(request: WSGIRequest, articleID: UUID) -> HttpResponse:
             id=articleID)
         if admire in ["true", True]:
             article.admirers.add(request.user.profile)
+            article.increaseTopicsXp()
             if(article.author.user != request.user):
                 articleAdmired(request, article)
         elif admire in ["false", False]:
             article.admirers.remove(request.user.profile)
+            article.decreaseTopicsXp()
         if json_body:
             return respondJson(Code.OK)
         return redirect(article.getLink())

@@ -11,6 +11,7 @@ from django.conf import settings
 from main.strings import url
 from django.core.cache import cache
 from django.core.validators import MaxValueValidator, MinValueValidator
+import math
 
 
 class Article(models.Model):
@@ -28,6 +29,9 @@ class Article(models.Model):
     modifiedOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
     admirers = models.ManyToManyField(Profile, through='ArticleAdmirer', default=[
     ], related_name='article_admirers')
+    admire_milestone_count: int = models.IntegerField(
+        default=0, help_text='Admire milestone count')
+    """admire_milestone_count (IntegerField): Number of admire milestones achieved by the article"""
     topics = models.ManyToManyField(Topic, through='ArticleTopic', default=[
     ], related_name='article_topics')
     tags = models.ManyToManyField(Tag, through='ArticleTag', default=[
@@ -36,7 +40,7 @@ class Article(models.Model):
     """raters (ManyToManyField<Profile>): The raters of the article and their rating"""
     
     def __str__(self):
-        return self.nickname if self.nickname else self.id
+        return self.nickname if self.nickname else self.get_id
 
     def save(self, *args, **kwargs):
         self.modifiedOn = timezone.now()
@@ -62,11 +66,11 @@ class Article(models.Model):
     
     @property
     def get_nickname(self):
-        if not self.nickname or self.nickname == str(self.id):
+        if not self.nickname or self.nickname == self.get_id:
             if self.is_draft:
                 if self.nickname:
                     return self.nickname
-                nickname = self.id
+                nickname = self.get_id
             else:
                 nickname = filterNickname(self.heading, 25)
                 if Article.objects.filter(nickname__iexact=nickname).exclude(id=self.id).exists():
@@ -140,6 +144,7 @@ class Article(models.Model):
         return count
 
     def getTopics(self) -> list:
+        """Returns list of all topics of the article"""
         cacheKey = self.CACHE_KEYS.article_topics
         topics = cache.get(cacheKey, None)
         if not topics:
@@ -159,6 +164,7 @@ class Article(models.Model):
         return self.getTopics()[:limit]
     
     def getTags(self) -> list:
+        """Returns list of all topics of the article"""
         cacheKey = self.CACHE_KEYS.article_tags
         tags = cache.get(cacheKey, None)
         if not tags:
@@ -251,7 +257,38 @@ class Article(models.Model):
             count = self.tags.count()
             cache.set(cacheKey, count, settings.CACHE_INSTANT)
         return count
+    
+    def increaseTopicsXp(self) -> bool:
+        """Increases Xp in topics on admire milestone achievement"""
+        done = False
+        count = self.total_admirers()
+        if self.admire_milestone_count == None:
+            self.admire_milestone_count = 0
+            self.save()
+        if count>=49 and math.ceil(math.sqrt((count+1)/50-1)) > self.admire_milestone_count:
+            done = self.author.increaseBulkTopicPoints(self.getTopics(), round(self.get_avg_rating()), False, "Admiration milestone achieved")
+            self.admire_milestone_count = math.ceil(math.sqrt((count+1)/50-1))
+            self.save()
+        if done:
+            return True
+        return False
 
+    def decreaseTopicsXp(self) -> bool:
+        """Decreases Xp in topics on admire milestone loss"""
+        done = False
+        count = self.total_admirers()
+        if self.admire_milestone_count == None:
+            self.admire_milestone_count = 0
+            self.save()
+        if count<49:
+            count = 49
+        if math.ceil(math.sqrt((count+1)/50-1)) < self.admire_milestone_count:
+            done = self.author.decreaseBulkTopicPoints(self.getTopics(), min(math.floor(self.get_avg_rating()), 2), False, "Admiration milestone lost")
+            self.admire_milestone_count = math.ceil(math.sqrt((count+1)/50-1))
+            self.save()
+        if done:
+            return True
+        return False
 
 def sectionMediaPath(instance, filename):
     fileparts = filename.split('.')
@@ -263,7 +300,7 @@ class Section(models.Model):
         primary_key=True, default=uuid4, editable=False)
     article = models.ForeignKey(Article, related_name = "sections", on_delete=models.CASCADE)
     subheading = models.CharField(max_length=75)
-    paragraph = models.CharField(max_length=500)
+    paragraph = models.CharField(max_length=1200)
     image = models.ImageField(upload_to=sectionMediaPath, null=True, blank=True)
     video = models.FileField(upload_to=sectionMediaPath, null=True, blank=True)
 

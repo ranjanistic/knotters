@@ -38,6 +38,8 @@ from moderation.methods import moderationRenderData
 from moderation.models import LocalStorage
 from people.methods import profileRenderData
 from people.methods import rendererstr as peopleRendererstr
+from howto.methods import rendererstr as howtoRendererstr
+from howto.models import Article
 from people.models import (CoreMember, DisplayMentor, CoreContributor, GHMarketPurchase,
                            Profile, Topic)
 from projects.methods import coreProfileData, freeProfileData
@@ -1155,7 +1157,7 @@ class Version(TemplateView):
 
 @decode_JSON
 def browser(request: WSGIRequest, type: str) -> HttpResponse:
-    """To respond with browsable text/html contetnt (component),
+    """To respond with browsable text/html content (component),
         mainly for personal feed/home of logged in users.
 
     METHODS: GET, POST
@@ -1422,6 +1424,13 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                     creator__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_QUICK, dict(projects=projects, count=len(projects)))
+        elif type == Browse.TRENDING_ARTICLES:
+            articles = cache.get(cachekey, [])
+            if not len(articles):
+                articles = Article.objects.filter(is_draft=False).exclude(
+                    author__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                cache.set(cachekey, articles, settings.CACHE_MINI)
+            return howtoRendererstr(request, Template.Howto.BROWSE_TRENDING_ARTICLES, dict(articles=articles, count=len(articles)))
         else:
             return HttpResponseBadRequest(type)
         return HttpResponse()
