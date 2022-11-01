@@ -58,6 +58,7 @@ class NotificationCode():
     INCREASE_BULK_XP_TOPIC = 8
     INCREASE_XP_IN_TOPIC = 8
     DECREASE_XP_IN_TOPIC = 8
+    DECREASE_BULK_XP_TOPIC = 8
     # Milestone Notifications = 9
     MILESTONE_NOTIF = 9
     MILESTONE_NOTIF_TOPIC = 9

@@ -1376,19 +1376,15 @@ class Profile(models.Model):
         Returns:
             ProfileBulkTopicXPRecord: The user's bulk xp record instance
         """
-        proftops = []
-        for topic in topics:
-            proftops.append(
-                ProfileTopic(
-                    topic=topic,
+        proftops = list(ProfileTopic.objects.filter(profile=self, topic__in=topics))
+        existing_topics = list(map(lambda x:x.topic, proftops))
+        proftops.extend(list(map(lambda t : ProfileTopic(
+                    topic=t,
                     profile=self,
                     trashed=True,
                     points=0
-                )
-            )
-
-        ProfileTopic.objects.bulk_create(proftops, ignore_conflicts=True)
-
+                ), filter(lambda t: t not in existing_topics, topics))))
+        
         for proftop in proftops:
             proftop.increasePoints(by, notify=False, record=False)
 
@@ -1421,6 +1417,38 @@ class Profile(models.Model):
             )
         )
         return proftop.decreasePoints(by, notify, reason)
+
+    def decreaseBulkTopicPoints(self, topics, by: int = 0, notify: bool = True, reason: str = '') -> "ProfileBulkTopicXPRecord":
+        """Decreases the user's XP in given topics by the given amount.
+
+        Args:
+            topics (list): The topics to decrease the user's XP in
+            by (int): The amount to decrease the user's XP by
+            notify (bool): Whether to notify the user about the XP decrease. Defaults to True
+            reason (str): The reason for the XP decrease
+
+        Returns:
+            ProfileBulkTopicXPRecord: The user's bulk xp record instance
+        """
+        proftops = list(ProfileTopic.objects.filter(profile=self, topic__in=topics))
+        existing_topics = list(map(lambda x:x.topic, proftops))
+        proftops.extend(list(map(lambda t : ProfileTopic(
+                    topic=t,
+                    profile=self,
+                    trashed=True,
+                    points=0
+                ), filter(lambda t: t not in existing_topics, topics))))
+
+        for proftop in proftops:
+            proftop.decreasePoints(by, notify=False, record=False)
+
+        profbulktoprecord = ProfileBulkTopicXPRecord.objects.create(
+            xp=by, reason=reason)
+        profbulktoprecord.profile_topics.set(proftops)
+        if notify:
+            from .mailers import decreaseBulkTopicXPAlert
+            decreaseBulkTopicXPAlert(self, by)
+        return profbulktoprecord
 
     def xpTarget(self) -> int:
         """Returns the user's next XP target"""
@@ -1851,7 +1879,7 @@ class ProfileTopic(models.Model):
                 profile_topic=self, xp=by, reason=reason)
         return self.points
 
-    def decreasePoints(self, by: int = 0, notify: bool = True, reason: str = '') -> int:
+    def decreasePoints(self, by: int = 0, notify: bool = True, reason: str = '', record: bool = True) -> int:
         """Decreases the points/XP of the profile in the topic
 
         Args:
@@ -1877,8 +1905,9 @@ class ProfileTopic(models.Model):
             from .mailers import decreaseXPInTopicAlert
             decreaseXPInTopicAlert(
                 self, by, self.topic.get_name, self.points)
-        ProfileTopicXPRecord.objects.create(
-            profile_topic=self, xp=by, reason=reason)
+        if record:
+            ProfileTopicXPRecord.objects.create(
+                profile_topic=self, xp=by, reason=reason)
         return self.points
 
     def get_points(self, raw=False) -> str:
