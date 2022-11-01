@@ -187,7 +187,7 @@
                         {% for section in sections %}
                         <div class="w3-row w3-left-align">
                             <a class="text-tertiary paragraph" href="#view-section-{{ section.id }}">
-                                <strong>{{section.subheading}}</strong>
+                                <span class="section-head">{{section.subheading}}</span>
                             </a>
                         </div>
                         <br />
@@ -214,8 +214,7 @@
                         {% for section in sections %}
                         <div class="w3-row w3-left-align">
                             <a class="text-tertiary paragraph" href="#view-section-{{ section.id }}">
-                                <strong>{{section.subheading}}</strong>
-                            </a>
+                                <span class="section-head">{{section.subheading}}</span>                            </a>
                         </div>
                         <br />
                         {% endfor %}
