@@ -923,7 +923,7 @@ def browseSearch(request: WSGIRequest):
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         pass
-    raise Http404(e)
+    raise Http404()
 
 
 @normal_profile_required
