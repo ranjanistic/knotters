@@ -53,7 +53,7 @@ from rjsmin import jsmin
 from .bots import Github
 from .decorators import (decode_JSON, dev_only, github_only,
                          normal_profile_required, require_JSON)
-from .env import ADMINPATH, ISBETA, ISPRODUCTION
+from .env import ADMINPATH, ISBETA, ISPRODUCTION, REDIS_HOST, REDIS_PORT, REDIS_USER, REDIS_PASSWORD
 from .mailers import featureRelease
 from .methods import (errorLog, getDeepFilePaths, renderData, renderString,
                       renderView, respondJson, respondRedirect, verify_captcha)
@@ -1175,6 +1175,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         JsonResponse: The response json content with main.strings.Code.OK and requested content
     """
     try:
+        r = settings.REDIS_CLIENT
         cachekey = f"main_browser_{type}{request.LANGUAGE_CODE}"
         excludeUserIDs = []
         if request.user.is_authenticated:
@@ -1224,19 +1225,27 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             if not len(profiles):
                 if request.user.is_authenticated:
                     excludeUserIDs.append(request.user.profile.getUserID())
-                profiles = Profile.objects.exclude(user__id__in=excludeUserIDs).filter(
-                    user__emailaddress__verified=True,
-                    createdOn__gte=(
-                        timezone.now()+timedelta(days=-60)),
-                    suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[:limit]
+                profile_ids = r.lrange(Browse.NEW_PROFILES, 0, -1)
+                queryset = Profile.objects.filter(id__in=profile_ids).exclude(
+                    user__id__in=excludeUserIDs)[:limit]
+                profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
+                # profiles = Profile.objects.exclude(user__id__in=excludeUserIDs).filter(
+                #     user__emailaddress__verified=True,
+                #     createdOn__gte=(
+                #         timezone.now()+timedelta(days=-60)),
+                #     suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[:limit]
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
 
         elif type == Browse.NEW_PROJECTS:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                projects = BaseProject.objects.filter(createdOn__gte=(
-                    timezone.now()+timedelta(days=-30)), suspended=False, trashed=False).exclude(creator__user__id__in=excludeUserIDs).order_by('-createdOn')[:limit]
+                project_ids = r.lrange(Browse.NEW_PROJECTS, 0, -1)
+                queryset = BaseProject.objects.filter(id__in=project_ids).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit]
+                projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
+                # projects = BaseProject.objects.filter(createdOn__gte=(
+                #     timezone.now()+timedelta(days=-30)), suspended=False, trashed=False).exclude(creator__user__id__in=excludeUserIDs).order_by('-createdOn')[:limit]
 
                 projects = list(
                     set(list(filter(lambda p: p.is_approved(), projects))))
@@ -1247,8 +1256,11 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.RECENT_WINNERS:
             results = cache.get(cachekey, None)
             if results is None:
-                results = Result.objects.filter(competition__resultDeclared=True, competition__startAt__gte=(
-                    timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[:limit]
+                result_ids = r.lrange(Browse.RECENT_WINNERS, 0, -1)
+                queryset = Result.objects.filter(id__in=result_ids)[:limit]
+                results = sorted(queryset, key=lambda x: result_ids.index(str(x.id)))
+                # results = Result.objects.filter(competition__resultDeclared=True, competition__startAt__gte=(
+                #     timezone.now()+timedelta(days=-6))).order_by('-competition__endAt')[:limit]
                 cache.set(cachekey, results, settings.CACHE_MINI)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results, count=len(results))))
 
@@ -1286,8 +1298,12 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TRENDING_PROJECTS:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                projects = BaseProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
-                    creator__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                project_ids = r.lrange(Browse.TRENDING_PROJECTS, 0, -1)
+                queryset = BaseProject.objects.filter(id__in=project_ids).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit]
+                projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
+                # projects = BaseProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
+                #     creator__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
                 projects = list(
                     set(list(filter(lambda p: p.is_approved(), projects))))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
@@ -1295,44 +1311,62 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TRENDING_PROFILES:
             profiles = cache.get(cachekey, [])
             if not len(profiles):
-                profiles = Profile.objects.filter(
-                    Q(suspended=False, to_be_zombie=False, is_active=True)).exclude(
-                        user__id__in=excludeUserIDs
-                ).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                profile_ids = r.lrange(Browse.TRENDING_PROFILES, 0, -1)
+                queryset = Profile.objects.filter(id__in=profile_ids).exclude(
+                    user__id__in=excludeUserIDs)[:limit]
+                profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
+                # profiles = Profile.objects.filter(
+                #     Q(suspended=False, to_be_zombie=False, is_active=True)).exclude(
+                #         user__id__in=excludeUserIDs
+                # ).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING, dict(profiles=profiles, count=len(profiles)))
         elif type == Browse.NEWLY_MODERATED:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                vids = Project.objects.filter(status=Code.APPROVED, trashed=False, suspended=False, approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
-                cids = CoreProject.objects.filter(status=Code.APPROVED, trashed=False, suspended=False, approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
-                projects = BaseProject.objects.filter(
-                    id__in=list(cids)+list(vids))
+                project_ids = r.lrange(Browse.NEWLY_MODERATED, 0, -1)
+                queryset = BaseProject.objects.filter(id__in=project_ids).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit]
+                projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
+                # vids = Project.objects.filter(status=Code.APPROVED, trashed=False, suspended=False, approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
+                #     creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
+                # cids = CoreProject.objects.filter(status=Code.APPROVED, trashed=False, suspended=False, approvedOn__gte=timezone.now()+timedelta(days=-60)).exclude(
+                #     creator__user__id__in=excludeUserIDs)[:limit].values_list("id", flat=True)
+                # projects = BaseProject.objects.filter(
+                #     id__in=list(cids)+list(vids))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWLY_MODERATED, dict(projects=projects, count=len(projects)))
         elif type == Browse.HIGHEST_MONTH_XP_PROFILES:
             profiles = cache.get(cachekey, [])
             if not len(profiles):
-                profiles = Profile.objects.filter(
-                    Q(suspended=False, to_be_zombie=False, is_active=True)).exclude(
-                        user__id__in=excludeUserIDs
-                ).order_by('-xp')[:limit]
+                profile_ids = r.lrange(Browse.HIGHEST_MONTH_XP_PROFILES, 0, -1)
+                queryset = Profile.objects.filter(id__in=profile_ids).exclude(
+                    user__id__in=excludeUserIDs)[:limit]
+                profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
+                # profiles = Profile.objects.filter(
+                #     Q(suspended=False, to_be_zombie=False, is_active=True)).exclude(
+                #         user__id__in=excludeUserIDs
+                # ).order_by('-xp')[:limit]
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_HIGHEST_MONTH_XP_PROFILES, dict(profiles=profiles, count=len(profiles)))
         elif type == Browse.LATEST_COMPETITIONS:
             competitions = cache.get(cachekey, [])
             if not len(competitions):
-                competitions = Competition.objects.filter(
-                    hidden=False, is_draft=False).order_by("-startAt")[:limit]
+                competition_ids = r.lrange(Browse.LATEST_COMPETITIONS, 0, -1)
+                queryset = Competition.objects.filter(id__in=competition_ids)[:limit]
+                competitions = sorted(queryset, key=lambda x: competition_ids.index(str(x.id)))
+                # competitions = Competition.objects.filter(
+                #     hidden=False, is_draft=False).order_by("-startAt")[:limit]
                 cache.set(cachekey, competitions, settings.CACHE_MINI)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
         elif type == Browse.TRENDING_MENTORS:
             mentors = cache.get(cachekey, [])
             if not len(mentors):
-                mentors = Profile.objects.filter(
-                    is_mentor=True, suspended=False, is_active=True, to_be_zombie=False).order_by("-xp")[:limit]
+                profile_ids = r.lrange(Browse.TRENDING_MENTORS, 0, -1)
+                queryset = Profile.objects.filter(id__in=profile_ids)[:limit]
+                mentors = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
+                # mentors = Profile.objects.filter(
+                #     is_mentor=True, suspended=False, is_active=True, to_be_zombie=False).order_by("-xp")[:limit]
                 if request.user.is_authenticated:
                     mentors = request.user.profile.filterBlockedProfiles(
                         mentors)
@@ -1341,8 +1375,11 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TRENDING_MODERATORS:
             moderators = cache.get(cachekey, [])
             if not len(moderators):
-                moderators = Profile.objects.filter(
-                    is_moderator=True, suspended=False, is_active=True, to_be_zombie=False).order_by("-xp")[:limit]
+                profile_ids = r.lrange(Browse.TRENDING_MODERATORS, 0, -1)
+                queryset = Profile.objects.filter(id__in=profile_ids)[:limit]
+                moderators = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
+                # moderators = Profile.objects.filter(
+                #     is_moderator=True, suspended=False, is_active=True, to_be_zombie=False).order_by("-xp")[:limit]
                 if request.user.is_authenticated:
                     moderators = request.user.profile.filterBlockedProfiles(
                         moderators)
@@ -1352,8 +1389,11 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             dmentors = cache.get(cachekey, [])
             count = len(dmentors)
             if not count:
-                dmentors = DisplayMentor.objects.filter(
-                    hidden=False).order_by("-createdOn")
+                dmentor_ids = r.lrange(Browse.DISPLAY_MENTORS, 0, -1)
+                queryset = DisplayMentor.objects.filter(id__in=dmentor_ids)[:limit]
+                dmentors = sorted(queryset, key=lambda x: dmentor_ids.index(str(x.id)))
+                # dmentors = DisplayMentor.objects.filter(
+                #     hidden=False).order_by("-createdOn")
                 count = len(dmentors)
                 if count:
                     cache.set(cachekey, dmentors, settings.CACHE_MINI)
@@ -1362,7 +1402,10 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             coremems = cache.get(cachekey, [])
             count = len(coremems)
             if not count:
-                coremems = CoreMember.objects.filter(hidden=False)
+                coremem_ids = r.lrange(Browse.CORE_MEMBERS, 0, -1)
+                queryset = CoreMember.objects.filter(id__in=coremem_ids)[:limit]
+                coremems = sorted(queryset, key=lambda x: coremem_ids.index(str(x.id)))
+                # coremems = CoreMember.objects.filter(hidden=False)
                 count = len(coremems)
                 if count:
                     cache.set(cachekey, coremems, settings.CACHE_MINI)
@@ -1406,29 +1449,45 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TRENDING_CORE:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                projects = CoreProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
-                    creator__user__id__in=excludeUserIDs, status=Code.APPROVED).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                project_ids = r.lrange(Browse.TRENDING_CORE, 0, -1)
+                queryset = CoreProject.objects.filter(id__in=project_ids).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit]
+                projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
+                # projects = CoreProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
+                #     creator__user__id__in=excludeUserIDs, status=Code.APPROVED).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_CORE, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_VERIFIED:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                projects = Project.objects.filter(Q(trashed=False, suspended=False)).exclude(
-                    creator__user__id__in=excludeUserIDs, status=Code.APPROVED).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                project_ids = r.lrange(Browse.TRENDING_VERIFIED, 0, -1)
+                queryset = Project.objects.filter(id__in=project_ids).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit]
+                projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
+                # projects = Project.objects.filter(Q(trashed=False, suspended=False)).exclude(
+                #     creator__user__id__in=excludeUserIDs, status=Code.APPROVED).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_VERIFIED, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_QUICK:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                projects = FreeProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
-                    creator__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                project_ids = r.lrange(Browse.TRENDING_QUICK, 0, -1)
+                queryset = FreeProject.objects.filter(id__in=project_ids).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit]
+                projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
+                # projects = FreeProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
+                #     creator__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_QUICK, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_ARTICLES:
             articles = cache.get(cachekey, [])
             if not len(articles):
-                articles = Article.objects.filter(is_draft=False).exclude(
-                    author__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
+                article_ids = r.lrange(Browse.TRENDING_ARTICLES, 0, -1)
+                queryset = Article.objects.filter(id__in=article_ids).exclude(
+                    author__user__id__in=excludeUserIDs)[:limit]
+                articles = sorted(queryset, key=lambda x: article_ids.index(str(x.id)))
+                #articles = Article.objects.filter(is_draft=False).exclude(
+                # author__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
                 cache.set(cachekey, articles, settings.CACHE_MINI)
             return howtoRendererstr(request, Template.Howto.BROWSE_TRENDING_ARTICLES, dict(articles=articles, count=len(articles)))
         else:

@@ -80,12 +80,12 @@
                     <div class="w3-row">
                         <div class="w3-padding-small">
                             {% if article.getPalleteTopics %}
-                                <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=topic:"}}{{topic}}">
+                                <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=topic:"}}{{article.getPalleteTopics|first}}">
                                     <button class="w3-tiny primary border-joy">{{article.getPalleteTopics|first}}</button>
                                 </a>
                                 {% else %}
                                     {% if article.getPalleteTags %}
-                                        <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=tag:"}}{{tag}}">
+                                        <a class="w3-left" href="{{URLS.SEARCH|getquery:"query=tag:"}}{{article.getPalleteTags|first}}">
                                             <button class="w3-tiny primary">#{{article.getPalleteTags|first}}</button>
                                         </a>
                                     {% endif%}
