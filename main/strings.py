@@ -541,6 +541,7 @@ class Browse():
     TRENDING_ARTICLES = "trending-articles"
     DISPLAY_MENTORS = "display-mentors"
     CORE_MEMBERS = "core-members"
+    CORE_CONTRIBS = "core-contributors"
     TOPIC_PROJECTS = "topic-wise-projects"
     TOPIC_PROFILES = "topic-wise-profiles"
 
@@ -1927,6 +1928,7 @@ class Template():
             return f'{self.DIRNAME}/{self.BROWSE_DISPLAY_MENTORS}.html'
 
         BROWSE_CORE_MEMBERS = 'browse/core-members'
+        BROWSE_CORE_CONTRIBS = 'browse/core-contributors'
 
         BROWSE_TOPIC_PROFILES = 'browse/topic-profiles'
 

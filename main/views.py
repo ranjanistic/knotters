@@ -1367,6 +1367,15 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 if count:
                     cache.set(cachekey, coremems, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_CORE_MEMBERS, dict(coremems=coremems, count=count))
+        elif type == Browse.CORE_CONTRIBS:
+            coremems = cache.get(cachekey, [])
+            count = len(coremems)
+            if not count:
+                coremems = CoreContributor.objects.filter(hidden=False).order_by("createdOn")
+                count = len(coremems)
+                if count:
+                    cache.set(cachekey, coremems, settings.CACHE_MINI)
+            return peopleRendererstr(request, Template.People.BROWSE_CORE_CONTRIBS, dict(coremems=coremems, count=count))
         elif type == Browse.TOPIC_PROJECTS:
             if request.user.is_authenticated:
                 projects = cache.get(cachekey, [])
