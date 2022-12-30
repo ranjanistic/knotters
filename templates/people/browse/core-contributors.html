@@ -14,11 +14,11 @@
             {% for core in coremems %}
             <div class="swiper-slide w3-animate-zoom">
                 <div class="pallete w3-center no-pad">
-                    <a href="{{core.profile.getLink}}">
-                        <img class="primary pallete border-joy no-pad wide" width="100%" height="100%" src="{{ core.profile.getDP }}" alt="{{ core.profile.name }}" loading="lazy" />
+                    <a href="{{core.get_link}}">
+                        <img class="primary pallete border-joy no-pad wide" width="100%" height="100%" src="{{ core.get_DP }}" alt="{{ core.get_name }}" loading="lazy" />
                     </a>
                     <div class="w3-row w3-padding">
-                        <h6 class="{% if core.profile.is_verified %}align{% endif %}">{{ core.profile.getName }}{% if core.profile.is_verified %}<i class="positive-text w3-medium">verified</i>{% endif %}</h6>
+                        <h6>{{ core.get_name }}</h6>
                         <span>{{ core.get_about }}</span><br/>
                     </div>
                     <br/>
@@ -32,11 +32,11 @@
             {% for core in coremems %}
             <div class="w3-col w3-animate-zoom">
                 <div class="pallete pallete_i no-pad w3-center">
-                    <a href="{{core.profile.getLink}}">
-                        <img class="primary pallete border-joy no-pad wide" width="100%" height="100%" src="{{ core.profile.getDP }}" alt="{{ core.profile.name }}" loading="lazy" />
+                    <a href="{{core.get_link}}">
+                        <img class="primary pallete border-joy no-pad wide" width="100%" height="100%" src="{{ core.get_DP }}" alt="{{ core.get_name }}" loading="lazy" />
                     </a>
                     <div class="w3-row w3-padding">
-                        <h6 class="{% if core.profile.is_verified %}align{% endif %}">{{ core.profile.getName }}{% if core.profile.is_verified %}<i class="positive-text w3-medium">verified</i>{% endif %}</h6>
+                        <h6>{{ core.get_name }}</h6>
                         <span>{{ core.get_about }}</span><br/>
                     </div>
                     <br/>
