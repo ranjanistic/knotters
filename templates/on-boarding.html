@@ -114,15 +114,20 @@
             <div class="w3-col w3-half w3-padding">
                 <form method="POST" action="{{URLS.People.PROFILEEDIT|params:'pallete'}}">
                     {% csrf_token %}
-                    <input type="text" hidden name="profilepic" id="profile-pic-data" />
+                    <input type="text" class="random-avatar-output" hidden name="profilepic" id="profile-pic-data" data-group="dp" />
                     <input type="text" name="next" value="{{request.path}}" hidden />
                     <div class="w3-row">
                         <div class="w3-col w3-half w3-center xyz-in" xyz="fade right-100%">
-                            <img class="pallete preview-type-image" src="{{request.user.profile.getDP}}" width="200" id="profile-pic-output" />
+                            <img class="pallete preview-type-image random-avatar-view" src="{{request.user.profile.getDP}}" width="200" id="profile-pic-output" data-group="dp" />
                             <br/><br/>
                             <button class="primary small" type="button" data-icon="upload">
                                 <label for="profile-pic-upload" class="w3-small">
-                                    Change picture
+                                    Choose picture
+                                </label>
+                            </button>
+                            <button class="vibrant small random-avatar-generate" type="button" data-icon="casino" id="dp">
+                                <label class="w3-small">
+				Random avatar
                                 </label>
                             </button>
                             <br/><br/>
@@ -130,7 +135,7 @@
                         <div class="w3-col w3-half xyz-in" xyz="fade left-100%">
                             <strong>
                             Did we get your name correct 🤔?<br/>
-                            <input type="text" class="wide" name="displayname" autocomplete="name" required maxlength="70" placeholder="Your name" value="{{request.user.getName}}" />
+                            <input type="text" class="wide" id="dname" name="displayname" autocomplete="name" required maxlength="70" placeholder="Your name" value="{{request.user.getName}}" />
                             </strong>
                             <span class="dead-text">Your name will be used in crucial places, like certificates and acheivements.</span>
                             <br/><br/>
@@ -562,6 +567,7 @@
 {% endblock %}
 
 {% block scripts %}
+    <script nonce="{{request.csp_nonce}}" src="{% static 'multiavatar/multiavatar.min.js' %}"></script>
     <script nonce="{{request.csp_nonce}}" src="{% static 'interactjs/interact.min.js' %}"></script>
     <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.ON_BOARDING}}?next={{request.GET.next}}"></script>
 {% endblock %}

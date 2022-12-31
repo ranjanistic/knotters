@@ -87,7 +87,7 @@
       <div class="w3-col w3-container m4 l3 w3-animate-left">
         <div class="pallete w3-center w3-animate-zoom" style="padding: 0" id="view-pallete">
           
-          <img class="primary preview-type-image" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
+          <img class="{{person.profile.theme}} preview-type-image" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" />
           
           <div class="w3-row w3-padding">
             <h5 style="{% if person.profile.has_labels %}margin:4px{% endif %}" class="{% if person.profile.is_verified %}align{% endif %}">{{ person.getName }}{% if person.profile.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h5>
@@ -116,16 +116,20 @@
 
         {% if self %}
           <div class="pallete w3-center w3-animate-opacity" id="edit-pallete">
-            <img class="primary" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" style="opacity:0.5" />
+            <img class="primary random-avatar-view" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" data-group="dp" />
             <input type="file" id="uploadprofilepic" hidden accept="image/png, image/jpg, image/jpeg" />
             <button class="{% if person.profile.is_moderator %}accent{% elif person.profile.is_mentor %}active{% else %}positive{% endif %} small" type="button" id="upload-button">
               <i class="material-icons">upload</i>
-              <label id="uploadprofilepiclabel" for="uploadprofilepic">Select Image</label>
+              <label id="uploadprofilepiclabel" for="uploadprofilepic">Select image</label>
+            </button>
+            <button class="vibrant small random-avatar-generate" type="button" id="dp">
+              <i class="material-icons">casino</i>
+              <label>Random avatar</label>
             </button>
             <br/>
             <form method="POST" action="{{URLS.PROFILEEDIT|params:'pallete'}}">
               {% csrf_token %}
-              <input type="text" hidden id="profileImageData" name="profilepic" value="" />
+              <input type="text" class="random-avatar-output" hidden id="profileImageData" name="profilepic" data-group="dp" />
               <div class="w3-row w3-padding">
                 <input type="text" autocomplete="name" autocapitalize placeholder="Your name" maxlength="70" required value="{{request.user.getName}}" name="displayname" /><br/><br/>
                 <textarea type="text" class="wide" placeholder="Bio" autocomplete="nickname" maxlength="300" name="profilebio" >{{ request.user.profile.getBio }}</textarea><br/>
@@ -346,6 +350,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script nonce="{{request.csp_nonce}}" src="{% static 'multiavatar/multiavatar.min.js' %}"></script>
 <script nonce="{{request.csp_nonce}}" src="{% static 'chartjs/chart.min.js' %}"></script>
 <script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.PROFILE}}?id={{person.id}}&tab={{request.GET.tab}}"></script>
 {% if person.profile.is_active %}
