@@ -53,7 +53,7 @@ from rjsmin import jsmin
 from .bots import Github
 from .decorators import (decode_JSON, dev_only, github_only,
                          normal_profile_required, require_JSON)
-from .env import ADMINPATH, ISBETA, ISPRODUCTION, REDIS_HOST, REDIS_PORT, REDIS_USER, REDIS_PASSWORD
+from .env import ADMINPATH, ISBETA, ISPRODUCTION
 from .mailers import featureRelease
 from .methods import (errorLog, getDeepFilePaths, renderData, renderString,
                       renderView, respondJson, respondRedirect, verify_captcha)
@@ -1268,23 +1268,29 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             projects = cache.get(cachekey, [])
             count = len(projects)
             if not count:
-                query = Q()
-                authquery = query
                 if request.user.is_authenticated:
-                    query = Q(topics__in=request.user.profile.getTopics())
-                    authquery = ~Q(creator=request.user.profile)
+                    project_ids = r.lrange(f"{Browse.RECOMMENDED_PROJECTS}_{request.user.profile.id}")
+                else:
+                    project_ids = r.lrange(Browse.RECOMMENDED_PROJECTS)
+                queryset = BaseProject.objects.filter(id__in=project_ids)[:limit]
+                projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
+                # query = Q()
+                # authquery = query
+                # if request.user.is_authenticated:
+                #     query = Q(topics__in=request.user.profile.getTopics())
+                #     authquery = ~Q(creator=request.user.profile)
 
-                projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery, query).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit]
-                projects = list(
-                    set(list(filter(lambda p: p.is_approved(), projects))))
+                # projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery, query).exclude(
+                #     creator__user__id__in=excludeUserIDs)[:limit]
+                # projects = list(
+                #     set(list(filter(lambda p: p.is_approved(), projects))))
+                # count = len(projects)
+                # if count < 1:
+                #     projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery).exclude(
+                #         creator__user__id__in=excludeUserIDs)[:limit]
+                #     projects = list(
+                #         set(list(filter(lambda p: p.is_approved(), projects))))
                 count = len(projects)
-                if count < 1:
-                    projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery).exclude(
-                        creator__user__id__in=excludeUserIDs)[:limit]
-                    projects = list(
-                        set(list(filter(lambda p: p.is_approved(), projects))))
-                    count = len(projects)
 
                 if count:
                     cache.set(cachekey, projects, settings.CACHE_MINI)
@@ -1413,36 +1419,49 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TOPIC_PROJECTS:
             if request.user.is_authenticated:
                 projects = cache.get(cachekey, [])
-                tcacheKey = f"{cachekey}_topic"
-                topic = cache.get(tcacheKey, None)
-                if not topic or not len(projects):
-                    if request.user.profile.totalAllTopics():
-                        topic = request.user.profile.getAllTopics()[0]
-                    else:
-                        topic = request.user.profile.recommended_topics()[0]
-                    projects = BaseProject.objects.filter(trashed=False, suspended=False, topics=topic).exclude(
-                        creator__user__id__in=excludeUserIDs)[:limit]
-                    projects = list(
-                        set(list(filter(lambda p: p.is_approved(), projects))))
+                topic = r.get(f"{Browse.TOPIC_PROJECTS}_{request.user.profile.id}_topic")
+                if not projects:
+                    project_ids = r.lrange(Browse.TOPIC_PROJECTS, 0, -1)
+                    queryset = CoreProject.objects.filter(id__in=project_ids).exclude(
+                    creator__user__id__in=excludeUserIDs)[:limit]
+                    projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                     cache.set(cachekey, projects, settings.CACHE_MINI)
-                    cache.set(tcacheKey, topic, settings.CACHE_MINI)
+                # tcacheKey = f"{cachekey}_topic"
+                # topic = cache.get(tcacheKey, None)
+                # if not topic or not len(projects):
+                #     if request.user.profile.totalAllTopics():
+                #         topic = request.user.profile.getAllTopics()[0]
+                #     else:
+                #         topic = request.user.profile.recommended_topics()[0]
+                #     projects = BaseProject.objects.filter(trashed=False, suspended=False, topics=topic).exclude(
+                #         creator__user__id__in=excludeUserIDs)[:limit]
+                #     projects = list(
+                #         set(list(filter(lambda p: p.is_approved(), projects))))
+                #     cache.set(cachekey, projects, settings.CACHE_MINI)
+                #     cache.set(tcacheKey, topic, settings.CACHE_MINI)
                 return projectsRendererstr(request, Template.Projects.BROWSE_TOPIC_PROJECTS, dict(projects=projects, count=len(projects), topic=topic))
             else:
                 pass
         elif type == Browse.TOPIC_PROFILES:
             if request.user.is_authenticated:
                 profiles = cache.get(cachekey, [])
-                tcacheKey = f"{cachekey}_topic"
-                topic = cache.get(tcacheKey, None)
-                if not topic or not len(profiles):
-                    if request.user.profile.totalAllTopics():
-                        topic = request.user.profile.getAllTopics()[0]
-                    else:
-                        topic = request.user.profile.recommended_topics()[0]
-                    profiles = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, topics=topic).exclude(
-                        user__id__in=excludeUserIDs)[:limit]
+                topic = r.get(f"{Browse.TOPIC_PROFILES}_{request.user.profile.id}_topic")
+                if not profiles:
+                    profile_ids = r.lrange(f"{Browse.TOPIC_PROFILES}_{request.user.profile.id}", 0, -1)
+                    queryset = Profile.objects.filter(id__in=profile_ids)[:limit]
+                    profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
                     cache.set(cachekey, profiles, settings.CACHE_MINI)
-                    cache.set(tcacheKey, topic, settings.CACHE_MINI)
+                # tcacheKey = f"{cachekey}_topic"
+                # topic = cache.get(tcacheKey, None)
+                # if not topic or not len(profiles):
+                #     if request.user.profile.totalAllTopics():
+                #         topic = request.user.profile.getAllTopics()[0]
+                #     else:
+                #         topic = request.user.profile.recommended_topics()[0]
+                #     profiles = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, topics=topic).exclude(
+                #         user__id__in=excludeUserIDs)[:limit]
+                    # cache.set(cachekey, profiles, settings.CACHE_MINI)
+                    # cache.set(tcacheKey, topic, settings.CACHE_MINI)
                 return peopleRendererstr(request, Template.People.BROWSE_TOPIC_PROFILES, dict(profiles=profiles, count=len(profiles), topic=topic))
             else:
                 pass

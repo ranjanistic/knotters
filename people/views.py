@@ -472,6 +472,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
                 updated = True
 
         if updated:
+            #update presonalised present list
             cache.delete(profile.CACHE_KEYS.topic_ids)
 
         if json_body:

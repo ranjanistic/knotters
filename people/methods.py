@@ -14,8 +14,8 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.http.response import HttpResponse
-from main.methods import errorLog, renderString, renderView
-from main.strings import COMPETE, Code
+from main.methods import errorLog, renderString, renderView, addMethodToAsyncQueue
+from main.strings import COMPETE, Code, Browse
 from main.strings import profile as profileString
 from moderation.models import Moderation
 from projects.models import BaseProject, Project
@@ -469,3 +469,68 @@ def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
         return ghSocial.get_profile_url().split('/')[-1]
     except:
         return None
+    
+
+def updatePresentLists(profile: Profile):
+    """
+    """
+    excludeUserIDs = profile.blockedIDs()
+    addMethodToAsyncQueue(f"{APPNAME}.methods.{recommendedProjectsList.__name__}", profile, excludeUserIDs)
+    addMethodToAsyncQueue(f"{APPNAME}.methods.{topicProjectsList.__name__}", profile, excludeUserIDs)
+    addMethodToAsyncQueue(f"{APPNAME}.methods.{topicProfilesList.__name__}", profile, excludeUserIDs)
+    return True
+
+def recommendedProjectsList(profile: Profile, excludeUserIDs: list):
+    """
+    Updates present list of recommended projects for given profile
+    """
+    r = settings.REDIS_CLIENT
+    query = Q(topics__in=profile.getTopics())
+    authquery = ~Q(creator=profile)
+
+    projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery, query).exclude(creator__user__id__in=excludeUserIDs)
+    projects = list(
+        set(list(filter(lambda p: p.is_approved(), projects))))
+    count = len(projects)
+    if count < 1:
+        projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery).exclude(
+            creator__user__id__in=excludeUserIDs)
+        projects = list(
+            set(list(filter(lambda p: p.is_approved(), projects))))
+    if projects:
+        r.delete(f"{Browse.RECOMMENDED_PROJECTS}_{profile.id}")
+        r.rpush(f"{Browse.RECOMMENDED_PROJECTS}_{profile.id}", *projects)
+
+def topicProjectsList(profile: Profile, excludeUserIDs: list):
+    """
+    Updates present list of topic related projects for given profile
+    """
+    r = settings.REDIS_CLIENT
+    if profile.totalAllTopics():
+        topic = profile.getAllTopics()[0]
+    else:
+        topic = profile.recommended_topics()[0]
+    r.set(f"{Browse.TOPIC_PROJECTS}_{profile.id}_topic", topic)
+    projects = BaseProject.objects.filter(trashed=False, suspended=False, topics=topic).exclude(
+        creator__user__id__in=excludeUserIDs)
+    projects = list(
+        set(list(filter(lambda p: p.is_approved(), projects))))
+    if projects:
+        r.delete(f"{Browse.TOPIC_PROJECTS}_{profile.id}")
+        r.rpush(f"{Browse.TOPIC_PROJECTS}_{profile.id}", *projects)
+
+def topicProfilesList(profile: Profile, excludeUserIDs: list):
+    """
+    Updates present list of topic related profiles for given profile
+    """
+    r = settings.REDIS_CLIENT
+    if profile.totalAllTopics():
+        topic = profile.getAllTopics()[0]
+    else:
+        topic = profile.recommended_topics()[0]
+    r.set(f"{Browse.TOPIC_PROFILES}_{profile.id}_topic", topic)
+    profiles = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, topics=topic).exclude(
+        user__id__in=excludeUserIDs)
+    if profiles:
+        r.delete(f"{Browse.TOPIC_PROFILES}_{profile.id}")
+        r.rpush(f"{Browse.TOPIC_PROFILES}_{profile.id}", *profiles)
