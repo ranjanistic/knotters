@@ -107,8 +107,8 @@
 		<input required class="primary wide" name="email" type="email" autocomplete placeholder="Email address" value="{{request.user.email}}"/><br/><br/>
 		<input required class="primary wide" name="phone" type="tel" autocomplete placeholder="Contact number" value="{{request.user.get_phone|or:''}}" /><br/><br/>
 		<textarea required class="primary wide" name="experience" type="text" autocomplete placeholder="Relevant experience under 80 words." maxlength="400"></textarea><br/><br/>
-		<input name="resume" type="text" id="resume"/><br/><br/>
-		<input name="resume-name" type="text" id="resume-name"/><br/><br/>
+		<input hidden name="resume" type="text" id="resume"/><br/><br/>
+		<input hidden name="resume-name" type="text" id="resume-name"/><br/><br/>
    		Resume (PDF only)
 		<input required class="primary wide" id="resume-file" type="file" accept="application/pdf"/><br/><br/>
 		<button class="big-button positive w3-right" for="application">Submit</button>
