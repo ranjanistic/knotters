@@ -151,6 +151,17 @@ class User(AbstractBaseUser, PermissionsMixin):
             return PhoneNumber.objects.filter(user=self, verified=True).values_list('phone', flat=True)
         return PhoneNumber.objects.filter(user=self).values_list('number', flat=True)
 
+    def get_phone(self) -> list:
+        """Returns primary phone of the user.
+
+        Returns:
+            string: primary phone of the user.
+        """
+        ph = PhoneNumber.objects.filter(user=self,primary=True).values_list('number', flat=True)
+        if not len(ph):
+            return None
+        return ph[0]
+
     def get_phonenumbers(self, require_verified=False) -> models.QuerySet:
         """Returns all PhoneNumber instances of the user.
 
@@ -921,6 +932,15 @@ class Profile(models.Model):
     def getEmail(self) -> str:
         """Returns the user's primary email"""
         return self.get_email
+
+    @property
+    def get_phone(self) -> str:
+        """Returns the user's primary phone"""
+        return Code.ZOMBIEMAIL if self.is_zombie else self.user.get_phone()
+
+    def getPhone(self) -> str:
+        """Returns the user's primary phone"""
+        return self.get_phone
 
     def getBio(self) -> str:
         """Returns the user's bio"""

@@ -33,7 +33,7 @@ from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 from management.methods import competitionManagementRenderData, labelRenderData
 from management.models import (GhMarketApp, GhMarketPlan, HookRecord,
-                               ThirdPartyLicense)
+                               ThirdPartyLicense, CareerPosition,CareerApplication)
 from moderation.methods import moderationRenderData
 from moderation.models import LocalStorage
 from people.methods import profileRenderData
@@ -55,7 +55,7 @@ from .decorators import (decode_JSON, dev_only, github_only,
                          normal_profile_required, require_JSON)
 from .env import ADMINPATH, ISBETA, ISPRODUCTION
 from .mailers import featureRelease
-from .methods import (errorLog, getDeepFilePaths, renderData, renderString,
+from .methods import (errorLog, getDeepFilePaths, renderData, renderString,base64ToFile,
                       renderView, respondJson, respondRedirect, verify_captcha)
 from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS, HOWTO,
                       URL, Browse, Code, Event, Message, Template,
@@ -91,6 +91,67 @@ def branding(request: WSGIRequest) -> HttpResponse:
         HttpResponse: The rendered text/html view.
     """
     return renderView(request, Template.BRANDING)
+
+
+@require_GET
+def careers(request: WSGIRequest) -> HttpResponse:
+    """To render careers page
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view.
+    """
+    positions = CareerPosition.objects.filter(opened=True)
+    applied = []
+#    if request.user.is_authenticated:
+ #       applied = CareerApplication.objects.filter(applicant=request.user.profile)
+    return renderView(request, Template.CAREERS, dict(positions=positions,applied=applied))
+
+@normal_profile_required
+@ratelimit(key='user_or_ip', rate='1/s', block=True)
+@decode_JSON
+def careers_apply(request: WSGIRequest, posID: UUID) -> HttpResponse:
+    """To apply for a position
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view.
+    """
+    try:
+        pos = CareerPosition.objects.get(id=posID,opened=True)
+        applied = CareerApplication.objects.filter(position=pos, applicant=request.user.profile).first()
+        if request.method != "POST":
+            return renderView(request, Template.CAREERS_APPLY, dict(position=pos,applied=applied))
+        if applied:
+            return respondRedirect(path=pos.getLink(error=Message.ALREADY_APPLIED))
+        name = request.POST.get("name", request.user.get_name)
+        email = request.POST.get("email", request.user.email)
+        phone = request.POST.get("phone",  request.user.get_phone())
+        experience = request.POST["experience"]
+        resume = request.POST["resume"]
+        resumeName = request.POST["resume-name"]
+        print(resumeName)
+        try:
+            resume = base64ToFile(resume)
+        except Exception as s:
+            print(s)
+            return respondRedirect(path=pos.getLink(error=Message.INCOMP_DETAILS))
+        print("yeah")
+        if not (name and email and phone and experience and resume) or resumeName.split(".")[-1]!="pdf":
+            return respondRedirect(path=pos.getLink(error=Message.INCOMP_DETAILS))
+        CareerApplication.objects.create(position=pos, applicant=request.user.profile,name=name,email=email,phone=phone,resume=resume, experience=experience)
+        return respondRedirect(path=pos.getLink(success=Message.APPLIED))
+    except Exception as e:
+        raise Http404(e)
+
 
 
 @dev_only
@@ -1078,6 +1139,8 @@ class ServiceWorker(TemplateView):
                 f"/email/*",
                 f"/{URL.MANAGEMENT}*",
                 f"/{URL.MANAGEMENT}",
+                f"/{URL.CAREERS}",
+                f"/{URL.CAREERS}*",
                 setPathParams(f"/{URL.APPLANDING}"),
                 setPathParams(f"/{URL.DOCS}{URL.Docs.TYPE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),

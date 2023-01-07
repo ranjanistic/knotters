@@ -1,0 +1,128 @@
+{% extends 'careers.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}Contribute to the {{APPNAME}} platform from the inside.{% endblock %}
+{% block og_url %}{{URLS.CAREERS}}{% endblock %}
+{% block og_title %}Careers{% endblock %}
+{% block og_description %}Contribute to the {{APPNAME}} platform from the inside.{% endblock %}
+{% block og_site_name %}Careers{% endblock %}
+
+{% block tw_url %}{{URLS.CAREERS}}{% endblock %}
+{% block tw_title %}Careers{% endblock %}
+{% block tw_description %}Contribute to the {{APPNAME}} platform from the inside.{% endblock %}
+
+{% block themecolor %}tertiary{% endblock %}
+{% block nav_style %}tertiary{% endblock %}
+
+{% block nav_back_show %}{% endblock %}
+{% block nav_icon_hide %}{% endblock %}
+{% block nav_href %}{{URLS.CAREERS}}{% endblock %}
+
+{% block title %}
+{% trans "Careers" %}
+{% endblock %}
+{% block nav_text %}
+{% trans "Careers" %}
+{% endblock %}
+{% block content %}
+
+<div class="w3-row">
+  <div class="w3-row w3-padding tertiary">
+<br/>
+
+    <div class="w3-row w3-padding">
+	<strong class="dead-text">POSITION</strong>
+        <h1>{{position.name}}</h1>
+        <div class="w3-row text-large dead-text" >
+		{{position.created_on.date}}
+	</div><br/>
+        <div class="w3-row dead-text" >
+		<span class="align w3-left">
+		<i class="w3-medium">location_on</i>&nbsp;{{position.location}}
+&nbsp;&nbsp;&nbsp;
+		<i class="w3-medium">timelapse</i>&nbsp;{{position.duration|or:"Permanent"}}
+           </span>
+	</div>
+        <br />
+    </div>
+   </div>
+<br/>
+  <div class="w3-row w3-padding primary">
+    <div class="w3-row w3-padding">
+      <div class="w3-col w3-third w3-padding">
+	  <br/><br/>
+	   <strong class="dead-text">ABOUT</strong><br/><br/>
+ 	   <div class="text-medium bold">
+	     {{position.about}}
+	   </div>
+      </div>
+      <div class="w3-col w3-third w3-padding">
+	  <br/><br/>
+	   <strong class="dead-text">EXPERIENCE</strong><br/><br/>
+ 	   <div class="text-medium bold">
+	     {{position.experience}}
+	   </div>
+      </div>
+      <div class="w3-col w3-third w3-padding">
+          <br/><br/>
+	   <strong class="dead-text">TYPE</strong><br/><br/>
+ 	   <div class="text-medium bold">
+	     {{position.type}}
+	   </div>
+      </div>
+      <div class="w3-col w3-third w3-padding">
+          <br/><br/>
+	   <strong class="dead-text">VACANCIES</strong><br/><br/>
+ 	   <div class="text-medium bold">
+	     {{position.positions}}
+	   </div>
+      </div>
+      <div class="w3-col w3-third w3-padding">
+          <br/><br/>
+	   <strong class="dead-text">APPLICANTS</strong><br/><br/>
+ 	   <div class="text-medium bold">
+	     {{position.total_applicants}}
+	   </div>
+      </div>
+    </div>
+    <br />
+    <div class="w3-row w3-padding">
+      <div class="w3-col w3-half w3-padding pallete-slab">
+          <br/>
+	   {% if applied %}
+	<h5>Already applied.</h5>
+	{{applied.created_on}}
+<a download href="{{applied.get_resume}}">View submitted resume</a>
+<br/>
+	{% else %}
+	   <strong class="">APPLY</strong><br/><br/>
+ 	   <div class="w3-row">
+	     <form method="POST" id="application">
+		{% csrf_token %}
+		<input required class="primary wide" name="name" type="text" autocomplete placeholder="Full name" value="{{request.user.get_name}}" /><br/><br/>
+		<input required class="primary wide" name="email" type="email" autocomplete placeholder="Email address" value="{{request.user.email}}"/><br/><br/>
+		<input required class="primary wide" name="phone" type="tel" autocomplete placeholder="Contact number" value="{{request.user.get_phone|or:''}}" /><br/><br/>
+		<textarea required class="primary wide" name="experience" type="text" autocomplete placeholder="Relevant experience under 80 words." maxlength="400"></textarea><br/><br/>
+		<input name="resume" type="text" id="resume"/><br/><br/>
+		<input name="resume-name" type="text" id="resume-name"/><br/><br/>
+   		Resume (PDF only)
+		<input required class="primary wide" id="resume-file" type="file" accept="application/pdf"/><br/><br/>
+		<button class="big-button positive w3-right" for="application">Submit</button>
+	    </form>
+	   </div>
+       {% endif %}
+<br/>
+      </div>
+    </div>
+  </div>
+    <br />
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{request.csp}}" src="{{URLS.SCRIPTS|params:'careers-apply.js'}}"></script>
+{% endblock %}

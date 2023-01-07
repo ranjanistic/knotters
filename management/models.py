@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
-
+from django.core.files.base import File
 from auth2.models import Address, PhoneNumber
 from django.conf import settings
 from django.core.cache import cache
@@ -825,3 +825,76 @@ class Donor(models.Model):
 
     def __str__(self):
         return f"{self.profile} is a donor!"
+
+class CareerType(models.Model):
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """created_on (DateTimeField): date and time when this pos was created"""
+    name: str = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): name of the pos"""
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class CareerPosition(models.Model):
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """created_on (DateTimeField): date and time when this pos was created"""
+    creator = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='position_creator')
+    name: str = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): name of the pos"""
+    email: str = models.EmailField(max_length=100, null=True, blank=True)
+    """email (EmailField): email of the pos poster"""
+    positions: int = models.IntegerField(default=1)
+    opened:bool = models.BooleanField(default=True)
+    location:str = models.CharField(max_length=200,default="Remote")
+    about: str = models.TextField(max_length=1000)
+    type: CareerType = models.ForeignKey(CareerType, on_delete=models.CASCADE, related_name='position_type')
+    duration: str = models.CharField(max_length=80, null=True, blank=True)
+    experience: str = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.name} {self.email}"
+
+    def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
+        return f'{url.getRoot()}{url.careers_apply(posID=self.id.hex)}{url.getMessageQuery(alert,error,success)}'
+
+    def total_applicants(self):
+        return CareerApplication.objects.filter(position=self).count()
+
+def resumePath(instance: "CareerApplication", filename: str) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/careers/{str(instance.id)}_{uuid4().hex}.{fileparts[len(fileparts)-1]}"
+
+class CareerApplication(models.Model):
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    applicant = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.SET_NULL, null=True, related_name='applicant_profile')
+    """profile (OneToOneField<Profile>): profile of the applicant, null if not set"""
+    position: CareerPosition = models.ForeignKey(
+        CareerPosition, on_delete=models.CASCADE, related_name='applicant_position')
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """created_on (DateTimeField): date and time when this applicant was created"""
+    name: str = models.CharField(max_length=100)
+    """name (CharField): name of the applicant"""
+    email: str = models.EmailField(max_length=100)
+    """email (EmailField): email of the applicant"""
+    phone: str = models.CharField(max_length=100)
+    """phone (ForeignKey<PhoneNumber>): phone number of the applicant"""
+    resume: File = models.FileField(
+        upload_to=resumePath)
+    experience: str = models.TextField(max_length=500)
+
+    def __str__(self):
+        return f"{self.applicant} for {self.position}"
+
+    def get_resume(self):
+        return f"{settings.MEDIA_URL}{str(self.resume)}"

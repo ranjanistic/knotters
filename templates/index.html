@@ -208,6 +208,7 @@
             <a href="{{URLS.BRANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">photo_library</i>&nbsp;{% trans "Brand Resources" %}</h2></div></a>
             <a href="{{URLS.LANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">flight_land</i>&nbsp;{% trans "The Landing Page" %}</h2></div></a>
             <div class="navigator-share-action w3-row pallete secondary text-secondary hover-primary hover-text-positive" data-title="{{APPNAME}}" data-text="Checkout this page at {{APPNAME}}" data-url="{{request.path}}"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">share</i>&nbsp;{% trans "Share" %}</h2></div>
+            <a href="{{URLS.CAREERS}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">work</i>&nbsp;{% trans "Careers" %}</h2></div></a>
             <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">copyright</i>&nbsp;{% trans "Copyright" %} {% now "Y" %}</h2></div></a>
             <div class="w3-row secondary text-secondary">
                 <h2 class="w3-center">
@@ -341,7 +342,7 @@
               <strong class="">We are actively looking for mentors and moderators. <a class="underline text-accent" href="https://forms.gle/s1bHV5Au6ysS1A1A6" target="_blank">Click here to request</a> to be one.</strong>
               <span class="w3-right no-pad w3-large pointer" id='close-mod-mentor-looking'><i class="w3-large">close</i></span>
             </div>
-            <div class="w3-row accent w3-padding w3-center first-time-view" id="intern-looking">
+            <div class="w3-row accent w3-padding w3-center first-time-view" id="intern-looking" hidden>
               <strong class="">We are actively looking for core contributors and interns. <a class="underline text-accent" href="https://forms.gle/YGtoPazzg5civUQcA" target="_blank">Click here to apply</a> to be one.</strong>
               <span class="w3-right no-pad w3-large pointer" id='close-intern-looking'><i class="w3-large">close</i></span>
             </div>
@@ -708,6 +709,7 @@
                 <a href="https://events.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Events" %}</a><br/>
                 <a href="https://beta.knotters.org/" target="_blank" rel="nofollow" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
                 <a href="https://knotters.org/projects/profile/knottrans" target="_blank" class="text-secondary w3-animate-left">{% trans "Translation Project" %}</a><br/>
+                <a href="{{URLS.CAREERS}}" class="text-secondary w3-animate-left">{% trans "Careers" %}</a><br/>
                 </div>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">

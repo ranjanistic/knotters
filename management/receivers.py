@@ -1,9 +1,9 @@
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from .mailers import managementInvitationSent, newContactRequestAlert
+from .mailers import managementInvitationSent, newContactRequestAlert, newCareerApplication
 from .models import (ContactRequest, ManagementInvitation, ManagementPerson,
-                     ThirdPartyAccount, ThirdPartyLicense)
+                     ThirdPartyAccount, ThirdPartyLicense,CareerApplication)
 
 
 @receiver(post_save, sender=ManagementInvitation)
@@ -22,6 +22,15 @@ def on_contactrequest_create(sender, instance: ContactRequest, created, **kwargs
     """
     if created:
         newContactRequestAlert(instance)
+
+
+@receiver(post_save, sender=CareerApplication)
+def on_careerapplication_create(sender, instance: ContactRequest, created, **kwargs):
+    """
+    Contact request created
+    """
+    if created:
+        newCareerApplication(instance)
 
 
 @receiver(post_delete, sender=ManagementPerson)
