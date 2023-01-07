@@ -624,6 +624,14 @@ def filterNickname(nickname, limit=30):
 
 
 def createDummyUsers(limit=5):
+    """Creates a given number of dummy users.
+
+    Args:
+        limit (int, optional): Number of dummy users to be generated. Defaults to 5.
+
+    Returns:
+        bool: True if dummy users are successfully generated, otherwise False.
+    """
     try:
         from people.models import User, Profile
         from auth2.tests.utils import getTestPassword

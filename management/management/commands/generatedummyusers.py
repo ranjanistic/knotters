@@ -13,11 +13,12 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--noinput', action='store_true',
                             help='accepts no prompts from the command line.', default=False)
-        parser.add_argument('--limit', type=int , help='provide number of dummy users to be generated.', default=1)
+        parser.add_argument('--limit', type=int , help='provide number of dummy users to be generated.', default=5)
 
     def handle(self, *args, **options):
+        limit = options['limit']
         self.stdout.write(self.style.WARNING(
-            'You are about to generate dummy users.'))
+            f'You are about to generate {limit} dummy user(s).'))
         if ISPRODUCTION:
             self.stdout.write(self.style.WARNING(
                 '\nPRODUCTION ENVIRONMENT DETECTED.\n'))
@@ -30,8 +31,6 @@ class Command(BaseCommand):
                 return exit(0)
             self.stdout.write(self.style.WARNING(
                 'Generating dummy users...'))
-        limit = options['limit']
-        print(limit)
         done = createDummyUsers(limit)
         if done:
             self.stdout.write(self.style.SUCCESS(
