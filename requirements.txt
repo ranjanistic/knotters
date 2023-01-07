@@ -19,7 +19,7 @@ charset-normalizer==2.0.12
 click==8.1.2
 colorama==0.4.4
 coverage==6.3.2
-cryptography==37.0.0
+cryptography==39.0.0
 cssselect2==0.7.0
 defusedxml==0.7.1
 Deprecated==1.2.13
