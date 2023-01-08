@@ -41,12 +41,14 @@
 
   <div class="w3-row w3-padding primary">
     <div class="w3-row w3-padding">
+{% comment %}
 {% if not request.user.is_authenticated %}
        <div class="w3-row w3-padding w3-center">
       <i class="w3-jumbo">work</i>
 	<h5><a href="{{URLS.Auth.SIGNUP}}?next={{URLS.CAREERS}}">Login or signup</a> to apply for a position.</h5>
 	</div>
 {% else %}
+{% endcomment %}
         {% for position in positions %}
         <div class="w3-col w3-half w3-padding"> 
 <a href="{{position.getLink}}">
@@ -72,7 +74,6 @@
 	<h5>No positions available as of now.</h5>
 	</div>
         {% endfor %}
- {% endif %}
    </div>
     <br />
 
