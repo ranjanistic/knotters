@@ -38,8 +38,7 @@
 				{% get_providers as socialaccount_providers %}
 				{% for provider in socialaccount_providers %}
 					<br/>
-					{% with next=request.GET.next|or:URLS.ROOT %}
-						{% with x=URLS.REDIRECTOR|getquery:"n=next" %}
+					{% with x=request.GET.next|or:URLS.ROOT %}
 						<a class="w3-row hide-beta"
                                                      {% if provider.id != 'github' %}
                                                       href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' next=x %}{% endfilter %}"
@@ -47,7 +46,7 @@
                                                       href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' scope='read:org' next=x %}{% endfilter %}"
                                                      {% endif %}
                                                  >
-							<button class="w3-padding {% if provider.id == 'github' %}secondary{% elif provider.id == 'discord' %}tertiary{% else %}primary{% endif %}">
+                                                     <button class="w3-padding {% if provider.id == 'github' %}secondary{% elif provider.id == 'discord' %}tertiary{% else %}primary{% endif %}">
 								{% with logo="graphics/thirdparty/"|add:provider.id|add:".webp" %}
 									<img src="{% static logo %}" width="{% if provider.id == 'discord' %}20{% else %}25{% endif %}" {% if provider.id == 'github' %}class="darkimg-static"{% endif %} />
 									&nbsp;{% trans "Continue via" %} {{provider.name}}
@@ -55,7 +54,6 @@
 							</button>
 						</a>
 						{% endwith %}
-					{% endwith %}
 				{% endfor %}
 				<br/>
 				<h4>{% trans "Already a member?" %}</h4>
