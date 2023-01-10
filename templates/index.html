@@ -14,6 +14,7 @@
        {% if ISMAIN %}
 	<script async nonce="{{request.csp_nonce}}" src="https://www.googletagmanager.com/gtag/js?id=G-BV1WXSBFHJ"></script>
 	<script async nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.HEAD}}?id=G-BV1WXSBFHJ"></script>
+        <script async nonce="{{request.csp_nonce}}" src="https://www.googleoptimize.com/optimize.js?id=OPT-KPQ5VFM"></script>
        {% endif %}
         <meta charset="UTF-8">
         <meta http-equiv="Content-Security-Policy" content="base-uri 'self'" />

@@ -561,7 +561,7 @@ CSP_STYLE_SRC = ("'self'", "'unsafe-inline'",
 
 CSP_FONT_SRC = ("'self'", "data:", "maxcdn.bootstrapcdn.com", "*.knotters.org")
 
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-eval'", "*.knotters.org", "*.googletagmanager.com")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-eval'", "*.knotters.org", "*.googletagmanager.com","*.googleoptimize.com")
 
 CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com", "*.googletagmanager.com", "*.doubleclick.net",
                    "*.gstatic.com", "cdn.jsdelivr.net", "maxcdn.bootstrapcdn.com",
