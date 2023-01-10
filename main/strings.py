@@ -1524,6 +1524,7 @@ class Template():
         ARTICLE = "article.js"
         ARTICLE_EDIT = "article_edit.js"
         CAREERS_APPLY = "careers-apply.js"
+        HEAD = "head.js"
 
         def getScriptTemplates(self) -> list:
             TEMPLATES = []

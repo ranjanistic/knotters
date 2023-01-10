@@ -11,7 +11,12 @@
 <html lang="{{LANGUAGE_CODE|or:'en'}}" class="">
     {% block head %}
     <head>
+       {% if ISMAIN %}
+	<script async nonce="{{request.csp_nonce}}" src="https://www.googletagmanager.com/gtag/js?id=G-BV1WXSBFHJ"></script>
+	<script async nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.HEAD}}?id=G-BV1WXSBFHJ"></script>
+       {% endif %}
         <meta charset="UTF-8">
+        <meta http-equiv="Content-Security-Policy" content="base-uri 'self'" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
         <meta name="theme-color" content="{% block themecolor %}#ffffff{% endblock %}" id="themecolor">
