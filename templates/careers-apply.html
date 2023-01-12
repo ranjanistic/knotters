@@ -57,14 +57,28 @@
 	  <br/><br/>
 	   <strong class="dead-text">ABOUT</strong><br/><br/>
  	   <div class="text-medium bold">
-	     {{position.about}}
+	     {{position.about|urlize|linebreaksbr}}
+	   </div>
+      </div>
+      <div class="w3-col w3-third w3-padding">
+	  <br/><br/>
+	   <strong class="dead-text">ROLES & RESPONSIBILITIES</strong><br/><br/>
+ 	   <div class="text-medium bold">
+	     {{position.roles|urlize|linebreaksbr}}
+	   </div>
+      </div>
+      <div class="w3-col w3-third w3-padding">
+	  <br/><br/>
+	   <strong class="dead-text">REQUIREMENTS</strong><br/><br/>
+ 	   <div class="text-medium bold">
+	     {{position.requirements|urlize|linebreaksbr}}
 	   </div>
       </div>
       <div class="w3-col w3-third w3-padding">
 	  <br/><br/>
 	   <strong class="dead-text">EXPERIENCE</strong><br/><br/>
  	   <div class="text-medium bold">
-	     {{position.experience}}
+	     {{position.experience|urlize|linebreaksbr}}
 	   </div>
       </div>
       <div class="w3-col w3-third w3-padding">

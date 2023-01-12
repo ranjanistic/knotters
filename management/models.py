@@ -855,6 +855,8 @@ class CareerPosition(models.Model):
     opened:bool = models.BooleanField(default=True)
     location:str = models.CharField(max_length=200,default="Remote")
     about: str = models.TextField(max_length=1000)
+    roles:str = models.TextField(max_length=2000)
+    requirements:str = models.TextField(max_length=2000)
     type: CareerType = models.ForeignKey(CareerType, on_delete=models.CASCADE, related_name='position_type')
     duration: str = models.CharField(max_length=80, null=True, blank=True)
     experience: str = models.CharField(max_length=100)
