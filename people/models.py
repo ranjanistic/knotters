@@ -18,7 +18,7 @@ from django.core.cache import cache
 from time import time
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
-from django.db import models
+from djongo import models
 from django.db.models import Q
 from django.utils import timezone
 from django_otp import devices_for_user

@@ -3,7 +3,7 @@ from uuid import UUID, uuid4
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import models
+from djongo import models
 from django.utils import timezone
 from main.strings import PEOPLE
 

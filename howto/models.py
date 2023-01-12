@@ -1,5 +1,5 @@
 from uuid import UUID,uuid4
-from django.db import models
+from djongo import models
 from main.methods import filterNickname
 from time import time
 from datetime import datetime

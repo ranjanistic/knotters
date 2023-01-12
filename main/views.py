@@ -32,7 +32,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 from management.methods import competitionManagementRenderData, labelRenderData
-from management.models import (GhMarketApp, GhMarketPlan, HookRecord,
+from management.models import (GhMarketApp, GhMarketPlan, HookRecord, CorePartner,
                                ThirdPartyLicense, CareerPosition,CareerApplication)
 from moderation.methods import moderationRenderData
 from moderation.models import LocalStorage
@@ -138,13 +138,10 @@ def careers_apply(request: WSGIRequest, posID: UUID) -> HttpResponse:
         experience = request.POST["experience"]
         resume = request.POST["resume"]
         resumeName = request.POST["resume-name"]
-        print(resumeName)
         try:
             resume = base64ToFile(resume)
         except Exception as s:
-            print(s)
             return respondRedirect(path=pos.getLink(error=Message.INCOMP_DETAILS))
-        print("yeah")
         if not (name and email and phone and experience and resume) or resumeName.split(".")[-1]!="pdf":
             return respondRedirect(path=pos.getLink(error=Message.INCOMP_DETAILS))
         CareerApplication.objects.create(position=pos, applicant=request.user.profile,name=name,email=email,phone=phone,resume=resume, experience=experience)
@@ -222,7 +219,8 @@ def index(request: WSGIRequest) -> HttpResponse:
 
     topics = Topic.homepage_topics()
     project = BaseProject.homepage_project()
-    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
+    partners = CorePartner.objects.filter(hidden=False)
+    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
 
 
 @require_GET

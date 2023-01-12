@@ -636,6 +636,24 @@
                     </div><br/>
                     <br/>
                 </div>
+                <div class="w3-row w3-padding-large w3-center">
+                    <br/>
+                    <div class='w3-row w3-padding-large'>
+                       <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Partners & Recognitions{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Partners & Recognitions{% endblocktrans %}</h2>
+                                <br/><br/>
+                            <div class='w3-row'>
+ 			       {% for p in partners %}
+                              <div class='w3-col s12 m6 l3 w3-padding'>
+ 			  	 <a href="{{p.get_link}}" target="_blank"><img src="{{ p.get_image }}" alt="{{ p.get_name }}" width="{{p.width|or:'100'}}%" loading="lazy" /></a>
+			      </div>
+			      {% endfor %}
+			    </div>
+                           <br/><br/><br/>
+                       </div>
+                    </div><br/>
+                </div>
                 <div class="w3-row browser-view" data-type="{{BROWSE.CORE_CONTRIBS}}">
                 </div>
                 <div class="w3-row browser-view" data-type="{{BROWSE.CORE_MEMBERS}}">

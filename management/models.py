@@ -4,7 +4,7 @@ from django.core.files.base import File
 from auth2.models import Address, PhoneNumber
 from django.conf import settings
 from django.core.cache import cache
-from django.db import models
+from djongo import models
 from django.utils import timezone
 from github.Organization import Organization
 from main.strings import PEOPLE, Code, Message, Profile, url
@@ -877,7 +877,7 @@ class CareerApplication(models.Model):
         primary_key=True, default=uuid4, editable=False)
     applicant = models.ForeignKey(
         f'{PEOPLE}.Profile', on_delete=models.SET_NULL, null=True, related_name='applicant_profile')
-    """profile (OneToOneField<Profile>): profile of the applicant, null if not set"""
+    """profile (ForeignKey<Profile>): profile of the applicant, null if not set"""
     position: CareerPosition = models.ForeignKey(
         CareerPosition, on_delete=models.CASCADE, related_name='applicant_position')
     created_on: datetime = models.DateTimeField(
@@ -898,3 +898,72 @@ class CareerApplication(models.Model):
 
     def get_resume(self):
         return f"{settings.MEDIA_URL}{str(self.resume)}"
+
+
+def corepartnerImagePath(instance: "CoreContributor", filename: str) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/corepartner/{instance.get_id}.{fileparts[-1]}"
+
+
+class CorePartner(models.Model):
+    """Display palletes of core partners"""
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile = models.OneToOneField(
+        f'{PEOPLE}.Profile', on_delete=models.SET_NULL, related_name='display_partner_profile', null=True, blank=True)
+    """profile (OneToOneField<Profile>): The profile of partner, if present."""
+    name: datetime = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): The name of the partner"""
+    about: str = models.CharField(max_length=500, null=True, blank=True)
+    """about (CharField): The about of the partner"""
+    picture: str = models.ImageField(
+        upload_to=corepartnerImagePath,null=True, blank=True)
+    """picture (ImageField): The picture of the partner"""
+    website: datetime = models.URLField(max_length=500, null=True, blank=True)
+    """website (URLField): The website of the display mentor"""
+    hidden: datetime = models.BooleanField(default=False)
+    """hidden (BooleanField): Whether the display partner is hidden"""
+    width:int = models.IntegerField(default=100)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """createdOn (DateTimeField): The time the display partner was created"""
+
+    def __str__(self):
+        return self.name or self.get_name or str(self.id)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    @property
+    def get_picture(self):
+        if self.profile:
+            return self.profile.getDP()
+        dp = str(self.picture)
+        return settings.MEDIA_URL+dp if not dp.startswith('/') else settings.MEDIA_URL + dp.removeprefix('/')
+
+    @property
+    def get_image(self):
+        return self.get_picture
+
+    @property
+    def get_name(self) -> str:
+        if self.name:
+            return self.name
+        if self.profile:
+            return self.profile.getName()
+        return "Core partner"
+
+    @property
+    def get_about(self) -> str:
+        if self.about:
+            return self.about
+        if self.profile and self.profile.getBio():
+            return self.profile.getBio()
+        return self.get_name
+
+    @property
+    def get_link(self) -> str:
+        if self.profile:
+            return self.profile.getLink()
+        return self.website
