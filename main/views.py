@@ -241,7 +241,8 @@ def home(request: WSGIRequest) -> HttpResponse:
     competition: Competition = Competition.latest_competition()
     topics = Topic.homepage_topics()
     project: BaseProject = BaseProject.homepage_project()
-    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
+    partners = CorePartner.objects.filter(hidden=False)
+    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
 
 
 @require_GET
