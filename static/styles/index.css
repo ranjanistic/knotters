@@ -845,3 +845,29 @@ button.border-negative {
     height: 15rem;
     object-fit: contain;
 }
+
+
+input.border-negative:focus,
+textarea.border-negative:focus {
+    border-color: var(--negative);
+}
+
+input.border-positive:focus,
+textarea.border-positive:focus {
+    border-color: var(--positive);
+}
+
+input.border-accent:focus,
+textarea.border-accent:focus {
+    border-color: var(--accent);
+}
+
+input.border-active:focus,
+textarea.border-active:focus {
+    border-color: var(--active);
+}
+
+input.border-vibrant:focus,
+textarea.border-vibrant:focus {
+    border-color: var(--vibrant);
+}
