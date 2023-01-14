@@ -161,13 +161,13 @@ strong {
     hyphens: auto;
 }
 button {
-    padding: 4px 12px;
-    border-radius: 22px;
+    padding: 8px 12px;
+    border-radius: 52px;
     margin: 1px 2px;
     font-family: var(--head-font);
     outline: none;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 14px;
     transition: var(--delay);
     border: 0;
     box-shadow: 2px 1px 12px 1px #0000001f;
@@ -184,12 +184,12 @@ button > span.w3-hide-small {
 
 button > i {
     vertical-align: middle;
-    padding: 0px 2px 2px 0px;
+    padding: 2px 4px;
     font-size: 18px !important;
 }
 button > img {
     vertical-align: middle;
-    padding: 0px 2px 2px 0px;
+    padding: 2px 4px;
 }
 
 button > label {
@@ -203,7 +203,7 @@ button > label {
 
 button:hover {
     outline: none;
-    padding: 4px 18px;
+    padding: 8px 18px;
 }
 button:active {
     outline: none;
@@ -213,6 +213,14 @@ button:active {
 
 button.primary {
     color: var(--positive);
+}
+
+button.w3-tiny {
+  padding: 2px 6px;
+}
+
+.accent input {
+  border-color: var(--secondary);
 }
 
 .pallete {
@@ -340,11 +348,11 @@ details > summary::-webkit-details-marker {
 
 input,
 textarea {
-    border: 0;
+    border: 3px solid var(--tertiary-text);
     outline: 0;
     padding: 8px 8px;
     font-size: 18px;
-    border-radius: 8px;
+    border-radius: 6px;
     background-color: var(--tertiary);
     color: var(--tertiary-text);
     transition: var(--delay);
@@ -404,8 +412,8 @@ i.circle:active {
 }
 
 button.small {
-    font-size: 14px;
-    padding: 2px 6px;
+    font-size: 12px;
+    padding: 4px 8px;
 }
 
 button.small > i {

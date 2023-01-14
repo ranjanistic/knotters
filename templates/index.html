@@ -234,7 +234,7 @@
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
             <div class="w3-row w3-center tertiary pointer beta-alert-view" hidden>This is Knotters Beta, not Knotters. {% trans "Click here to learn more." %}</div>
             {% block nav_title %}
-            <div class="w3-col s1 m3">
+            <div class="w3-col s1 m4">
             <a
                 style="padding:8px"
                 href="{% block nav_href %}{% if request.GET.previous %}{{request.GET.previous}}{% else %}{{ROOT}}{% endif %}{% endblock %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" 
@@ -252,7 +252,7 @@
             </div>
             {% endblock %}
             {% block nav_right %}
-            <div class="w3-col s11 m9">
+            <div class="w3-col s11 m8">
             <span class="w3-right w3-animate-right nav-tabs-span">
                 <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>

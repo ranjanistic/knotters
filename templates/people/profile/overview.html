@@ -12,7 +12,7 @@
             <br/>
             <div class="w3-row" id="view-profiletopics" align='center'>
             {% for topicdata in profile.getTopicsData %}
-                <a href="{{URLS.PEOPLE}}?search=topic:{{topicdata.topic}}"><button class="primary border-joy big-button">+<span class="topic-points">{{topicdata.points}}</span>&nbsp;<span class="topic-name">{{topicdata.topic}}</span></button></a>     
+                <a href="{{URLS.PEOPLE}}?search=topic:{{topicdata.topic}}"><button class="primary border-joy big-button">{% if topicdata.points %}+<span class="topic-points">{{topicdata.points}}</span>&nbsp;{% endif %}<span class="topic-name">{{topicdata.topic}}</span></button></a>     
             {% empty %}
                 <div class="dead-text w3-padding">
                     <i class="w3-jumbo">scatter_plot</i>
