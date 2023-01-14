@@ -95,11 +95,11 @@
 	     {{position.positions}}
 	   </div>
       </div>
-      <div class="w3-col w3-third w3-padding" hidden>
+      <div class="w3-col w3-third w3-padding">
           <br/><br/>
-	   <strong class="dead-text">APPLICANTS</strong><br/><br/>
+	   <strong class="dead-text">POSTED BY</strong><br/><br/>
  	   <div class="text-medium">
-	     {{position.total_applicants}}
+	     {{"@"|add:position.creator.get_nickname|profiletag}}
 	   </div>
       </div>
     </div>
