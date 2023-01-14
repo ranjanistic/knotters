@@ -376,6 +376,37 @@ textarea:disabled {
     opacity: 0.4;
 }
 
+input:focus,
+textarea:focus {
+    border-color: var(--positive);
+}
+
+
+input.negative:focus,
+textarea.negative:focus {
+    border-color: var(--negative);
+}
+
+input.positive:focus,
+textarea.positive:focus {
+    border-color: var(--positive);
+}
+
+input.accent:focus,
+textarea.accent:focus {
+    border-color: var(--accent);
+}
+
+input.active:focus,
+textarea.active:focus {
+    border-color: var(--active);
+}
+
+input.vibrant:focus,
+textarea.vibrant:focus {
+    border-color: var(--vibrant);
+}
+
 i.circle {
     cursor: pointer;
     font-size: 18px;
