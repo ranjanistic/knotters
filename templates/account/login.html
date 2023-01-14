@@ -39,8 +39,7 @@
 				{% get_providers as socialaccount_providers %}
 				{% for provider in socialaccount_providers %}
 					<br/>
-					{% with next=request.GET.next|or:URLS.ROOT %}
-						{% with x=URLS.REDIRECTOR|getquery:"n=next" %}
+					{% with x=request.GET.next|or:URLS.ROOT %}
 						<a class="w3-row hide-beta"
                                                      {% if provider.id != 'github' %}
                                                       href="{% filter urldecode %}{% provider_login_url provider.id method='oauth2' next=x %}{% endfilter %}"
@@ -56,7 +55,6 @@
 							</button>
 						</a>
 						{% endwith %}
-					{% endwith %}
 				{% endfor %}
 				<br/>
 				<h3 class="text-accent">New here?</h3>

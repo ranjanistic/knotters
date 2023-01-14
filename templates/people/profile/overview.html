@@ -26,7 +26,7 @@
                 </div>
             {% endfor %}
             {% if self and profile.totalTopics > 0 %}<i class="edit-action w3-right" data-edittarget="profiletopics">edit</i>{% endif %}</span>
-            </div>
+        </div>
             {% if self %}
             <div id="edit-profiletopics">
                 <br/>
@@ -49,6 +49,32 @@
                 </form>
             </div>
             {% endif %}
+        <br>
+            <div id="view-extendedBio">
+                <div class="w3-row w3-padding">
+                {% if person.profile.getExtendedBio %}
+                <span>{{ person.profile.getExtendedBio }}</span>
+                {% if self %}
+                <i class="edit-action w3-right" data-edittarget="extendedBio">edit</i>
+                {% endif %}
+                {% else %}
+                {% if self %}
+                    <h6 class="dead-text">Tell us more about yourself</h6>
+                    <button class="big-button {{profile.theme}} {{profile.text_theme}} edit-action" data-edittarget="extendedBio" data-icon="add">{% trans "Add ExtendedBio" %}</button>
+                {% endif %}
+                {% endif %}
+                </div>
+            </div>
+            {% if self %}
+          <div id="edit-extendedBio">
+            <form class="no-auto" action="{{URLS.EXTENDEDBIOEDIT}}" method="POST" id ="edit-extendedBio-form">
+                {% csrf_token %}
+                <textarea type="text" class="wide" placeholder="ExtendedBio" maxlength="300" name="ExtendedBio" >{{ request.user.profile.getExtendedBio }}</textarea><br/>
+                <button id="save-edit-extendedBio"><i class="material-icons">done</i>Save</button>
+                <button id="discard-edit-extendedBio"><i class="material-icons">close</i>Discard</button>
+            </form>
+          </div>
+        {% endif %}
         </div>
         <div class="w3-col w3-half w3-center w3-padding">
             {% if profile.totalTopics == 0 %}

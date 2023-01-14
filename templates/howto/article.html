@@ -1,0 +1,264 @@
+{% extends 'howto/index.html' %}
+{% load static %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+
+{% block meta_description %}{{article.subheading}}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_url %}{{article.getLink}}{% endblock %}
+{% block og_title %}{{article.heading}}{% endblock %}
+{% block og_description %}{{article.subheading}}{% endblock %}
+{% block og_image_url %}{{ article.getImage }}{% endblock %}
+
+{% block metatags %}
+{% if article.getVideo %}
+<meta property="og:video" content="{{SITE}}{{article.getVideo}}" />
+{% endif %}
+<meta property="article:author" content="{{SITE}}{{article.author.getLink}}" />
+<meta property="article:published_time" content="{{article.modifiedOn}}" />
+{% endblock %}
+
+{% block tw_url %}{{article.getLink}}{% endblock %}
+{% block tw_title %}{{article.heading}}{% endblock %}
+{% block tw_description %}{{article.subheading}}{% endblock %}
+{% block tw_image_url %}{{ article.getImage }}{% endblock %}
+
+{% block ld_image_url %}{{ article.getImage }}{% endblock %}
+
+{% block title %}{% if article.is_draft %}(Preview) {% endif %}{{article.heading}}{% endblock %} 
+
+{% block nav_href %}{{ URLS.HOWTO }}{% endblock %}
+
+{% block nav_extra_links %}
+{% if not article.is_draft %}
+    {% if request.user.is_authenticated and request.user.profile.canCreateArticle %}
+    <a href="{{URLS.CREATE}}"><button title="{% trans "New Article" %}" class="accent" data-icon="add"><span class="w3-hide-small">{% trans "New Article" %}</span></button></a>
+    {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if article.is_draft %}
+<div class="w3-row accent w3-padding w3-center">
+    <strong class="">This is a preview which is visible to you only. The article is not published yet.</strong>
+</div>
+{% endif %}
+<div id="view-article">
+    <div class="w3-row w3-padding-small">
+        <div class="w3-col m8 l8">
+            <div id="article-head">
+                <div id="article-head-view">
+                    <div class="w3-row w3-padding paragraph" id="heading-view">
+                        <h1>{%if article.heading %}{{ article.heading }}{% else %}Untitled Article{% endif %}</h1>
+                    </div>
+                    <div class="w3-row text-large w3-padding paragraph" id="subheading-view">{{article.subheading|urlize|linktags|urlize_blank|linebreaksbr}}</div>
+                </div>
+            </div>
+            <br />
+            <div class="w3-row">
+                <div class="w3-col m5 l3 w3-padding"><span class="dead-text">{{article.modifiedOn}}</span></div>
+                <div class="w3-col m7 l9 w3-padding">
+                    <div id="view-articletags">
+                        {% for tag in article.tags.all %}
+                        <a href="{{URLS.HOWTO}}?search=tag:{{tag}}"><button class="small positive">#{{tag}}</button></a>
+                        {% empty %}
+                            {% if self %}
+                            <button class="accent w3-padding-small edit-action small" data-edittarget="articletags" data-icon="add">Add tags</button>
+                            {% endif %}
+                        {% endfor %}
+                        {% if self and article.tags.all|length > 0 %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
+                            <button class="accent navigator-share-action" data-icon="share" data-title="{{article.heading}}" data-text="{{article.subheading}}" data-url="{{article.getLink}}"></button>
+                        {% if request.user.is_authenticated %}
+                            <form class="admire" method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
+                                {% csrf_token %}
+                                <input type="hidden" value="{% if isAdmirer %}false{% else %}true{% endif %}" name="admire" />
+                                <button type="submit" class="{% if isAdmirer %}positive{% else %}primary{% endif %}" data-icon="volunteer_activism" id="toggle-admiration" ></button>
+                            </form>
+                            {% else %}
+                            <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="primary" data-icon="volunteer_activism"></button></a>
+                            {% endif %}
+                            <a id="show-admirations"><strong>{{ article.total_admirers }}&nbsp;admirer{{ article.total_admirers|pluralize }}</strong></a>
+                    </div>
+                    {% if self %}
+                    <div id="edit-articletags">
+                        <strong class="dead-text">{% trans "Total 5 tags allowed" %}</strong>
+                        <form class="no-auto" id="edit-tag-inputs">
+                            {% csrf_token %}
+                            <input class="tertiary" maxlength="40" placeholder="{% trans "Search tags" %}" id="tag-search-input" />
+                            <div class="w3-show-inline-block"><button class="small" id="save-edit-articletags" data-icon="done">{% trans "Save" %}</button>
+                            <button class="small" id="discard-edit-articletags" data-icon="close">{% trans "Cancel" %}</button></div>
+                            <div class="w3-row w3-padding" id="tags-viewer">
+                                {% for tag in article.tags.all %}
+                                <button type="button" class="primary small negative-text tag-existing" data-icon="close" id="{{tag.id}}">{{tag.name}}</button>
+                                {% endfor %}
+                                <div class="w3-row w3-padding" id="tags-viewer-new"></div>
+                            </div>
+                            <input id="removetagIDs" name="removetagIDs" hidden type="text" />
+                            <input id="addtagIDs" name="addtagIDs" hidden type="text" />
+                            <input id="addtags" name="addtags" hidden type="text" />
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="w3-col m4 l4 w3-right">
+            <div class="w3-row w3-padding w3-right-align">
+                <a href="{{article.author.getLink}}">
+                    <img class="w3-circle w3-right" src="{{article.author.getDP}}" width="50"/>
+                    <h4 class="text-medium text-primary" style="margin-bottom:0px">{{article.author.getName}}{% if article.author.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h4>
+                    {% for label in article.author.get_labels %}
+                        <strong class="w3-tiny w3-round w3-tag {{label.theme}}">{{label.name}}</strong>
+                    {% endfor %}
+                    <span class="dead-text">{{article.author.getXP}}</span>
+                </a>
+            </div>
+            <div class="w3-row w3-right {% if request.user.is_authenticated %}trigger-article-rating{% else %}trigger-login-popup{% endif %}">
+                <div class="rate">
+                    <span class="w3-left text-large">{{ article.total_ratings|display_number }}</span>
+                    {% for i in '0123456789'|make_list %}
+                    <input type="checkbox" required/>
+                    <label class="{% if forloop.counter0|divisibleby:"2" %}half{% endif %} {% if forloop.counter0 < article.get_rating_out_of_ten %}selected{% endif %}"></label>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="w3-row w3-padding">
+                <div id="view-articletopics" class="w3-right">
+                    {% for topic in article.topics.all %}
+                        <a href="{{URLS.HOWTO}}?search=topic:{{topic}}">
+                            <button class="button topic-name primary border-joy small">
+                            {{topic}}
+                            </button>
+                        </a>
+                    {% empty %}
+                        {% if self %}
+                            <button class="accent w3-padding-small edit-action small" data-edittarget="articletopics" data-icon="add">Add topics</button>
+                        {% endif %}
+                    {% endfor %}
+                    {% if self and article.topics.all|length > 0 %}<button class="small edit-action" data-icon="edit" data-edittarget="articletopics"></button>{% endif %}
+                </div>
+                {% if self %}
+                <div id="edit-articletopics" class="w3-right" hidden>
+                    <strong class="dead-text">Total 3 topics allowed</strong>
+                    <form class="no-auto" method="POST" id="edit-article-topics-form">
+                        {% csrf_token %}
+                        <input class="wide" placeholder="Search topics" id="topic-search-input" maxlength="35" />
+                        <div><button id="save-edit-articletopics" data-icon="done">Save</button>
+                        <button id="discard-edit-articletopics" data-icon="close">Cancel</button></div>
+                        <div class="w3-row w3-padding" id="topics-viewer">
+                            {% for topic in article.getTopics %}
+                            <button type="button" class="primary negative-text topic-existing" data-icon="close" id="{{topic.getID}}">{{topic.name}}</button>
+                            {% endfor %}
+                            <div class="w3-row w3-padding" id="topics-viewer-new"></div>
+                        </div>
+                        <input id="removetopicIDs" name="removetopicIDs" hidden type="text" />
+                        <input id="addtopicIDs" name="addtopicIDs" hidden type="text" />
+                        <input id="addtopics" name="addtopics" hidden type="text" />
+                        <br/>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <br />
+    <div id="sections">
+        {% if sections or self %}
+            <div class="parent-sidenav" id="sidenav-menu">
+                <div class="sidenav-small w3-hide-large w3-hide-medium w3-animate-left tertiary w3-center text-medium">
+                    <div class="w3-row w3-left align text-primary">
+                        <i class="w3-xlarge material-icons text-primary" id="closenav">close</i>
+                    </div>
+                    <div id="sidenav-view">
+                        {% if self %}
+                        <div class="w3-row align w3-padding">
+                            {% if article.isEditable %}
+                                <a href="{{article.getEditLink}}"><button class="primary small w3-animate-zoom" data-icon="edit">
+                                    Edit
+                                </button></a>
+                            {% endif %}
+                            <button id="deleteArticle" class="negative small w3-animate-zoom" type="submit" data-icon="delete">Delete</button> 
+                        </div>
+                        {% endif %}
+                        {% for section in sections %}
+                            <a href="#view-section-{{ section.id }}">
+                        <div class="w3-row w3-left-align primary w3-padding-large">
+                                <strong class="dead-text w3-medium">{{section.subheading}}</strong>
+                        </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <div class="w3-row section-body">
+            {% if sections or self %}
+                <div class="sidenav w3-hide-small tertiary w3-center text-medium">
+                    <div id="sidenav2-view">
+                        {% if self %}
+                        <div class="w3-row align w3-padding">
+                            {% if article.isEditable %}
+                                <a href="{{article.getEditLink}}"><button class="primary small w3-animate-zoom" data-icon="edit">
+                                    Edit
+                                </button></a>
+                            {% endif %}
+                            <button id="deleteArticle" class="negative small w3-animate-zoom" type="submit" data-icon="delete">Delete</button> 
+                        </div>
+                        {% endif %}
+                        {% for section in sections %}
+                            <a href="#view-section-{{ section.id }}">
+                        <div class="w3-row w3-left-align primary w3-padding-large">
+                                <strong class="dead-text w3-medium">{{section.subheading}}</strong>
+                        </div>
+                            </a>
+
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            <div class="sections w3-padding">
+                <i class="w3-padding w3-hide-large w3-hide-medium" id="opennav">menu</i>
+                <div id="section-body-view">
+                    {% for section in sections %}
+                        <div class="w3-row">
+                            <div class="w3-row w3-padding" id="view-section-{{section.id}}" sectionid="{{section.id}}">
+                                {% if section.paragraph %}
+				<h4 class="dead-text">{{section.subheading}}</h4>
+                                <span class="text-tertiary text-medium paragraph">
+                                {{section.paragraph|urlize|linktags|urlize_blank|linebreaksbr}}</span>
+                                <br/>
+                                {% endif %}
+                                <div class="w3-row w3-center" style="padding-bottom:1rem">
+                                    {% if section.image %}
+                                    <br/>
+                                    <img class="primary w3-round-xlarge preview-type-image section-media" src="{{ section.get_image }}" alt="{{section.subheading}}" />
+                                    <br/>
+                                    <br/>
+				<strong class="dead-text">{{section.subheading}}</strong>
+                                    {% endif %}
+                                    {% if section.video %}
+                                    <video class="w3-round-xlarge section-video" src="{{section.get_video}}" controls></video>
+                                    <br/>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                            <h5 class="dead-text align ">{% trans "No Sections Yet" %}</h5>
+                    {% endfor %}
+                </div>
+		<br/>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS_SUBAPP|params:SUBAPPNAME|params:SCRIPTS.ARTICLE}}?nickname={{article.nickname}}"></script>
+<script nonce="{{request.csp_nonce}}" src="{% static 'scripts/howto/article.js' %}"></script>
+{% endblock %}

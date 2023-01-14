@@ -1,0 +1,148 @@
+.heading-input {
+    font-size: 36px;
+    font-family: var(--head-font);
+    font-weight: bold;
+}
+
+.rate {
+    padding-top: 8px;
+    padding-right: 16px;
+}
+.rate span{
+    padding-top: 8px;
+}
+.section-body {
+    display: flex;
+}
+
+.parent-sidenav {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    position: fixed;
+    height: 100%;
+    z-index: 1;
+    background-color: #00000023;
+    display: none;
+}
+
+.sidenav {
+    flex: 35%;
+    z-index: 1;
+    border-top-right-radius : 10px;
+}
+
+.sidenav-small {
+    z-index: 1;
+    border-top-right-radius : 10px;
+    position: fixed;
+    top: 50%;
+    overflow-y: scroll;
+    height: 50vh;
+    width: 80%;
+    background-color: #00000023;
+}
+
+.sections {
+    flex: 65%;
+}
+
+.paragraph {
+    word-break: break-word;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
+}
+ 
+.section-video {
+    width: 100%;
+}
+
+.rate-small {
+    padding-top: 0px;
+}
+.rate-small > label:before {
+    font-size: 1.3rem;
+}
+
+.admire {
+    display: inline-block;
+}
+
+.section-media {
+    max-width:  100%;
+    max-height: 18rem;
+    object-fit: scale-down;
+}
+.pallete-media {
+    height: 15rem;
+}
+
+.pallete-media > img {
+    height: 100%;
+    object-fit: contain;
+}
+
+.pallete-media > video {
+    height: 100%;
+    width: 100%;
+}
+
+.article-details {
+    height: auto;
+    overflow-y: hidden;
+}
+
+.section-head {
+    font-family: var(--head-font);
+}
+
+@media only screen and (min-width: 600px) {
+    .article-details {
+        height: 22rem;
+    }
+    .section-video {
+        width: 80%;
+    }
+}
+
+@media only screen and (min-width: 768px) {
+    .sidenav {
+        flex: 28%;
+    }
+    .sections {
+        flex: 72%;
+    }
+    .section-video {
+        width: 70%;
+    }
+    .article-details {
+        height: 20rem;
+    }
+}
+
+@media only screen and (min-width: 992px) {
+    .sidenav {
+        flex: 23%;
+    }
+    .sections {
+        flex: 77%;
+    }
+    .section-video {
+        width: 60%;
+    }
+    .article-details {
+        height: 18rem;
+    }
+}
+
+@media only screen and (min-width: 1200px) {
+    .section-video {
+        width: 50%;
+    }
+    .article-details {
+        height: 17rem;
+    }
+}
+

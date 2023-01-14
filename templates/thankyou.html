@@ -1,0 +1,54 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}Our core contributors who made what {{APPNAME}} is today.{% endblock %}
+{% block og_url %}{{URLS.THANKYOU}}{% endblock %}
+{% block og_title %}Thank you{% endblock %}
+{% block og_description %}Our core contributors who made what {{APPNAME}} is today.{% endblock %}
+{% block og_site_name %}Thank you{% endblock %}
+
+{% block tw_url %}{{URLS.LANDING}}{% endblock %}
+{% block tw_title %}Thank you{% endblock %}
+{% block tw_description %}Our core contributors who made what {{APPNAME}} is today.{% endblock %}
+
+{% block title %}
+{% trans "Thank you" %}
+{% endblock %}
+{% block nav_text %}
+{% trans "Thank you" %}
+{% endblock %}
+{% block content %}
+
+
+<div class="w3-row tertiary" style="background-image: url('{{ICON_SHADOW}}');">
+    <div class="w3-row w3-center" style="padding:16px 4px">
+        <h3><span class="pallete-slab tertiary">{% trans "Core Contributors" %}</span></h3>
+        <strong class="text-medium"><div class="pallete-slab tertiary">{% trans "Thank you for contributing and making what Knotters is today" %}</div></strong>
+    </div>
+    <div class="w3-row w3-padding">
+        {% for contributor in contributors %}
+        <div class="w3-col w3-quarter w3-padding"> 
+            <a href="{{contributor.get_link|or:URLS.PEOPLE}}" {% if contributor.get_link %}target="_blank" rel="noreferrer"
+                {% endif %}>
+                <div class="pallete w3-center no-pad">
+                    <img class="primary border-joy" src="{{ contributor.get_DP }}" alt="{{ contributor.name }}" loading="lazy" />
+                    <div class="w3-row w3-padding">
+                        <h6>{{ contributor.get_name }}</h6>
+                        <span>{{ contributor.get_about }}</span>
+                    </div>
+                    <br />
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    <br />
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

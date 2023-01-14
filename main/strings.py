@@ -12,6 +12,7 @@ from management.apps import APPNAME as MANAGEMENT
 from moderation.apps import APPNAME as MODERATION
 from people.apps import APPNAME as PEOPLE
 from projects.apps import APPNAME as PROJECTS
+from howto.apps import APPNAME as HOWTO
 
 from .env import CDN_URL
 
@@ -111,6 +112,9 @@ class Code():
     MODERATION = "moderation"
     RESOLVED = "resolved"
     UNRESOLVED = "unresolved"
+
+    PUBLISHED = 'published'
+    DRAFTED = 'drafted'
 
     SETTING = "setting"
     INVALID_DIVISION = "INVALID_DIVISION"
@@ -216,7 +220,16 @@ class Message():
     NO_TAGS_SELECTED = _("No tags selected")
     MAX_TOPICS_ACHEIVED = _("Maximum topics limit reached.")
     LOGIN_REQUIRED = _("Please login to continue.")
-
+    EMAIL_NOT_VERIFIED = _("Please verify your account email address.")
+    ARTICLE_CREATED = _("Article created successfully.")
+    ARTICLE_DELETED = _("Article deleted successfully.")
+    ARTICLE_NOT_FOUND =_("Article not found.")
+    ARTICLE_UPDATED = _("Article updated successfully.")
+    ARTICLE_DRAFTED = _("Article drafted successfully.")
+    ARTICLE_PUBLISHED = _("Article published successfully.")
+    SECTION_CREATED =_("Section created successfully.")
+    SECTION_DELETED = _("Section deleted successfully.")
+    SECTION_UPDATED = _("Section updated successfully.")
     RESULT_DECLARED = _("Results declared!")
     RESULT_NOT_DECLARED = _("Results not declared.")
     RESULT_DECLARING = _("Results declaration in progress")
@@ -245,6 +258,7 @@ class Message():
     LICENSE_UNSELECTED = _("You have to choose a license")
     NICKNAME_ALREADY_TAKEN = _(
         "The nickname is not available, try something else.")
+    NICKNAME_UPDATED = _("Nickname updated successfully")
     CODENAME_ALREADY_TAKEN = _(
         "The codename is not available, try something else.")
     INVALID_LIC_DATA = _('Invalid license data')
@@ -321,6 +335,22 @@ class Message():
     PENDING_MODERATIONS_EXIST = _(
         "Pending unresolved moderation requests exist.")
 
+    RESOLVE_PENDING = _(
+        "Please resolve your pending moderations first."
+    )
+
+    LEAVE_MODERATION = _(
+        "Your Moderatorship has been revoked."
+    )
+
+    MODERATION_PAUSED = _(
+        "Moderation Paused."
+    )
+
+    MODERATION_RESUMED = _(
+        "Moderation Resumed."
+    )
+    
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
@@ -343,7 +373,6 @@ class Message():
             for key in attrs:
                 validMessages.append(attrs[key].lower())
             cache.set(cacheKey, validMessages, settings.CACHE_MINI)
-
         return message.lower() in validMessages
 
     class Custom():
@@ -378,7 +407,7 @@ class Action():
 
 action = Action()
 
-DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2]
+DIVISIONS = [PROJECTS, PEOPLE, COMPETE, MODERATION, MANAGEMENT, AUTH2, HOWTO]
 
 
 class Project():
@@ -423,6 +452,7 @@ class Profile():
     OVERVIEW = "overview"
     PROJECTS = "projects"
     ACHEIVEMENTS = "acheivements"
+    ARTICLES = "articles"
     FRAMEWORKS = "frameworks"
     CONTRIBUTION = "contribution"
     ACTIVITY = "activity"
@@ -508,8 +538,10 @@ class Browse():
     LATEST_COMPETITIONS = "latest-competitions"
     TRENDING_MENTORS = "trending-mentors"
     TRENDING_MODERATORS = "trending-moderators"
+    TRENDING_ARTICLES = "trending-articles"
     DISPLAY_MENTORS = "display-mentors"
     CORE_MEMBERS = "core-members"
+    CORE_CONTRIBS = "core-contributors"
     TOPIC_PROJECTS = "topic-wise-projects"
     TOPIC_PROFILES = "topic-wise-profiles"
 
@@ -568,6 +600,7 @@ class URL():
     MANAGEMENT = f'{MANAGEMENT}/'
     FAME_WALL = 'wall-of-fame/'
     REDIRECTOR = 'redirector/'
+    HOWTO = f'{HOWTO}/'
 
     def redirector(self, to='/'):
         return f"{self.REDIRECTOR}?n={to}"
@@ -588,6 +621,8 @@ class URL():
 
     VERIFY_CAPTCHA = 'captcha/verify'
     DONATE = 'donate/'
+    
+    THANKYOU = 'thankyou/'
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:targetID>/'
     VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
@@ -618,6 +653,8 @@ class URL():
             return f"/{self.MODERATION if withslash else self.MODERATION.strip('/')}"
         elif fromApp == MANAGEMENT:
             return f"/{self.MANAGEMENT if withslash else self.MANAGEMENT.strip('/')}"
+        elif fromApp == HOWTO:
+            return f"/{self.HOWTO if withslash else self.HOWTO.strip('/')}"
         else:
             return self.ROOT if withslash else self.ROOT.strip('/')
 
@@ -670,6 +707,7 @@ class URL():
         GETSUCCESSOR = 'account/successor'
         INVITESUCCESSOR = 'account/successor/invite'
         ACCOUNTDELETE = "account/delete"
+        NICKNAMEEDIT = "account/nickname"
 
         SUCCESSORINVITE = 'invitation/successor/<str:predID>'
 
@@ -690,6 +728,9 @@ class URL():
 
         def notificationToggleDevice(self, notifID):
             return setPathParams(self.NOTIFICATION_TOGGLE_DEVICE, notifID)
+        
+        PAUSE_MODERATORSHIP = 'pausemod'
+        LEAVE_MODERATORSHIP = 'leavemod'
 
         def getURLSForClient(self) -> dict:
             URLS = dict()
@@ -934,6 +975,7 @@ class URL():
 
         ACCOUNTPREFERENCES = "account/preferences"
 
+        EXTENDEDBIOEDIT = 'extendedbioedit'
         TOPICSEARCH = "topics/search"
         TOPICSUPDATE = "topics/update"
 
@@ -1036,7 +1078,7 @@ class URL():
             return setPathParams(self.PROFILE_BASE, nickname)
 
         AT_NICKANAME = '@<str:nickname>'
-        
+
         def at_nickname(self, nickname: str):
             return setPathParams(self.AT_NICKANAME, nickname)
 
@@ -1121,6 +1163,7 @@ class URL():
         INVITE_PROJECT_OWNER = 'invite/ownership/'
         INVITE_VERPROJECT_MOD = 'invite/ownership/1'
         INVITE_COREPROJECT_MOD = 'invite/ownership/2'
+        INVITE_LEAVE_MOD = 'invite/leavemod'
 
         PROJECT_TRANS_INVITE = 'invitation/transfer/<str:inviteID>'
 
@@ -1172,6 +1215,16 @@ class URL():
         def coreDeletionRequestAct(self, inviteID):
             return setPathParams(self.CORE_DEL_REQUEST_ACT, inviteID)
 
+        LEAVE_MOD_INVITE = 'invitation/leavemod/<str:inviteID>'
+
+        def leaveModInvite(self, inviteID):
+            return setPathParams(self.LEAVE_MOD_INVITE, inviteID)
+        
+        LEAVE_MOD_INVITE_ACT = 'invitation/action/leavemod/<str:inviteID>'
+
+        def leaveModInviteAction(self, inviteID):
+            return setPathParams(self.LEAVE_MOD_INVITE_ACT, inviteID)
+        
         FREE_VERIFICATION_REQUEST = 'request/verification/0'
         CORE_VERIFICATION_REQUEST = 'request/verification/2'
 
@@ -1191,7 +1244,12 @@ class URL():
 
         def manageProjectCocreator(self, projectID):
             return setPathParams(self.MANAGE_PROJECT_COCREATOR, projectID)
-
+        
+        PROJECT_RATING_SUBMIT = 'rating/submit/<str:projectID>'
+        
+        def projectRatingSubmit(self, projectID):
+            return setPathParams(self.PROJECT_RATING_SUBMIT, projectID)
+        
         def getURLSForClient(self) -> dict:
             URLS = dict()
 
@@ -1303,20 +1361,107 @@ class URL():
                 URLS[key] = f"{url.getRoot(MANAGEMENT)}{setPathParams(urls[key])}"
             return URLS
 
-    managemnt = Management()
     management = Management()
+    
+    class Howto():
+
+        CREATE = 'create/'
+
+        SAVE = 'save/<str:nickname>/'
+
+        def save(self, nickname: str):
+            return setPathParams(self.SAVE, nickname)
+
+        EDIT = '<str:nickname>/edit/'
+
+        def edit(self, nickname: str):
+            return setPathParams(self.EDIT, nickname)
+
+        PUBLISH = '<str:articleID>/publish/'
+
+        def publish(self, articleID: str):
+            return setPathParams(self.PUBLISH, articleID)
+
+        SECTION = 'e/<str:articleID>/section/<str:action>'
+
+        def section(self, articleID: str, action: str):
+            return setPathParams(self.SECTION, articleID, action)
+
+        DELETE = 'e/<str:articleID>/delete/'
+
+        def delete(self, articleID: str):
+            return setPathParams(self.DELETE, articleID)
+
+        SEARCH_TOPICS = 's/<str:articleID>/topics'
+
+        def searchTopics(self, articleID: str):
+            return setPathParams(self.SEARCH_TOPICS, articleID)
+
+        EDIT_TOPICS = 'e/<str:articleID>/topics'
+
+        def editTopics(self, articleID: str):
+            return setPathParams(self.EDIT_TOPICS, articleID)
+
+        SEARCH_TAGS = 's/<str:articleID>/tags'
+
+        def searchTags(self, articleID: str):
+            return setPathParams(self.SEARCH_TAGS, articleID)
+
+        EDIT_TAGS = 'e/<str:articleID>/tags'
+
+        def editTags(self, articleID: str):
+            return setPathParams(self.EDIT_TAGS, articleID)
+
+        VIEW = '<str:nickname>/'
+
+        def view(self, nickname: str):
+            return setPathParams(self.VIEW, nickname)
+        
+        RATING = 'rating/submit/<str:articleID>'
+
+        def rating(self, articleID: str):
+            return setPathParams(self.RATING, articleID)
+
+        TOGGLE_ADMIRATION = 'admiration/<str:articleID>'
+
+        def toggle_admiration(self, articleID: str):
+            return setPathParams(self.TOGGLE_ADMIRATION, articleID)
+        
+        ADMIRATIONS = 'admirations/<str:articleID>'
+
+        def admirations(self, articleID: str):
+            return setPathParams(self.ADMIRATIONS, articleID)
+
+        BROWSE_SEARCH = 'browse/search/'
+
+        ARTICLE_BULK_UPDATE = 'update/article/<str:articleID>'
+        
+        def article_bulk_update(self, articleID: str):
+            return setPathParams(self.ARTICLE_BULK_UPDATE, articleID)   
+
+        def getURLSForClient(self) -> dict:
+            URLS = dict()
+
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL.Howto, cond)
+
+            for key in urls:
+                URLS[key] = f"{url.getRoot(HOWTO)}{setPathParams(urls[key])}"
+            return URLS
+    
+    howto = Howto()
 
     def getURLSForClient(self) -> dict:
-        URLS = dict()
+            URLS = dict()
 
-        def cond(key, value):
-            return str(key).isupper()
-        urls = classAttrsToDict(URL, cond)
+            def cond(key, value):
+                return str(key).isupper()
+            urls = classAttrsToDict(URL, cond)
 
-        for key in urls:
-            URLS[key] = f"{url.getRoot() if urls[key] != url.getRoot() else ''}{setPathParams(urls[key])}"
-        return URLS
-
+            for key in urls:
+                URLS[key] = f"{url.getRoot() if urls[key] != url.getRoot() else ''}{setPathParams(urls[key])}"
+            return URLS
 
 url = URL()
 
@@ -1369,6 +1514,8 @@ class Template():
         TOPIC = "topic.js"
         CORE_PROJECT = "core-project.js"
         PROJECTS = "projects.js"
+        ARTICLE = "article.js"
+        ARTICLE_EDIT = "article_edit.js"
 
         def getScriptTemplates(self) -> list:
             TEMPLATES = []
@@ -1467,6 +1614,14 @@ class Template():
 
     DONATION = "donation"
 
+    THANKYOU = "thankyou"
+    
+
+    @property
+    def thankyou(self):
+        return f'{self.THANKYOU}.html'
+    
+    
     @property
     def donation(self):
         return f'{self.DONATION}.html'
@@ -1773,6 +1928,7 @@ class Template():
             return f'{self.DIRNAME}/{self.BROWSE_DISPLAY_MENTORS}.html'
 
         BROWSE_CORE_MEMBERS = 'browse/core-members'
+        BROWSE_CORE_CONTRIBS = 'browse/core-contributors'
 
         BROWSE_TOPIC_PROFILES = 'browse/topic-profiles'
 
@@ -1940,6 +2096,12 @@ class Template():
         @property
         def verdelinvite(self):
             return f'{self.DIRNAME}/{self.VER_DEL_INVITATION}.html'
+
+        LEAVE_MOD_INVITE = 'leavemodinvite'
+
+        @property
+        def leavemodinvite(self):
+            return f'{self.DIRNAME}/{self.LEAVE_MOD_INVITE}.html'
 
         CORE_DEL_INVITATION = 'coredelinvite'
 
@@ -2181,6 +2343,37 @@ class Template():
 
     management = Management()
 
+    class Howto():
+        DIRNAME = HOWTO
+
+        INDEX = 'index'
+
+        @property
+        def index(self):
+            return f'{self.DIRNAME}/{self.INDEX}.html'
+        
+        ARTICLE = 'article'
+
+        @property
+        def article(self):
+            return f'{self.DIRNAME}/{self.ARTICLE}.html'
+
+        ARTICLE_EDIT = 'article_edit'
+
+        @property
+        def articleEdit(self):
+            return f'{self.DIRNAME}/{self.ARTICLE_EDIT}.html'    
+        
+        BROWSE_SEARCH = 'browse/search'
+
+        @property
+        def browse_search(self):
+            return f'{self.DIRNAME}/{self.BROWSE_SEARCH}.html'
+
+        BROWSE_TRENDING_ARTICLES = 'browse/trending-articles'
+
+    
+    howto = Howto()
 
 template = Template()
 

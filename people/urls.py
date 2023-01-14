@@ -8,6 +8,7 @@ urlpatterns = [
     # profile
     path(URL.People.PROFILE, profile),
     path(URL.People.PROFILEEDIT, editProfile),
+    path(URL.People.EXTENDEDBIOEDIT, editExtendedBio),
     path(URL.People.PROFILETAB, profileTab),
     path(URL.People.TIMELINE_CONTENT, timeline_content),
     path(URL.People.TOPICSEARCH, topicsSearch),
@@ -15,6 +16,7 @@ urlpatterns = [
     path(URL.People.TAGSEARCH, tagsSearch),
     path(URL.People.TAGSUPDATE, tagsUpdate),
     path(URL.People.ZOMBIE, zombieProfile),
+
     # settings
     path(URL.People.SETTINGTAB, settingTab),
     path(URL.People.ACCOUNTPREFERENCES, accountprefs),

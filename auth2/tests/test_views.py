@@ -8,7 +8,7 @@ from django.http.response import HttpResponseNotFound, HttpResponseRedirect
 from django.test import Client, TestCase, tag
 from main.env import BOTMAIL
 from main.methods import testPathRegex
-from main.strings import Action, Code, Message, template, url
+from main.strings import Action, Code, Message, Moderation, template, url
 from main.tests.utils import authroot, getRandomStr
 from people.models import Profile, User
 from auth2.models import Notification, EmailNotificationSubscriber
@@ -385,7 +385,45 @@ class TestViews(TestCase):
         self.assertNotEqual(device, False)
         self.assertFalse(email1)
 
-        
+    @tag("pause_mod")
+    def test_pause_moderation(self):
+        client = Client()
+        email = getTestEmail()
+        password = getTestPassword()
+        resp = client.post(follow=True, path=authroot(url.auth.SIGNUP), data=dict(
+            email=email,
+            first_name=getTestName(),
+            password1=password
+        ))
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
+
+        profile = Profile.objects.get(user__email=email)
+        resp = client.post(follow=True, path=authroot(url.auth.PAUSE_MODERATORSHIP), data=dict(
+            paused=True
+        ), content_type=Code.APPLICATION_JSON)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.NO, error=Message.INVALID_MODERATOR))
+
+        profile.is_moderator = True
+        profile.save()
+
+        resp = client.post(follow=True, path=authroot(url.auth.PAUSE_MODERATORSHIP), data=dict(
+            paused=True
+        ), content_type=Code.APPLICATION_JSON)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        profile = Profile.objects.get(user__email=email)
+        self.assertEqual(profile.is_mod_paused, True)
+
+        resp = client.post(follow=True, path=authroot(url.auth.PAUSE_MODERATORSHIP), data=dict(
+            paused=False
+        ), content_type=Code.APPLICATION_JSON)
+        self.assertDictEqual(json_loads(
+            resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
+        profile = Profile.objects.get(user__email=email)
+        self.assertEqual(profile.is_mod_paused, False)
+
+
 @tag(Code.Test.VIEW, Code.Test.REST, APPNAME)
 class TestViewsAuth(TestCase):
     @classmethod

@@ -20,7 +20,7 @@ from main.strings import profile as profileString
 from moderation.models import Moderation
 from projects.models import BaseProject, Project
 from requests import get as getRequest
-
+from howto.models import Article
 from .apps import APPNAME
 from .models import (Framework, Profile, ProfileSetting, Topic, User,
                      defaultImagePath, isPictureDeletable)
@@ -94,6 +94,21 @@ def filterBio(string: str) -> str:
         return filterBio(bio)
     return bio
 
+def filterExtendedBio(string: str) -> str:
+    """Trims given string (assuming to be profile extended bio) to a certain length limit.
+
+    Args:
+        string (str): Assuming this to be user profile extended bio, operations will take place.
+
+    Returns:
+        str: Filtered string based profile extended bio.
+    """
+    extended_bio=str(string)
+    if len(extended_bio) > 500:
+        extended_bio=extended_bio[:(500-len(extended_bio))]
+        return filterExtendedBio(extended_bio)
+    return extended_bio
+
 
 def addTopicToDatabase(topic: str, creator: Profile = None, tags: list = []) -> Topic:
     """Adds a new topic to the database.
@@ -127,7 +142,7 @@ def addTopicToDatabase(topic: str, creator: Profile = None, tags: list = []) -> 
     return topicObj
 
 
-PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS, profileString.FRAMEWORKS,
+PROFILE_SECTIONS = [profileString.OVERVIEW, profileString.PROJECTS, profileString.FRAMEWORKS, profileString.ARTICLES, 
                     profileString.CONTRIBUTION, profileString.ACTIVITY, profileString.MODERATION,
                     profileString.ACHEIVEMENTS, profileString.COMPETITIONS, profileString.MENTORSHIP, profileString.PEOPLE]
 
@@ -149,12 +164,18 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
         dict: The context data to render a profile page.
     """
     try:
-        profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=True)
+        
+        profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=False, is_active=True)
+        if not profile:
+            profile: Profile = Profile.get_cache_one(nickname=nickname, userID=userID, throw=False, is_active=False)
         authenticated = request.user.is_authenticated
         self: bool = authenticated and request.user.profile == profile
         is_admirer = False
+        
         if not self:
             if profile.suspended:
+                return False
+            if not profile.is_active:
                 return False
             if authenticated:
                 if profile.isBlocked(request.user):
@@ -244,6 +265,16 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             data[Code.RESULTS] = results
             data[Code.JUDGEMENTS] = judements
             data[Code.MODERATIONS] = moderations
+        elif section == profileString.ARTICLES:
+            articles = cache.get(cachekey, [])
+            if not len(articles):
+                articles = Article.objects.filter(author=profile).order_by("-createdOn").distinct()
+                cache.set(cachekey, articles, settings.CACHE_INSTANT)
+            data[Code.PUBLISHED] = list(
+                    filter(lambda p: not p.is_draft, articles))
+            if selfprofile:
+                data[Code.DRAFTED] = list(
+                    filter(lambda p: p.is_draft, articles))
         elif section == profileString.FRAMEWORKS:
             frameworks = cache.get(cachekey, [])
             if not len(frameworks):

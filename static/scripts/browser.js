@@ -146,6 +146,36 @@ const loadBrowsers = () => {
                         act.classList[admire ? "remove" : "add"]("primary");
                     };
                 });
+                getElements("browse-admire-article-action").forEach((act) => {
+                    act.onclick = async (_) => {
+                        if (!AUTHENTICATED) {
+                            return refer({
+                                path: URLS.Auth.LOGIN,
+                                query: {
+                                    next: window.location.pathname,
+                                },
+                            });
+                        }
+                        const aid = act.getAttribute("data-articleID");
+                        const admire = act.getAttribute("data-admires") == "0";
+                        const data = await postRequest2({
+                            path: setUrlParams(
+                                URLS.Howto.TOGGLE_ADMIRATION,
+                                aid
+                            ),
+                            data: {
+                                admire,
+                            },
+                            retainCache: true,
+                        });
+                        if (data.code !== code.OK) {
+                            return error(data.error);
+                        }
+                        act.setAttribute("data-admires", admire ? 1 : 0);
+                        act.classList[admire ? "add" : "remove"]("positive");
+                        act.classList[admire ? "remove" : "add"]("primary");
+                    };
+                });
                 getElements("browse-admire-compete-action").forEach((act) => {
                     act.onclick = async (_) => {
                         if (!AUTHENTICATED) {

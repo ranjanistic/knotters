@@ -10,7 +10,7 @@ from people.models import User
 from ratelimit.decorators import ratelimit
 
 from .env import ADMINPATH, ISPRODUCTION
-from .strings import (AUTH2, COMPETE, MANAGEMENT, MODERATION, PEOPLE, PROJECTS,
+from .strings import (AUTH2, COMPETE, MANAGEMENT, MODERATION, PEOPLE, PROJECTS, HOWTO,
                       URL)
 from .views import *
 
@@ -55,7 +55,10 @@ urlpatterns = [
     path(URL.PEOPLE, include(f'{PEOPLE}.urls')),
     path(URL.MODERATION, include(f'{MODERATION}.urls')),
     path(URL.MANAGEMENT, include(f'{MANAGEMENT}.urls')),
+    path(URL.HOWTO, include(f'{HOWTO}.urls')),
     path(URL.WEBPUSH, include('webpush.urls')),
+    
+    
     # redirects
     path(URL.Auth.LOGIN, RedirectView.as_view(
         url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
@@ -89,6 +92,7 @@ urlpatterns = [
     path(URL.BASE_GITHUB_EVENTS, githubEventsListener),
     path(URL.VIEW_SNAPSHOT, snapshot),
     path(URL.DONATE, donation),
+    path(URL.THANKYOU, thankyou),
     # dev/admin
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template),

@@ -786,3 +786,8 @@ button.border-negative{
 .no-opacity-change, .no-opacity-change:hover, .no-opacity-change:active{
     opacity: 1 !important;
 }
+.search-media {
+    width:  100%;
+    height: 15rem;
+    object-fit: contain;
+}

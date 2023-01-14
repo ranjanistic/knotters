@@ -2,7 +2,7 @@ from datetime import datetime
 from operator import truediv
 from re import sub as re_sub
 from time import time
-from uuid import UUID, uuid4
+from uuid import UUID,uuid4
 import math
 
 from allauth.account.models import EmailAddress
@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         PermissionsMixin)
 from django.core.cache import cache
+from time import time
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
 from django.db import models
@@ -390,18 +391,24 @@ class Profile(models.Model):
     """githubID (CharField): The GitHub ID of the user."""
     bio: str = models.CharField(max_length=350, blank=True, null=True)
     """bio (CharField): The bio of the user."""
+    extended_bio: str = models.CharField(max_length=500, blank=True, null=True)
+    """extended bio (CharField): The extended bio of the user."""
     successor: User = models.ForeignKey(User, null=True, blank=True, related_name='successor_profile',
                                         on_delete=models.SET_NULL, help_text='If user account gets deleted, this is to be set.')
     """successor (ForeignKey<User>): The successor of the user."""
     successor_confirmed: bool = models.BooleanField(
         default=False, help_text='Whether the successor is confirmed, if set.')
     """successor_confirmed (BooleanField): Whether the successor is confirmed."""
-
+    is_dummy: bool = models.BooleanField(default=False)
+    """is_dummy (BooleanField): Whether the user is a dummy user."""
     is_moderator: bool = models.BooleanField(default=False)
     """is_moderator (BooleanField): Whether the user is a moderator."""
+    is_mod_paused: bool = models.BooleanField(default=False)
+    """is_mod_paused (BooleanField): Whether the user's moderation is paused."""
     is_mentor: bool = models.BooleanField(default=False)
     """is_mentor (BooleanField): Whether the user is a mentor."""
-
+    is_mentor_paused: bool = models.BooleanField(default=False)
+    """is_mentor_paused (BooleanField): Whether the user's mentorship is paused."""
     is_active: bool = models.BooleanField(
         default=True, help_text='Account active/inactive status.')
     """is_active (BooleanField): Whether the account is active. This is different from the user's is_active field."""
@@ -480,7 +487,7 @@ class Profile(models.Model):
         return None if self.is_zombie else self.user.get_id
 
     def KNOTBOT() -> "Profile":
-        """Returns the profile of the knottersbot. 
+        """Returns the profile of the knottersbot.
         This is not specific to a user, but is a global profile.
         """
         cacheKey = 'profile_knottersbot'
@@ -526,6 +533,7 @@ class Profile(models.Model):
                     previous.picture.delete(False)
         except:
             pass
+        self.clearCache()
         super(Profile, self).save(*args, **kwargs)
 
     def is_manager(self) -> bool:
@@ -539,6 +547,10 @@ class Profile(models.Model):
             cache.set(cacheKey, exists,
                       settings.CACHE_MAX if exists else settings.CACHE_SHORT)
         return exists
+    
+    def canCreateArticle(self) -> bool:
+        """Returns True if profile can create article"""
+        return self.is_manager() or Profile.KNOTBOT().management() and Profile.KNOTBOT().management().has_member(self)
 
     def phone_number(self) -> "PhoneNumber":
         """Returns the primary & verified phone number instance of the user.
@@ -586,7 +598,7 @@ class Profile(models.Model):
             self.save()
         return self.nickname
 
-    def get_cache_one(*args, nickname=None, userID=None, throw=False) -> "Profile":
+    def get_cache_one(*args, nickname=None, userID=None, throw=False, is_active=True) -> "Profile":
         """Returns the profile instance of the nickname or userID, preferably from cache.
 
         Args:
@@ -597,26 +609,27 @@ class Profile(models.Model):
         Returns:
             Profile: The profile instance of the nickname or userID.
         """
+
         if nickname:
-            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}"
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{nickname}_{is_active}"
         else:
-            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}"
+            cacheKey = f"{Profile.MODEL_CACHE_KEY}_{userID}_{is_active}"
         profile: Profile = cache.get(cacheKey, None)
         if not profile:
             if nickname:
                 if throw:
                     profile: Profile = Profile.objects.get(
-                        nickname=nickname, to_be_zombie=False, is_active=True)
+                        nickname=nickname, to_be_zombie=False, is_active=is_active)
                 else:
                     profile: Profile = Profile.objects.filter(
-                        nickname=nickname, to_be_zombie=False, is_active=True).first()
+                        nickname=nickname, to_be_zombie=False, is_active=is_active).first()
             else:
                 if throw:
                     profile: Profile = Profile.objects.get(
-                        user__id=userID, to_be_zombie=False, is_active=True)
+                        user__id=userID, to_be_zombie=False, is_active=is_active)
                 else:
                     profile: Profile = Profile.objects.filter(
-                        user__id=userID, to_be_zombie=False, is_active=True).first()
+                        user__id=userID, to_be_zombie=False, is_active=is_active).first()
             cache.set(cacheKey, profile, settings.CACHE_SHORT)
         return profile
 
@@ -816,6 +829,16 @@ class Profile(models.Model):
         self.save()
         return True
 
+    def mod_isPending(self):
+        """Returns True if moderator has pending modeartions"""
+        from moderation.models import Moderation
+        return Moderation.objects.filter(moderator=self, resolved=False).exists()
+    
+    def mod_isApproved(self):
+        """Returns True if moderator has approved modeartions"""
+        from moderation.models import Moderation
+        return Moderation.objects.filter(moderator=self, status=Code.APPROVED).exists()
+
     def makeMentor(self):
         """Makes the user a mentor, if possible.
 
@@ -902,6 +925,10 @@ class Profile(models.Model):
     def getBio(self) -> str:
         """Returns the user's bio"""
         return self.bio if self.bio else ''
+
+    def getExtendedBio(self) -> str:
+        """Returns the extended user bio"""
+        return self.extended_bio if self.extended_bio else ''
 
     def getSubtitle(self) -> str:
         """Returns the user's subtitle"""
@@ -1268,12 +1295,8 @@ class Profile(models.Model):
             return self.xp
         if self.xp == None:
             self.xp = 0
-            self.milestone_count = 0
         if self.milestone_count == None:
-            if self.xp <= 50:
-                self.milestone_count = 0
-            else:
-                self.milestone_count = int(math.sqrt((self.xp/50)-1))
+            self.milestone_count = 0
         self.xp = self.xp + by
         if self.xp >= 50*(1+pow(self.milestone_count, 2)) and self.xp-by < 50*(1+pow(self.milestone_count, 2)):
             from .mailers import milestoneNotif
@@ -1354,19 +1377,15 @@ class Profile(models.Model):
         Returns:
             ProfileBulkTopicXPRecord: The user's bulk xp record instance
         """
-        proftops = []
-        for topic in topics:
-            proftops.append(
-                ProfileTopic(
-                    topic=topic,
+        proftops = list(ProfileTopic.objects.filter(profile=self, topic__in=topics))
+        existing_topics = list(map(lambda x:x.topic, proftops))
+        proftops.extend(list(map(lambda t : ProfileTopic(
+                    topic=t,
                     profile=self,
                     trashed=True,
                     points=0
-                )
-            )
-
-        ProfileTopic.objects.bulk_create(proftops, ignore_conflicts=True)
-
+                ), filter(lambda t: t not in existing_topics, topics))))
+        
         for proftop in proftops:
             proftop.increasePoints(by, notify=False, record=False)
 
@@ -1400,17 +1419,43 @@ class Profile(models.Model):
         )
         return proftop.decreasePoints(by, notify, reason)
 
+    def decreaseBulkTopicPoints(self, topics, by: int = 0, notify: bool = True, reason: str = '') -> "ProfileBulkTopicXPRecord":
+        """Decreases the user's XP in given topics by the given amount.
+
+        Args:
+            topics (list): The topics to decrease the user's XP in
+            by (int): The amount to decrease the user's XP by
+            notify (bool): Whether to notify the user about the XP decrease. Defaults to True
+            reason (str): The reason for the XP decrease
+
+        Returns:
+            ProfileBulkTopicXPRecord: The user's bulk xp record instance
+        """
+        proftops = list(ProfileTopic.objects.filter(profile=self, topic__in=topics))
+        existing_topics = list(map(lambda x:x.topic, proftops))
+        proftops.extend(list(map(lambda t : ProfileTopic(
+                    topic=t,
+                    profile=self,
+                    trashed=True,
+                    points=0
+                ), filter(lambda t: t not in existing_topics, topics))))
+
+        for proftop in proftops:
+            proftop.decreasePoints(by, notify=False, record=False)
+
+        profbulktoprecord = ProfileBulkTopicXPRecord.objects.create(
+            xp=by, reason=reason)
+        profbulktoprecord.profile_topics.set(proftops)
+        if notify:
+            from .mailers import decreaseBulkTopicXPAlert
+            decreaseBulkTopicXPAlert(self, by)
+        return profbulktoprecord
+
     def xpTarget(self) -> int:
         """Returns the user's next XP target"""
-        xp = self.xp
-        milestonecount = self.milestone_count
-        if milestonecount == None:
-            if xp <= 50:
-                milestonecount = 0
-            else:
-                milestonecount = int(math.sqrt((xp/50)-1))
-        targetcount = milestonecount
-        return 50*(1+pow(targetcount, 2))
+        if self.milestone_count == None:
+            self.milestone_count = 0
+        return 50*(1+pow(self.milestone_count, 2))
 
     def getTopicIds(self) -> list:
         """Returns the user's visible topic ids"""
@@ -1713,7 +1758,31 @@ class Profile(models.Model):
         return profile_url
 
     def clearCache(self):
+        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}", 
+                           f"{Profile.MODEL_CACHE_KEY}_{self.nickname}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{True}", f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{False}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{True}",f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{False}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{False}", 
+                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{True}"
+                          ])
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
+
+    def getApprovedModerations(self):
+        from moderation.models import Moderation
+        approved_moderations = Moderation.objects.filter(moderator=self, status=Code.APPROVED, resolved=True, type=PROJECTS)
+        return approved_moderations
+
+    def getModProjects(self) -> models.QuerySet:
+        """Returns all projects that are moderated by user.
+
+        Returns:
+            models.QuerySet<Project>: All projects instances that are moderated by user.
+        """
+        cacheKey = f"moderated_projects_{self.id}"
+        moderatedprojects = cache.get(cacheKey, None)
+        if moderatedprojects is None:
+            moderatedprojects = list(map(lambda x: x.project, self.getApprovedModerations()))
+        return moderatedprojects
 
 
 class ProfileSetting(models.Model):
@@ -1811,7 +1880,7 @@ class ProfileTopic(models.Model):
                 profile_topic=self, xp=by, reason=reason)
         return self.points
 
-    def decreasePoints(self, by: int = 0, notify: bool = True, reason: str = '') -> int:
+    def decreasePoints(self, by: int = 0, notify: bool = True, reason: str = '', record: bool = True) -> int:
         """Decreases the points/XP of the profile in the topic
 
         Args:
@@ -1837,8 +1906,9 @@ class ProfileTopic(models.Model):
             from .mailers import decreaseXPInTopicAlert
             decreaseXPInTopicAlert(
                 self, by, self.topic.get_name, self.points)
-        ProfileTopicXPRecord.objects.create(
-            profile_topic=self, xp=by, reason=reason)
+        if record:
+            ProfileTopicXPRecord.objects.create(
+                profile_topic=self, xp=by, reason=reason)
         return self.points
 
     def get_points(self, raw=False) -> str:
@@ -1945,6 +2015,76 @@ class DisplayMentor(models.Model):
         if self.profile:
             return self.profile.getBio()
         return self.about
+
+    @property
+    def get_extendedBio(self) -> str:
+        if self.profile:
+            return self.profile.getExtendedBio()
+        return self.about
+
+    @property
+    def get_link(self) -> str:
+        if self.profile:
+            return self.profile.getLink()
+        return self.website
+
+
+def displayContributorImagePath(instance: "CoreContributor", filename: str) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/displaycontributors/{instance.get_id}.{fileparts[-1]}"
+
+
+class CoreContributor(models.Model):
+    """Display palletes of core developers"""
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='display_contributor_profile', null=True, blank=True)
+    """profile (ForeignKey<Profile>): The profile of developer, if present."""
+    name: datetime = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): The name of the developer"""
+    about: str = models.CharField(max_length=500, null=True, blank=True)
+    """about (CharField): The about of the developer"""
+    picture: str = models.ImageField(
+        upload_to=displayContributorImagePath, default=defaultImagePath, null=True, blank=True)
+    """picture (ImageField): The picture of the developer"""
+    website: datetime = models.URLField(max_length=500, null=True, blank=True)
+    """website (URLField): The website of the display mentor"""
+    hidden: datetime = models.BooleanField(default=False)
+    """hidden (BooleanField): Whether the display developer is hidden"""
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """createdOn (DateTimeField): The time the display developer was created"""
+
+    def __str__(self):
+        return self.name or self.get_name or str(self.id)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    @property
+    def get_DP(self):
+        if self.profile:
+            return self.profile.getDP()
+        dp = str(self.picture)
+        return settings.MEDIA_URL+dp if not dp.startswith('/') else settings.MEDIA_URL + dp.removeprefix('/')
+
+    @property
+    def get_name(self) -> str:
+        if self.name:
+            return self.name
+        if self.profile:
+            return self.profile.getName()
+        return "Core contributor"
+
+    @property
+    def get_about(self) -> str:
+        if self.about:
+            return self.about
+        if self.profile and self.profile.getBio():
+            return self.profile.getBio()
+        return "Contributed to Knotters as a core contributor."
 
     @property
     def get_link(self) -> str:
@@ -2158,7 +2298,7 @@ class CoreMember(models.Model):
         return self.profile.get_name
 
     def get_about(self):
-        return self.about or self.profile.getBio()
+        return self.about or self.profile.getBio() or self.profile.getExtendedBio()
 
 
 class ProfileXPRecord(models.Model):

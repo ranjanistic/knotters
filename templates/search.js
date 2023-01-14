@@ -27,6 +27,7 @@ getElement("browse-search-exec").onclick = async () => {
     setHtmlContent(getElement("projects"), data.projects, loadBrowserSwiper)
     setHtmlContent(getElement("people"), data.people, loadBrowserSwiper)
     setHtmlContent(getElement("compete"), data.compete, loadBrowserSwiper)
+    setHtmlContent(getElement("howto"), data.howto, loadBrowserSwiper)
     setHtmlContent(getElement("snapshot"), data.snapshot, loadBrowserSwiper)
 };
 getElement("search-projects-form").onsubmit = (e) => {

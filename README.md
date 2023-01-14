@@ -4,7 +4,16 @@ The Knotters Platform source code.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) if you have read the whole README.md and have already setup the repository as instructed in this file. If not, then go through the following steps first, then jump to [CONTRIBUTING.md](CONTRIBUTING.md) for further contribution guidelines.
 
+- हिंदी में रीडमी [यहां पढ़ें](रीडमी.md)
+- You can contribute too by adding Readme.md in another language
+
+Join the internal communications channel on our own [Knotters Discord Server](https://discord.gg/ZxbY6GgCES) for discussions.
+
 ## Setup
+
+Linux environment is preferred, so if you were planning to boot/dual boot your pc with linux, this is the right time.
+
+For windows developers who don't want to boot linux, [setup WSL](https://docs.microsoft.com/en-us/windows/wsl/install) first.
 
 _All commands/bash scripts should be assumed to be executed in the root of project directory, unless specified explicitly._
 
@@ -17,9 +26,43 @@ _`python3` (python), `pip` (python package manager) - these cmdlets may vary dep
 - MongoDB (5.0.x) connection string (mongodb://user:password@host:port/database)
 - A running redis (6.x or above) server
 
+For setting up mongodb first time locally, check [these steps](https://www.digitalocean.com/community/tutorials/how-to-install-mongodb-on-ubuntu-18-04-source)
+
+
+For setting up redis first time locally, check [these steps](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04)
+
+For WSL users, commands like `systemctl` may not be present, therefore proceed accordingly. (E.g. use `service` command for `systemctl`)
+
+After setting up redis, add a user&password pair in acl section in your redis configuration file (typically at /etc/redis/redis.conf), by adding the following line in it
+
+```conf
+user <username> on ><password> allkeys allcommands
+```
+
+Restart redis after any changes to its configuration.
+
+Make sure mongodb is running, using
+
+```bash
+mongosh "mongodb://localhost:27017/"
+...
+test>
+```
+Make sure redis is running using
+
+```bash
+redis-cli
+127.0.0.1:6379> auth <user> <password>
+```
+
 ### Environment
 
 ```bash
+cd ~
+mkdir Knotters
+cd ~/Knotters
+git clone <repo-clone-url>
+cd ~/Knotters/knotters
 python3 setup.py
 ```
 
@@ -27,41 +70,42 @@ Check values in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.tes
 
 ### Dependencies
 
-Using a python virtual environment is recommended. For example
-
 ```bash
-pip install virtualenvwrapper
-mkvirtualenv your-virtual-environment-name
-workon your-virtual-environment-name
+pip install wheel
 ```
 
-or for Windows
+Create a python virtual environment
 
 ```bash
-pip install virtualenvwrapper-win
-mkvirtualenv your-virtual-environment-name
-workon your-virtual-environment-name
+cd ~/Knotters
+python3 -m venv knottersenv
+```
+
+Activate it
+
+```bash
+source ~/Knotters/knottersenv/bin/activate
 ```
 
 Then install dependencies
 
 ```bash
-pip install -r requirements.txt
-```
-
-> If there's a `Microsoft Visual c++ 14.0` required error with installation of _rcssmin_ or related modules, then do following execution if you want to **avoid installing Microsoft C++ Build Tools**
-
-```bash
- # Only if an error occurs
-pip install rcssmin --install-option="--without-c-extensions"
-pip install rjsmin --install-option="--without-c-extensions"
+cd ~/Knotters/knotters
 pip install -r requirements.txt
 ```
 
 ### Static setup
 
-Set `STATIC_ROOT` in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) (both should have same values for this) to the absolute path of a directory (like `/var/www/knotters/static/` or `C:\Users\static\`) where you can allow server to load static files from the `static` folder. Make sure whichever path you set is not restricted for server by any directory permissions.
+Set `STATIC_ROOT` in [`main/.env`](main/.env) and [`main/.env.testing`](main/.env.testing) (both should have same values for this) to the absolute path of an empty directory (like `/var/www/knotters/static/`) where you can allow server to load static files from the `static` folder. 
+Make sure whichever path you set is not restricted for server by any directory permissions.
 Also make sure that you DO NOT set the `STATIC_ROOT` as path to the `./static` folder in this project's directory in any way.
+
+For example, if you set `STATIC_ROOT` as `/var/www/knotters/static/`, then run
+
+```bash
+sudo mkdir -p /var/www/knotters/static/
+sudo chown -R <user>:<user> /var/www/knotters/
+```
 
 Then, use the following to load static files.
 
@@ -75,7 +119,7 @@ This will prevent tests from failing which depend on the presence of static file
 You can also run the follwing to compress the collected static files at your `STATIC_ROOT`, although it is not neccessary for development/testing process.
 
 ```bash
-python3 manage.py preparestatics /any/path/to/generate/errors/directory/
+python3 manage.py preparestatics /var/www/knotters/errors/
 ```
 
 ### Database Setup
@@ -144,10 +188,16 @@ Then, create another superuser account for yourself, using the same above comman
 Change your working branch (always create any new branch from `branch:beta`)
 
 ```bash
-git pull
 git checkout beta
-git checkout -b your-branch-name
+git pull
+git checkout -b <your-branch-name>
 git status
+```
+
+Activate environment if not activated
+
+```bash
+source ~/Knotters/knottersenv/bin/activate
 ```
 
 Then run the main server process (assuming port 8000 is free)
@@ -178,16 +228,22 @@ This should fix the issue for you.
 
 Make sure that [`main/.env.testing`](main/.env.testing) is set appropriately.
 
+**NOTE: BEFORE RUNNING TESTS, PLEASE REMOVE ALL REDIS RELATED VALUES FROM YOUR `main/.env.testing` FILE.**
+
 ```bash
 python3 manage.py test
 ```
 
 ```bash
-python3 manage.py test <appname>
+python3 manage.py test <module-name>
 ```
 
 ```bash
 python3 manage.py test --tag=<tagname>
+```
+
+```bash
+python3 manage.py test --parallel --verbosity=2
 ```
 
 For coverage report of tests
@@ -281,7 +337,7 @@ There are total 5 runners in the repository, hosted on our own servers, for the 
 --
 
 - builder_knotters: Any commit which is pushed on `branch:main` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to install/update dependencies and setup for knotters.org environment. This job for building requires the testing job to be successful to run. tags: `self-hosted, building, production`
-- deploy_knotters: Any commit which is pushed on `branch:beta` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to deploy latest changes on knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, deployment, production`
+- deploy_knotters: Any commit which is pushed on `branch:main` triggers the `main-server.yml`|`main-client.static.yml` action, which uses this runner to deploy latest changes on knotters.org environment. This job for deployment requires the previous building job to be successful to run. tags: `self-hosted, deployment, production`
 
 ## Footnotes
 
@@ -293,8 +349,6 @@ There are total 5 runners in the repository, hosted on our own servers, for the 
 
 - Try to publish the server sided changes before client side ones for better update delivery.
 
-- Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates.
-
-- Some tests fail arbitrarily on CI as well as locally too. Please see [#114](https://github.com/knottersbot/knotters/issues/114) for more details. Meanwhile, you can check the status of your deployment in this repository's `Actions` tab. Only if such condition occurs that tests on your deployment CI are failing arbitrarily, you can try re-running the jobs, but only if failure of those tests have no reason linked to your changes in code.
+- Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates. 
 
 Jump to [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guide now.

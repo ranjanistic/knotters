@@ -41,20 +41,9 @@ from .methods import (addTagToDatabase, coreProfileData,
                       deleteGhOrgCoreepository, deleteGhOrgVerifiedRepository,
                       freeProfileData, getProjectLiveData,
                       handleGithubKnottersRepoHook, renderer, renderer_stronly,
-                      rendererstr, uniqueRepoName, verifiedProfileData)
-from .models import (AppRepository, Asset, BaseProject,
-                     BaseProjectCoCreatorInvitation, BotHookRecord, Category,
-                     CoreModerationTransferInvitation, CoreProject,
-                     CoreProjectDeletionRequest, CoreProjectHookRecord,
-                     CoreProjectVerificationRequest, FreeProject,
-                     FreeProjectVerificationRequest, FreeRepository, License,
-                     Project, ProjectHookRecord,
-                     ProjectModerationTransferInvitation, ProjectSocial,
-                     ProjectTag, ProjectTopic, ProjectTransferInvitation,
-                     Snapshot, Tag, VerProjectDeletionRequest)
+                      rendererstr, uniqueRepoName, verifiedProfileData, tagSearchList, topicSearchList)
+from .models import *
 from .receivers import *
-from main.constants import NotificationCode
-from auth2.models import EmailNotificationSubscriber
 
 
 @require_GET
@@ -444,7 +433,8 @@ def submitProject(request: WSGIRequest) -> HttpResponse:
             if json_body:
                 return respondJson(Code.OK, error=Message.SENT_FOR_REVIEW)
             return redirect(projectobj.getLink(alert=Message.SENT_FOR_REVIEW))
-    except KeyError:
+    except KeyError as e:
+        print(e)
         if projectobj:
             projectobj.delete()
         if json_body:
@@ -1010,22 +1000,8 @@ def topicsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
                 map(lambda topic: topic.id.hex, project.getTopics()))
             cacheKey = cacheKey + "".join(map(str, excluding))
 
-        topics = cache.get(cacheKey, [])
-        if not len(topics):
-            topics = Topic.objects.exclude(id__in=excluding).filter(
-                Q(name__istartswith=query)
-                | Q(name__iendswith=query)
-                | Q(name__iexact=query)
-                | Q(name__icontains=query)
-            )[:limit]
-            cache.set(cacheKey, topics, settings.CACHE_SHORT)
-        topicslist = list(map(lambda topic: dict(
-            id=topic.getID(),
-            name=topic.name
-        ), topics[:limit]))
-
         return respondJson(Code.OK, dict(
-            topics=topicslist
+            topics=topicSearchList(query, excluding, limit, cacheKey)
         ))
     except (ObjectDoesNotExist, ValidationError, KeyError) as e:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -1161,24 +1137,10 @@ def tagsSearch(request: WSGIRequest, projID: UUID) -> JsonResponse:
             excludeIDs = list(map(lambda tag: tag.id.hex, project.getTags()))
             cacheKey = cacheKey + "".join(map(str, excludeIDs))
 
-        tags = cache.get(cacheKey, [])
-        if not len(tags):
-            tags = Tag.objects.exclude(id__in=excludeIDs).filter(
-                Q(name__istartswith=query)
-                | Q(name__iendswith=query)
-                | Q(name__iexact=query)
-                | Q(name__icontains=query)
-            )[:limit]
-            cache.set(cacheKey, tags, settings.CACHE_SHORT)
-
-        tagslist = list(map(lambda tag: dict(
-            id=tag.getID(),
-            name=tag.name
-        ), tags[:limit]))
-
         return respondJson(Code.OK, dict(
-            tags=tagslist
+            tags=tagSearchList(query, excludeIDs, limit, cacheKey)
         ))
+        
     except (ObjectDoesNotExist, ValidationError, KeyError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
@@ -2386,7 +2348,7 @@ def handleVerModInvitation(request: WSGIRequest) -> JsonResponse:
             if not project.can_invite_mod():
                 raise ObjectDoesNotExist("cannot invite mod: ", project)
             receiver = Profile.objects.get(
-                user__email=email, is_moderator=True, suspended=False, is_active=True, to_be_zombie=False)
+                user__email=email, is_moderator=True, is_mod_paused = False, suspended=False, is_active=True, to_be_zombie=False)
             if not project.can_invite_profile(receiver):
                 raise InvalidUserOrProfile(receiver)
 
@@ -3153,6 +3115,120 @@ def projectCocreatorManage(request: WSGIRequest, projectID: UUID) -> JsonRespons
             raise ValidationError(action)
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, KeyError, InvalidUserOrProfile):
+        return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@moderator_only
+@require_JSON
+def handleLeaveModeration(request : WSGIRequest)-> JsonResponse:
+    """
+    Handle the leave moderation request
+    """
+    try:
+        email = request.POST["email"]
+        sender: Profile = request.user.profile
+        if Profile.objects.filter(user__email=email, is_moderator=True, is_mod_paused=False).exists():
+            receiver = Profile.objects.get(user__email=email)
+            if LeaveModerationTransferInvitation.objects.filter(sender=sender, receiver=receiver, resolved=False).exists():
+                return respondJson(Code.NO, error=Message.ALREADY_INVITED)
+            inv = LeaveModerationTransferInvitation.objects.create(sender=sender, receiver=receiver)
+            sender.is_mod_paused = True
+            sender.save()
+            leaveModerationTransferInvitation(inv)
+            return respondJson(Code.OK)
+        else:
+            return respondJson(Code.NO, error=Message.INVALID_MODERATOR)
+    except Exception as e:
+        errorLog(e)
+        return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+
+
+@moderator_only
+@require_GET
+def leaveModTransferInvite(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
+    """To render the leave moderatorship transfer invitation view
+    """
+    try:
+        invitation: LeaveModerationTransferInvitation = LeaveModerationTransferInvitation.objects.get(
+            id=inviteID, receiver=request.user.profile, expiresOn__gt=timezone.now(),
+            resolved=False
+        )
+        return renderer(request, Template.Projects.LEAVE_MOD_INVITE,
+                        dict(invitation=invitation))
+    except (ObjectDoesNotExist, ValidationError) as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+
+@moderator_only
+@require_POST
+@decode_JSON
+def leaveModTransferInviteAction(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
+    """To handle the leave moderatorship transfer invite action taken by receiver.
+    """
+    try:
+        action = request.POST['action'][:50]
+        invitation: LeaveModerationTransferInvitation = LeaveModerationTransferInvitation.objects.get(
+            id=inviteID, resolved=False,
+            receiver=request.user.profile, expiresOn__gt=timezone.now()
+        )
+        if action == Action.ACCEPT:
+            if invitation.accept():
+                #alert 
+                leaveModerationAcceptedInvitation(invitation)
+                invitation.sender.is_moderator = False
+                invitation.sender.save()
+                return redirect(request.user.profile.getLink(alert=Message.PROJECT_MOD_TRANSFER_ACCEPTED))
+        elif action == Action.DECLINE:
+            if invitation.decline():
+                #alert
+                leaveModerationDeclinedInvitation(invitation)
+                return redirect(request.user.profile.getLink(alert=Message.PROJECT_MOD_TRANSFER_DECLINED))
+        else:
+            raise ValidationError(action)
+        return redirect(invitation.getLink(error=Message.ERROR_OCCURRED))
+    except (ObjectDoesNotExist, ValidationError, KeyError) as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+
+@normal_profile_required
+@require_JSON
+def submitProjectRating(request: WSGIRequest, projectID: UUID) -> JsonResponse:
+    """To submit/update/delete user rating of a project
+
+    METHODS: POST
+
+    Args:
+        request (WSGIRequest): The request object
+        projectID (UUID): The project id
+
+    Returns:
+        JsonResponse: The json response with main.strings.Code.OK if task successful, or main.strings.Code.NO
+    """
+    try:
+        action = request.POST['action']
+        project: BaseProject = BaseProject.objects.get(id=projectID, suspended=False, trashed=False, is_archived=False)
+        profile=request.user.profile
+        if action == Action.CREATE:
+            score: float= float(request.POST['score'])
+            if (1 <= score <= 10):
+                ProjectUserRating.objects.update_or_create(profile=profile, base_project=project, defaults=dict(score=score),)
+            else:
+                raise ValidationError(score)       
+        elif action==Action.REMOVE:
+            ProjectUserRating.objects.filter(profile=profile, base_project=project).delete()        
+        else:
+            raise ValidationError(action)
+        return respondJson(Code.OK)
+    except (ObjectDoesNotExist, KeyError, InvalidUserOrProfile, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
     except Exception as e:
         errorLog(e)

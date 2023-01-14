@@ -17,7 +17,7 @@ from main.strings import Code, Event, Message, url
 from management.models import HookRecord
 from people.methods import addTopicToDatabase
 from people.models import Profile, Topic
-
+from moderation.models import Moderation
 from .apps import APPNAME
 from .mailers import (sendCoreProjectApprovedNotification,
                       sendProjectApprovedNotification)
@@ -106,11 +106,14 @@ def freeProfileData(request, nickname: str = None, projectID: UUID = None) -> di
             request.user.profile)
         iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
             user=request.user).exists()
+        isRater = False if not request.user.is_authenticated else project.is_rated_by(
+            profile=request.user.profile)
         return dict(
             project=project,
             iscreator=iscreator,
             isAdmirer=isAdmirer,
-            iscocreator=iscocreator
+            iscocreator=iscocreator,
+            isRater = isRater
         )
     except (ObjectDoesNotExist, ValidationError):
         pass
@@ -159,12 +162,15 @@ def verifiedProfileData(request, reponame: str = None, projectID: UUID = None) -
             request.user.profile)
         iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
             user=request.user).exists()
+        isRater = False if not request.user.is_authenticated else project.is_rated_by(
+            profile=request.user.profile)
         return dict(
             project=project,
             iscreator=iscreator,
             ismoderator=ismoderator,
             isAdmirer=isAdmirer,
-            iscocreator=iscocreator
+            iscocreator=iscocreator,
+            isRater = isRater
         )
     except (ObjectDoesNotExist, ValidationError):
         pass
@@ -213,13 +219,63 @@ def coreProfileData(request, codename: str = None, projectID: UUID = None) -> di
             request.user.profile)
         iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
             user=request.user).exists()
-
+        isRater = False if not request.user.is_authenticated else project.is_rated_by(
+            profile=request.user.profile)
         return dict(
             project=project,
             iscreator=iscreator,
             ismoderator=ismoderator,
             isAdmirer=isAdmirer,
-            iscocreator=iscocreator
+            iscocreator=iscocreator,
+            isRater = isRater
+        )
+    except (ObjectDoesNotExist, ValidationError):
+        pass
+    except Exception as e:
+        errorLog(e)
+        pass
+    return False
+
+def baseProfileData(request, projectID: UUID = None) -> dict:
+    """Returns the context data to render a base project profile page.
+
+    Args:
+        request (WSGIRequest): The request object.
+        codename (str, optional): The codename of the project. Defaults to None.
+        projectID (UUID, optional): The id of the project. Defaults to None.
+
+    NOTE: Only one of the projectID or codename are allowed to be None. If codename is provided, it will be preferred.
+
+    Returns:
+        dict: The context data to render a core project profile page.
+    """
+    try:
+        cacheKey = f"{APPNAME}_base_project"
+        
+        cacheKey = f"{cacheKey}_{projectID}"
+        project: BaseProject = cache.get(cacheKey, None)
+        if not project:
+            project: BaseProject = BaseProject.objects.get(
+                id=projectID, trashed=False)
+            cache.set(cacheKey, project, settings.CACHE_INSTANT)
+
+        iscreator = False if not request.user.is_authenticated else project.creator == request.user.profile
+        # ismoderator = False if not request.user.is_authenticated else project.moderator(
+        # ) == request.user.profile
+        if project.suspended and not (iscreator):
+            raise ObjectDoesNotExist('suspended', project)
+        isAdmirer = request.user.is_authenticated and project.isAdmirer(
+            request.user.profile)
+        iscocreator = False if not request.user.is_authenticated else project.co_creators.filter(
+            user=request.user).exists()
+        userRatingScore = 0 if not request.user.is_authenticated else project.rating_by_user(profile=request.user.profile)
+        return dict(
+            project=project,
+            iscreator=iscreator,
+            # ismoderator=ismoderator,
+            isAdmirer=isAdmirer,
+            iscocreator=iscocreator,
+            userRatingScore=userRatingScore
         )
     except (ObjectDoesNotExist, ValidationError):
         pass
@@ -1201,3 +1257,73 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
         return False, f"objectdoesnotexist hook record ID: {hookrecordID}"
     except:
         return False, format_exc()
+
+
+def topicSearchList(query: str, excluding, limit: int, cacheKey: str):
+    """
+    Returns topics list
+    """
+    topicslist = cache.get(cacheKey, [])
+    if not len(topicslist):
+        topics = Topic.objects.exclude(id__in=excluding).filter(
+            Q(name__istartswith=query)
+            | Q(name__iexact=query)
+            | Q(name__icontains=query)
+        )[:limit]
+        topicslist = list(map(lambda topic: dict(
+            id=topic.get_id,
+            name=topic.name
+        ), topics))
+        cache.set(cacheKey, topicslist, settings.CACHE_INSTANT)
+    return topicslist
+
+def tagSearchList(query: str, excludeIDs, limit: int, cacheKey: str):
+    """
+    Returns tags list
+    """
+    tags = cache.get(cacheKey, [])
+    if not len(tags):
+        tags = Tag.objects.exclude(id__in=excludeIDs).filter(
+            Q(name__istartswith=query)
+            | Q(name__iendswith=query)
+            | Q(name__iexact=query)
+            | Q(name__icontains=query)
+        )[:limit]
+        cache.set(cacheKey, tags, settings.CACHE_SHORT)
+
+    tagslist = list(map(lambda tag: dict(
+        id=tag.getID(),
+        name=tag.name
+    ), tags[:limit]))
+    return tagslist
+
+def transfer_approved_project_moderation(sender:Profile, receiver: Profile):
+    """To transfer all approved projects of leaving moderator"""
+    newmoderator = receiver
+    oldmoderator = sender
+    approved_moderations = Moderation.objects.filter(moderator=sender, status=Code.APPROVED, resolved=True) #update
+    approved_moderations.update(moderator=newmoderator)
+    addMethodToAsyncQueue(f"{APPNAME}.methods.{transfer_approved_repositories.__name__}", newmoderator, oldmoderator, approved_moderations)
+    return True
+
+
+def transfer_approved_repositories(newmoderator, oldmoderator, approved_moderations):
+    """
+    """
+    for moderation in approved_moderations:
+        try:
+            moderation.project.gh_repo().add_to_collaborators(newmoderator.ghID, permission='maintain')
+            moderation.project.gh_repo().remove_from_collaborators(oldmoderator.ghID)
+        except Exception as e:
+            errorLog(e)
+        try:
+            moderation.project.gh_team().add_membership(
+                member=newmoderator.gh_user(),
+                role="maintainer"
+            )
+            moderation.project.gh_team().remove_membership(
+                member=oldmoderator.gh_user()
+            )
+        except Exception as e:
+            errorLog(e)
+    return True

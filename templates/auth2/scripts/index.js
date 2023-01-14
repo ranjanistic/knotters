@@ -412,6 +412,178 @@ initializeTabsView({
                     });
                 }
                 break;
+            case 'account' :{
+                getElement("nickname").oninput = async (e) => {
+                    let nickname = String(e.target.value).toLowerCase().trim();
+                    nickname = nickname.replace(/[^a-z0-9\-]/g, "-").split('-').filter((k)=>k.length).join('-');
+                    if (!nickname) return;
+                    e.target.value = nickname;
+                };
+                getElement("save-edit-nickname").onclick =
+                        async () => {
+                            const obj = getFormDataById(
+                                "edit-nickname-form"
+                            );
+                            if(!obj.nickname)
+                            {
+                                error("Nickname cannot be empty")
+                                return
+                            }
+                            const resp = await postRequest2({
+                                path: setUrlParams(URLS.NICKNAMEEDIT),
+                                data: {
+                                    nickname: obj.nickname
+                                },
+                            });
+                            if (resp.code === code.OK) 
+                            {
+                                success(STRING.nickname_updated)
+                                return tab.click();
+                            }
+                            error(resp.error);
+                            getElement("edit-nickname-button").click()
+                            getElement("nickname").focus()
+                        };
+                const pauseModDialog = async () => {
+                    if ("{{request.user.profile.mod_isPending}}"=="True")
+                    {
+                        await Swal.fire({
+                            title: `${NegativeText("Can't Pause Moderation")}`,
+                            html: `<h5>You have pending moderations. Please resolve them first</h5>`,
+                            showConfirmButton: true,
+                            showDenyButton: false,
+                            showCancelButton: true,
+                            cancelButtonText: "Go back",
+                            confirmButtonText: "Take me to moderation tab",
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                relocate({path : "{{request.user.profile.getLink}}", query : {
+                                    tab : 4,
+                                    a : STRING.resolve_pending
+                                }})
+                            }
+                        })
+                        return
+                    }
+                    paused = getElement("paused").value
+                    if(paused=="True")
+                        paused = true
+                    else
+                        paused = false
+                    const resp = await postRequest2({
+                        path: setUrlParams(URLS.PAUSE_MODERATORSHIP),
+                        data: {
+                            paused: paused
+                        },
+                    });
+                    if (resp.code === code.OK) 
+                    {
+                        if (paused)
+                            success(STRING.moderation_paused)
+                        else
+                            success(STRING.moderation_resumed)
+                        return tab.click();
+                    }
+                    error(resp.error);
+                };
+                const leaveModDialog = async () => {
+                    if ("{{request.user.profile.mod_isPending}}"=="True")
+                    {
+                        await Swal.fire({
+                            title: `${NegativeText("Can't Leave Moderation")}`,
+                            html: `<h5>You have pending moderations. Please resolve them first</h5>`,
+                            showConfirmButton: true,
+                            showDenyButton: false,
+                            showCancelButton: true,
+                            cancelButtonText: "Go back",
+                            confirmButtonText: "Take me to moderation tab",
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                relocate({path : "{{request.user.profile.getLink}}", query : {
+                                    tab : 4,
+                                    a : STRING.resolve_pending
+                                }})
+                            }
+                        })
+                        return
+                    }
+                    if("{{request.user.profile.mod_isApproved}}"=="True")
+                    {
+                        await Swal.fire({
+                            title: `${NegativeText("Can't Leave Moderation")}`,
+                            html: `<h5>You have approved moderations. You need to transfer them before leaving moderation.<br/><br/>Please enter moderator mail so that we can transfer your approved projects.<br/><br/>You can also click "Go back" and transfer projects individually.</h5>
+                            <br/>
+                            <input id="moderator_mail" type="email" placeholder="Moderator mail" maxlength="70" name="moderator"/>`,
+                            showConfirmButton: true,
+                            showDenyButton: false,
+                            showCancelButton: true,
+                            cancelButtonText: "Go back",
+                            confirmButtonText: "Transfer Projects",
+                            preConfirm:function(){
+                                mail = document.getElementById('moderator_mail').value
+                            }
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                const data = await postRequest2({
+                                path: URLS.Projects.INVITE_LEAVE_MOD,
+                                data: {
+                                    email: mail,
+                                },
+                            });
+                            if (data && data.code === code.OK) {
+                                await Swal.fire({
+                                    title: "Transfer Invite Sent",
+                                    html: `<h5>Transfer invite has been sent and your moderation status has been paused. You moderation status will be revoked automatically if the invite get accepted otherwise you will have to transfer your projects to some other moderator.</h5>`,
+                                    showConfirmButton: true,
+                                    showDenyButton: false,
+                                    showCancelButton: false,
+                                    confirmButtonText: "Okay",
+                                })
+                                return
+                            }
+                            error(data.error);
+                            }
+                        })
+                        return
+                    }
+                    await Swal.fire({
+                        title: "Leave Moderation",
+                        html: `<h5>${STRING.you_sure_to} ${NegativeText(
+                            "leave"
+                        )} Moderatorship?<br/>This action is irreversible. Proceed with caution.</h5>`,
+                        showConfirmButton: false,
+                        showDenyButton: true,
+                        showCancelButton: true,
+                        denyButtonText:
+                            Icon("toggle_off") +
+                            " " +
+                            "Leave Moderatorship",
+                        cancelButtonText: STRING.no_go_back,
+                    }).then(async (result) => {
+                        if (result.isDenied) {
+                            message("Leaving Moderation");
+                            const data = await getRequest2({
+                                path: URLS.LEAVE_MODERATORSHIP
+                            });
+                            if (data && data.code === code.OK) {
+                                relocate({query : {
+                                    s : STRING.leave_moderation
+                                }})
+                                return
+                            }
+                            error(data.error);
+                        }
+                    });
+                };
+                getElement("pausemod").onclick = async (_) => {
+                    pauseModDialog();
+                };
+                // getElement("leavemod").onclick = async (_) => {
+                //     leaveModDialog();
+                // };
+            }
+            break;
         }
     },
 });
+

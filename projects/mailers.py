@@ -6,9 +6,10 @@ from main.mailers import sendActionEmail, sendAlertEmail
 
 from .models import (BaseProjectCoCreatorInvitation,
                      CoreModerationTransferInvitation, CoreProject,
-                     CoreProjectDeletionRequest, FreeProject, FreeRepository, Project,
+                     CoreProjectDeletionRequest, FreeProject, FreeRepository, LeaveModerationTransferInvitation, Project,
                      ProjectModerationTransferInvitation,
-                     ProjectTransferInvitation, Snapshot, VerProjectDeletionRequest, BaseProject)
+                     ProjectTransferInvitation, Snapshot, VerProjectDeletionRequest, BaseProject,
+                     LeaveModerationTransferInvitation)
 from main.methods import user_device_notify
 from management.models import ReportCategory
 
@@ -280,7 +281,7 @@ def projectTransferInvitation(invite: ProjectTransferInvitation) -> str:
             subject=f"Project Transfer Initiated",
             header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept ownership of your project {invite.baseproject.name}.",
             actions=[{
-                'text': 'View projet',
+                'text': 'View project',
                 'url': invite.baseproject.get_link
             }],
             footer=f"If they decline, then your project will not get transferred to them.",
@@ -314,7 +315,7 @@ def projectTransferAcceptedInvitation(invite: ProjectTransferInvitation) -> str:
             subject=f"Project Transfer Success",
             header=f"This is to inform you that your project, {invite.baseproject.name}, has been successfully transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
             actions=[{
-                'text': 'View projet',
+                'text': 'View project',
                 'url': invite.baseproject.get_link
             }],
             footer=f"This action was irreversible, and now they control this project and you've been detached from it.",
@@ -367,7 +368,7 @@ def projectTransferDeclinedInvitation(invite: ProjectTransferInvitation) -> str:
             subject=f"Project Transfer Failed",
             header=f"This is to inform you that your project, {invite.baseproject.name}, has not been transferred to {invite.receiver.getName()} ({invite.receiver.getEmail()}).",
             actions=[{
-                'text': 'View projet',
+                'text': 'View project',
                 'url': invite.baseproject.get_link
             }],
             footer=f"This is because your invited person have rejected this invitation. You can re-invite them or anyone again.",
@@ -1307,3 +1308,118 @@ def githubBotInstalled(frepos):
         done.append([device, email])
     return done
         
+
+def leaveModerationTransferInvitation(invite: LeaveModerationTransferInvitation) -> str:
+    """
+    To send invitation to receiver for leave moderatorship
+
+    Args:
+        invite (ProjectTransferInvitation): ProjectTransferInvitation instance
+
+    Returns:
+        str: task ID of email task
+    """
+    if invite.resolved or invite.expired:
+        return False
+    device, email, device1, email1 = False, False, False, False
+    # device = user_device_notify(invite.receiver.user, "Project Transfer Invitation",
+    #                     f"You've been invited to accept ownership.",
+    #                     invite.get_link)
+    email = sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Moderatorship Transfer Invite",
+        header=f"You've been invited to accept ownership of all projects moderated by, {invite.sender.getName()} ({invite.sender.getEmail()}) as they are leaving their moderation.",
+        actions=[{
+            'text': 'View Invitation',
+            'url': invite.get_link
+        }],
+        footer=f"Visit the above link to decide whether you'd want to accept trasfer of moderatorship or not.",
+        conclusion=f"Nothing will happen by merely visiting the above link. We recommed you to visit the link and make you decision there."
+    )
+
+    # if DeviceNotificationSubscriber.objects.filter(user=invite.sender.user, device_notification__notification__code=NotificationCode.PROJ_TRANSFER_INVITE).exists():
+    #     device1 = user_device_notify(invite.sender.user, "Project Transfer Initiated",
+    #                        f"You've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept ownership")
+
+    email1 = sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Moderatorship Transfer Invite",
+        header=f"This is to inform you that you've invited {invite.receiver.getName()} ({invite.receiver.getEmail()}) to accept ownership of all your moderated projects. Until the invite gets resolved, your moderator status has been paused.",
+        # actions=[{
+        #     'text': 'View project',
+        #     'url': invite.baseproject.get_link
+        # }],
+        footer=f"If they accept, then your project will be transferred to them and your moderation status will be revoked.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+    return device, email, device1, email1
+
+
+def leaveModerationAcceptedInvitation(invite: LeaveModerationTransferInvitation) -> str:
+    """
+    To notify sender & receiver about acceptance of moderatorship transfer
+    """
+    if not invite.resolved:
+        return False
+    device, email, device1, email1 = False, False, False, False
+    # if DeviceNotificationSubscriber.objects.filter(user=invite.sender.user, device_notification__notification__code=NotificationCode.CO_BASE_PROJECT_ACCEPTED).exists():
+    #     device = user_device_notify(invite.sender.user, "Project Co-creator Invite Success",
+    #                        f"{invite.receiver.getName()} ({invite.receiver.getEmail()}) has been successfully added as a co-creator in your project, {invite.base_project.name}.",
+    #                        invite.base_project.get_link)
+
+    email = sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Moderatorship Transfer Invite Success",
+        header=f"This is to inform you that {invite.receiver.getName()} ({invite.receiver.getEmail()}) has accepted your invite for moderatorship transfer and therefore, your moderatorship status has been revoked.",
+        # actions=[{
+        #     'text': 'View project',
+        #     'url': invite.base_project.get_link
+        # }],
+        footer=f"Now you are no longer a moderator at {PUBNAME}.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+
+    # if DeviceNotificationSubscriber.objects.filter(user=invite.receiver.user, device_notification__notification__code=NotificationCode.CO_BASE_PROJECT_ACCEPTED).exists():
+    #     device1 = user_device_notify(invite.receiver.user, "Project Co-Creatorship Accepted",
+    #                        f"You've accepted the co-creatorship of {invite.base_project.name}.",
+    #                        invite.base_project.get_link)
+    email1 = sendActionEmail(
+        to=invite.receiver.getEmail(),
+        username=invite.receiver.getFName(),
+        subject=f"Moderatorship Transfer Invite Accepted",
+        header=f"This is to inform you that you've accepted the moderatorship transfer invite and therefore, all approved projects are transferred to you.",
+        # actions=[{
+        #     'text': 'View Project',
+        #     'url': invite.base_project.get_link
+        # }],
+        footer=f"Now you are moderator of the transferred projects at {PUBNAME}.",
+        conclusion=f"This email was sent because you've accepted the moderatorship transfer invite."
+    )
+    return device, email, device1, email1
+
+
+def leaveModerationDeclinedInvitation(invite: LeaveModerationTransferInvitation) -> str:
+    """
+    To notify sender & receiver about decline of transfer of moderatorship
+    """
+    if not invite.resolved:
+        return False
+    device, email = False, False
+    #     device = user_device_notify(invite.sender.user, "Project Co-Creatorship Invite Declined",
+    #                        f"Your invitation to {invite.receiver.getName()} ({invite.receiver.getEmail()}) has been declined.")
+    email = sendActionEmail(
+        to=invite.sender.getEmail(),
+        username=invite.sender.getFName(),
+        subject=f"Moderatorship Transfer Invite Declined",
+        header=f"This is to inform you that your invitation to transfer moderatorship has been declined and therefore, your moderatorship status will not be revoked. Your moderationship status will continue to be in paused state.",
+        # actions=[{
+        #     'text': 'View Project',
+        #     'url': invite.base_project.get_link
+        # }],
+        footer=f"This is because the invited person has rejected the invitation. You can re-invite them or anyone again.",
+        conclusion=f"If this action is unfamiliar, then you may contact us."
+    )
+    return device, email

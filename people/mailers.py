@@ -54,7 +54,7 @@ def decreaseXpAlert(profile: Profile, decrement: int):
 
 def increaseBulkTopicXPAlert(profile: Profile, incrementbulk: int):
     """
-    Send device notification to user when their Xp is increased in a topic
+    Send device notification to user when their Xp is increased in topics
     """
     device = False
     if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.INCREASE_BULK_XP_TOPIC).exists():
@@ -65,7 +65,7 @@ def increaseBulkTopicXPAlert(profile: Profile, incrementbulk: int):
 
 def increaseXPInTopicAlert(profile: ProfileTopic, incrementPoints: int, topicName: str, topicPoints: int):
     """
-    Send device notification to user when their Xp is decreased in a topic 
+    Send device notification to user when their Xp is increased in a topic 
     """
     device = False
     if DeviceNotificationSubscriber.objects.filter(user=profile.profile.user, device_notification__notification__code=NotificationCode.INCREASE_XP_IN_TOPIC).exists():
@@ -82,6 +82,17 @@ def decreaseXPInTopicAlert(profile: ProfileTopic, decrementPoints: int, topicNam
     if DeviceNotificationSubscriber.objects.filter(user=profile.profile.user, device_notification__notification__code=NotificationCode.DECREASE_XP_IN_TOPIC).exists():
         device = user_device_notify(profile.profile.user, "Topic XP decreased.",
                            f"You have lost -{decrementPoints} XP in {topicName}. {topicPoints} is your current XP.", profile.profile.get_abs_link)
+    return device
+
+
+def decreaseBulkTopicXPAlert(profile: Profile, decrementbulk: int):
+    """
+    Send device notification to user when their Xp is decreased in topics
+    """
+    device = False
+    if DeviceNotificationSubscriber.objects.filter(user=profile.user, device_notification__notification__code=NotificationCode.DECREASE_BULK_XP_TOPIC).exists():
+        device = user_device_notify(profile.user, "Bulk Topics XP Decreased!",
+                           f"You have lost -{decrementbulk} XP in multiple topics at once!", profile.get_abs_link)
     return device
 
 

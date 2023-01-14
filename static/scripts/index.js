@@ -1,5 +1,73 @@
 "use strict";
 
+/**
+ * Returns random numeric string.
+ * @param {Number} length Total string length. Defaults to 10
+ * @returns {String} Random numeric string
+ */
+const randomNumString = (length = 10) => {
+    let result = "";
+    const characters = "123456789";
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+        );
+    }
+    return result;
+};
+
+/**
+ * Returns random string.
+ * @param {Object} data
+ * @param {Number} data.length Total string length. Defaults to 10
+ * @param {Boolean} data.nonAlphaNum Whether to include non-alphanumeric characters. Defaults to false
+ * @param {Boolean} data.onlySpecial Whether to include only special characters. Defaults to false
+ * @returns {String} Random string
+ */
+const randomString = ({
+    length = 10,
+    nonAlphaNum = false,
+    onlySpecial = false,
+}) => {
+    let result = "";
+    const characters = onlySpecial
+        ? "!@#$%^&*.?)"
+        : nonAlphaNum
+        ? randomString({
+              length: Math.floor(length / 4),
+              onlySpecial: true,
+          }) +
+          randomString({ length: Math.floor(length / 3) }) +
+          randomNumString(Math.floor(length / 3))
+        : "ABCDEFGHIJKLMNOPqrstuvwxyz0123456789";
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+        );
+    }
+    if (nonAlphaNum && !/[^a-zA-Z0-9]/.test(result)) {
+        result =
+            randomString({ length: 1, onlySpecial: true }) +
+            result.slice(1, length);
+        result = result.slice(0, length);
+    }
+    if (nonAlphaNum && !/[a-z]/.test(result)) {
+        result = "b" + result.slice(1, length);
+        result = result.slice(0, length);
+    }
+    if (nonAlphaNum && !/[A-Z]/.test(result)) {
+        result = "B" + result.slice(1, length);
+        result = result.slice(0, length);
+    }
+    if (nonAlphaNum && !/[0-9]/.test(result)) {
+        result = "1" + result.slice(1, length);
+        result = result.slice(0, length);
+    }
+    return result;
+};
+
 const logOut = async (
     afterLogout = (_) => {
         relocate({
@@ -355,6 +423,21 @@ const loadGlobalEventListeners = () => {
     getElements("print-page-action").forEach((action) => {
         action.onclick = (e) => {
             window.print();
+        };
+    });
+    getElements("random-avatar-generate").forEach((elem) => {
+        elem.onclick = () => {
+            let view = getElements("random-avatar-view").find(
+                (v) => v.getAttribute("data-group") == elem.id
+            );
+            let output = getElements("random-avatar-output").find(
+                (o) => o.getAttribute("data-group") == elem.id
+            );
+            let svg = multiavatar(randomString({}));
+            svgToImage(svg, 1000, 1000, "png", (pngData) => {
+                view.src = pngData;
+                output.value = pngData;
+            });
         };
     });
 };
@@ -795,7 +878,8 @@ const handleCropImageUpload = (
     dataOutElemID,
     previewImgID,
     onCropped = (croppedB64) => {},
-    ratio = 1 / 1
+    ratio = 1 / 1,
+    setImage = true
 ) => {
     const file = Array.from(event.target.files)[0];
     if (file) {
@@ -833,13 +917,65 @@ const handleCropImageUpload = (
                         error(STRING.img_too_large_10M);
                         return false;
                     }
-                    getElement(dataOutElemID).value = croppedB64;
-                    getElement(previewImgID).src = croppedB64;
+                    if (setImage) {
+                        getElement(dataOutElemID).value = croppedB64;
+                        getElement(previewImgID).src = croppedB64;
+                    }
                     return croppedB64;
                 } catch (e) {
                     error("", true);
                     return false;
                 }
+            },
+        }).then((res) => {
+            if (res.isConfirmed) {
+                onCropped(res.value);
+            }
+        });
+    };
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+};
+
+const handleVideoUpload = (
+    event,
+    dataOutElemID,
+    previewVideoID,
+    onCropped = (croppedB64) => {},
+    setVideo = true
+) => {
+    const file = Array.from(event.target.files)[0];
+    if (file) {
+        loader();
+        message(STRING.loading_video);
+    }
+    const reader = new FileReader();
+    reader.onload = (_) => {
+        const base64String = reader.result;
+        Swal.fire({
+            title: "Video Preview",
+            html: `<div class="w3-row w3-center">
+                <video controls src="${base64String}" style="max-width:100%" id="tempvideooutput">
+                </video>
+                </div>`,
+            showDenyButton: true,
+            denyButtonText: STRING.cancel,
+            confirmButtonText: STRING.confirm,
+            allowOutsideClick: false,
+            didOpen: () => {
+                loader(false);
+            },
+            preConfirm: (x) => {
+                if (String(base64String).length / 1024 / 1024 >= 10) {
+                    error(STRING.video_too_large_10M);
+                    return false;
+                }
+                if (setVideo) {
+                    getElement(dataOutElemID).value = base64String;
+                    getElement(previewVideoID).src = base64String;
+                }
+                return base64String;
             },
         }).then((res) => {
             if (res.isConfirmed) {
@@ -1337,4 +1473,23 @@ const convertFileToBase64 = (file) => {
             reject(error);
         };
     });
+};
+
+const svgToImage = (svgString, width, height, format, callback) => {
+    format = format ? format : "png";
+    var svgData =
+        "data:image/svg+xml;base64," +
+        btoa(unescape(encodeURIComponent(svgString)));
+    var canvas = document.createElement("canvas");
+    var context = canvas.getContext("2d");
+    canvas.width = width;
+    canvas.height = height;
+    var image = new Image();
+    image.onload = function () {
+        context.clearRect(0, 0, width, height);
+        context.drawImage(image, 0, 0, width, height);
+        var pngData = canvas.toDataURL("image/" + format);
+        callback(pngData);
+    };
+    image.src = svgData;
 };

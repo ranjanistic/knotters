@@ -32,6 +32,7 @@
 
 {% block nav_extra_links %}
 {% comment %} <a href="{{URLS.CREATE_FRAME}}"><button title="New framework" class="accent" data-icon="add"><span class="w3-hide-small">{% trans "New framework" %}</span></button></a> {% endcomment %}
+<a href="{{URLS.HOWTO}}"><button title="Howto" class="accent" data-icon="article"><span class="w3-hide-small">{% trans "Howto" %}</span></button></a>
 {% endblock %}
 
 {% block content %}
@@ -101,6 +102,8 @@
   <div class="w3-row browser-view" data-type="{{BROWSE.HIGHEST_MONTH_XP_PROFILES}}" id='{{BROWSE.HIGHEST_MONTH_XP_PROFILES}}-view'>
   </div>
   <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_PROFILES}}" id='{{BROWSE.TRENDING_PROFILES}}-view'>
+  </div>
+  <div class="w3-row browser-view" data-type="{{BROWSE.TRENDING_ARTICLES}}" id='{{BROWSE.TRENDING_ARTICLES}}-view'>
   </div>
   <div class="w3-row browser-view" data-type="{{BROWSE.TOPIC_PROFILES}}" id='{{BROWSE.TOPIC_PROFILES}}-view'>
   </div>
