@@ -124,6 +124,7 @@ ua-parser==0.10.0
 uritemplate==4.1.1
 urllib3==1.26.9
 user-agents==2.2.0
+Wand==0.6.11
 wcwidth==0.2.5
 webencodings==0.5.1
 wrapt==1.14.0
