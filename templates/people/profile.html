@@ -115,7 +115,7 @@
         </div>
 
         {% if self %}
-          <div class="pallete w3-center w3-animate-opacity" id="edit-pallete">
+          <div class="pallete w3-center w3-animate-opacity" id="edit-pallete" hidden>
             <img class="primary random-avatar-view" src="{{ person.profile.getDP }}" alt="{{ person.getName }}" id="profilePicOutput" data-group="dp" />
             <input type="file" id="uploadprofilepic" hidden accept="image/png, image/jpg, image/jpeg" />
             <button class="{% if person.profile.is_moderator %}accent{% elif person.profile.is_mentor %}active{% else %}positive{% endif %} small" type="button" id="upload-button">

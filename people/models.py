@@ -39,7 +39,7 @@ def isPictureDeletable(picture: str) -> bool:
     """
     Checks whether the given profile picture is a third-party picture, and therefore can be deleted or not.
     """
-    return not (str(picture).startswith('http') and str(picture).startswith(settings.SITE))
+    return not str(picture).startswith(defaultImagePath()[:-6]) and not (str(picture).startswith('http') and str(picture).startswith(settings.SITE))
 
 
 class UserAccountManager(BaseUserManager):
