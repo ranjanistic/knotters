@@ -21,16 +21,26 @@
                <a href="{{submission.getRepo}}" target="_blank"><button class="big-button primary" data-img="{{submission.free_project.getDP}}">{{submission.free_project.name}}</button></a>
                <button class="negative-text primary" data-icon="close" id="remove-quick-project">Remove project as submission</button>
                <input type="url" hidden name="submissionurl" id="submissionurl" data-saved="{{submission.getRepo}}" value="{{submission.getRepo}}">
+              {% elif submission.article %}
+               <a href="{{submission.getRepo}}" target="_blank"><button class="big-button primary" data-img="{{submission.article.getImage}}">{{submission.article.heading}}</button></a>
+               <button class="negative-text primary" data-icon="close" id="remove-quick-project">Remove article as submission</button>
+               <input type="url" hidden name="submissionurl" id="submissionurl" data-saved="{{submission.getRepo}}" value="{{submission.getRepo}}">
               {% else %}
-                <button <button class="big-button primary" id="submit-quick-project" data-icon="widgets">Submit a Quick Project</button>
+		{% if submission.modeProject %}
+                <button class="big-button primary" id="submit-quick-project" data-icon="widgets">Submit a Quick Project</button>
+		{% else %}
+                <button class="big-button primary" id="submit-article" data-icon="widgets">Submit your article</button>
+	        {% endif %}
                 <input hidden class="wide positive-text" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" data-saved="{{submission.getRepo}}" value="{{submission.getRepo}}">
-                {% comment %} <div class="text-big">OR</div>
+                {% comment %}
+                 <div class="text-big">OR</div>
                <form class="w3-row no-auto" method="POST" action="{{submission.saveLink}}">
                 {% csrf_token %}
                 <strong><input class="wide positive-text" type="url" name="submissionurl" id="submissionurl" placeholder="Submission URL" data-saved="{{submission.getRepo}}" required value="{{submission.getRepo}}"></strong>
                 <div><br/></div>
                 <button type="submit" class="primary" id="save-url-submission" data-icon="save">Save</button>
-               </form> {% endcomment %}
+               </form> 
+                {% endcomment %}
               {% endif %}
             {% elif not submission.submittingLate and submission.submitted %}
                 <br/>
@@ -60,7 +70,7 @@
     
     <div class="w3-col w3-half w3-padding-small">
         <h5 class="w3-left w3-padding-small">{% trans "Teammates" %}</h5>
-        <a class="w3-right" href="https://discord.gg/F7vZ9fYkhe" target="_blank" rel="noreferrer"><span hidden>Discord</span><button aria-label="Discord"  class="primary w3-animate-zoom"><img alt="Discord" src="{% static 'graphics/thirdparty/discord.webp' %}" width="18" height="20" />&nbsp;Discord Channel</button></a>
+        <a class="w3-right" href="https://discord.gg/q22uzPscnh" target="_blank" rel="noreferrer"><span hidden>Discord</span><button aria-label="Discord"  class="primary w3-animate-zoom"><img alt="Discord" src="{% static 'graphics/thirdparty/discord.webp' %}" width="18" height="20" />&nbsp;Discord Channel</button></a>
         <div class="w3-row">
             {% for profile in submission.getMembers %}
             <div class="w3-col w3-padding-small l4 m4 s6">

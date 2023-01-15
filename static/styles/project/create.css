@@ -1,7 +1,6 @@
 input:focus,
 textarea:focus {
-    outline: none;
-    border: 0px;
+   outline: none;
 }
 
 input.invalid,

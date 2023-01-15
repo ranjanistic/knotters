@@ -32,8 +32,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.views.generic import TemplateView
 from management.methods import competitionManagementRenderData, labelRenderData
-from management.models import (GhMarketApp, GhMarketPlan, HookRecord,
-                               ThirdPartyLicense)
+from management.models import (GhMarketApp, GhMarketPlan, HookRecord, CorePartner,
+                               ThirdPartyLicense, CareerPosition,CareerApplication)
 from moderation.methods import moderationRenderData
 from moderation.models import LocalStorage
 from people.methods import profileRenderData
@@ -55,7 +55,7 @@ from .decorators import (decode_JSON, dev_only, github_only,
                          normal_profile_required, require_JSON)
 from .env import ADMINPATH, ISBETA, ISPRODUCTION
 from .mailers import featureRelease
-from .methods import (errorLog, getDeepFilePaths, renderData, renderString,
+from .methods import (errorLog, getDeepFilePaths, renderData, renderString,base64ToFile,
                       renderView, respondJson, respondRedirect, verify_captcha)
 from .strings import (COMPETE, DOCS, MANAGEMENT, MODERATION, PEOPLE, PROJECTS, HOWTO,
                       URL, Browse, Code, Event, Message, Template,
@@ -91,6 +91,63 @@ def branding(request: WSGIRequest) -> HttpResponse:
         HttpResponse: The rendered text/html view.
     """
     return renderView(request, Template.BRANDING)
+
+
+@require_GET
+def careers(request: WSGIRequest) -> HttpResponse:
+    """To render careers page
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view.
+    """
+    positions = CareerPosition.objects.filter(opened=True)
+    applied = []
+#    if request.user.is_authenticated:
+ #       applied = CareerApplication.objects.filter(applicant=request.user.profile)
+    return renderView(request, Template.CAREERS, dict(positions=positions,applied=applied))
+
+@normal_profile_required
+@decode_JSON
+def careers_apply(request: WSGIRequest, posID: UUID) -> HttpResponse:
+    """To apply for a position
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponse: The rendered text/html view.
+    """
+    try:
+        pos = CareerPosition.objects.get(id=posID,opened=True)
+        applied = CareerApplication.objects.filter(position=pos, applicant=request.user.profile).first()
+        if request.method != "POST":
+            return renderView(request, Template.CAREERS_APPLY, dict(position=pos,applied=applied))
+        if applied:
+            return respondRedirect(path=pos.getLink(error=Message.ALREADY_APPLIED))
+        name = request.POST.get("name", request.user.get_name)
+        email = request.POST.get("email", request.user.email)
+        phone = request.POST.get("phone",  request.user.get_phone())
+        experience = request.POST["experience"]
+        resume = request.POST["resume"]
+        resumeName = request.POST["resume-name"]
+        try:
+            resume = base64ToFile(resume)
+        except Exception as s:
+            return respondRedirect(path=pos.getLink(error=Message.INCOMP_DETAILS))
+        if not (name and email and phone and experience and resume) or resumeName.split(".")[-1]!="pdf":
+            return respondRedirect(path=pos.getLink(error=Message.INCOMP_DETAILS))
+        CareerApplication.objects.create(position=pos, applicant=request.user.profile,name=name,email=email,phone=phone,resume=resume, experience=experience)
+        return respondRedirect(path=pos.getLink(success=Message.APPLIED))
+    except Exception as e:
+        raise Http404(e)
+
 
 
 @dev_only
@@ -161,7 +218,8 @@ def index(request: WSGIRequest) -> HttpResponse:
 
     topics = Topic.homepage_topics()
     project = BaseProject.homepage_project()
-    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
+    partners = CorePartner.objects.filter(hidden=False)
+    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
 
 
 @require_GET
@@ -182,7 +240,8 @@ def home(request: WSGIRequest) -> HttpResponse:
     competition: Competition = Competition.latest_competition()
     topics = Topic.homepage_topics()
     project: BaseProject = BaseProject.homepage_project()
-    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition))
+    partners = CorePartner.objects.filter(hidden=False)
+    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
 
 
 @require_GET
@@ -1078,6 +1137,8 @@ class ServiceWorker(TemplateView):
                 f"/email/*",
                 f"/{URL.MANAGEMENT}*",
                 f"/{URL.MANAGEMENT}",
+                f"/{URL.CAREERS}",
+                f"/{URL.CAREERS}*",
                 setPathParams(f"/{URL.APPLANDING}"),
                 setPathParams(f"/{URL.DOCS}{URL.Docs.TYPE}"),
                 setPathParams(f"/{URL.PEOPLE}{URL.People.ZOMBIE}"),
@@ -1220,6 +1281,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             else:
                 return respondJson(Code.OK, dict(snapIDs=[]))
         elif type == Browse.NEW_PROFILES:
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=[], count=0))
             profiles = cache.get(cachekey, [])
             if not len(profiles):
                 if request.user.is_authenticated:
@@ -1230,7 +1292,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                         timezone.now()+timedelta(days=-60)),
                     suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[:limit]
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
+#            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
 
         elif type == Browse.NEW_PROJECTS:
             projects = cache.get(cachekey, [])

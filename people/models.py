@@ -18,7 +18,7 @@ from django.core.cache import cache
 from time import time
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files.base import File
-from django.db import models
+from djongo import models
 from django.db.models import Q
 from django.utils import timezone
 from django_otp import devices_for_user
@@ -150,6 +150,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         if require_verified:
             return PhoneNumber.objects.filter(user=self, verified=True).values_list('phone', flat=True)
         return PhoneNumber.objects.filter(user=self).values_list('number', flat=True)
+
+    def get_phone(self) -> list:
+        """Returns primary phone of the user.
+
+        Returns:
+            string: primary phone of the user.
+        """
+        ph = PhoneNumber.objects.filter(user=self,primary=True).values_list('number', flat=True)
+        if not len(ph):
+            return None
+        return ph[0]
 
     def get_phonenumbers(self, require_verified=False) -> models.QuerySet:
         """Returns all PhoneNumber instances of the user.
@@ -550,7 +561,7 @@ class Profile(models.Model):
     
     def canCreateArticle(self) -> bool:
         """Returns True if profile can create article"""
-        return self.is_manager() or Profile.KNOTBOT().management() and Profile.KNOTBOT().management().has_member(self)
+        return True # self.is_manager() or Profile.KNOTBOT().management() and Profile.KNOTBOT().management().has_member(self)
 
     def phone_number(self) -> "PhoneNumber":
         """Returns the primary & verified phone number instance of the user.
@@ -921,6 +932,15 @@ class Profile(models.Model):
     def getEmail(self) -> str:
         """Returns the user's primary email"""
         return self.get_email
+
+    @property
+    def get_phone(self) -> str:
+        """Returns the user's primary phone"""
+        return Code.ZOMBIEMAIL if self.is_zombie else self.user.get_phone()
+
+    def getPhone(self) -> str:
+        """Returns the user's primary phone"""
+        return self.get_phone
 
     def getBio(self) -> str:
         """Returns the user's bio"""
@@ -1709,6 +1729,20 @@ class Profile(models.Model):
         except Exception as e:
             errorLog(e)
             return []
+
+    def get_articles(self) -> models.QuerySet:
+        """Returns the user's published article instances
+
+        Returns:
+            models.QuerySet: The article instances list
+        """
+        try:
+            from howto.models import Article
+            return Article.objects.filter(author=self, is_draft=False)
+        except Exception as e:
+            errorLog(e)
+            return []
+
 
     def recommended_topics(self, atleast: int = 1, atmost: int = 5) -> models.QuerySet:
         """Returns the user's recommended topics instances

@@ -72,6 +72,11 @@
                         {% endfor %}
                         {% if self and article.tags.all|length > 0 %}<button class="small edit-action" data-icon="edit" data-edittarget="articletags"></button>{% endif %}
                             <button class="accent navigator-share-action" data-icon="share" data-title="{{article.heading}}" data-text="{{article.subheading}}" data-url="{{article.getLink}}"></button>
+        {% if article.is_submission %}
+        <a target="_blank" href="{{article.submission.competition.get_link}}">
+            <button class="active" data-icon="psychology">{{article.submission.totalActiveMembers}}</button>
+        </a>
+        {% endif %}
                         {% if request.user.is_authenticated %}
                             <form class="admire" method="POST" action="{{ URLS.TOGGLE_ADMIRATION|params:article.id }}">
                                 {% csrf_token %}
@@ -241,8 +246,11 @@
 				<strong class="dead-text">{{section.subheading}}</strong>
                                     {% endif %}
                                     {% if section.video %}
+                                    <br/>
                                     <video class="w3-round-xlarge section-video" src="{{section.get_video}}" controls></video>
                                     <br/>
+                                    <br/>
+				<strong class="dead-text">{{section.subheading}}</strong>
                                     {% endif %}
                                 </div>
                             </div>

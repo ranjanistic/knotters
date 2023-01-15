@@ -11,7 +11,13 @@
 <html lang="{{LANGUAGE_CODE|or:'en'}}" class="">
     {% block head %}
     <head>
+       {% if ISMAIN %}
+	<script async nonce="{{request.csp_nonce}}" src="https://www.googletagmanager.com/gtag/js?id=G-BV1WXSBFHJ"></script>
+	<script async nonce="{{request.csp_nonce}}" src="{{URLS.SCRIPTS|params:SCRIPTS.HEAD}}?id=G-BV1WXSBFHJ"></script>
+        <script async nonce="{{request.csp_nonce}}" src="https://www.googleoptimize.com/optimize.js?id=OPT-KPQ5VFM"></script>
+       {% endif %}
         <meta charset="UTF-8">
+        <meta http-equiv="Content-Security-Policy" content="base-uri 'self'" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
         <meta name="theme-color" content="{% block themecolor %}#ffffff{% endblock %}" id="themecolor">
@@ -208,6 +214,7 @@
             <a href="{{URLS.BRANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">photo_library</i>&nbsp;{% trans "Brand Resources" %}</h2></div></a>
             <a href="{{URLS.LANDING}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">flight_land</i>&nbsp;{% trans "The Landing Page" %}</h2></div></a>
             <div class="navigator-share-action w3-row pallete secondary text-secondary hover-primary hover-text-positive" data-title="{{APPNAME}}" data-text="Checkout this page at {{APPNAME}}" data-url="{{request.path}}"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">share</i>&nbsp;{% trans "Share" %}</h2></div>
+            <a href="{{URLS.CAREERS}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">work</i>&nbsp;{% trans "Careers" %}</h2></div></a>
             <a href="{{URLS.Docs.TYPE|params:'copyright'}}" class="no-opacity-change"><div class="w3-row pallete secondary text-secondary hover-primary hover-text-positive"><h2 class="w3-left align"><i class="w3-xxlarge material-icons">copyright</i>&nbsp;{% trans "Copyright" %} {% now "Y" %}</h2></div></a>
             <div class="w3-row secondary text-secondary">
                 <h2 class="w3-center">
@@ -227,7 +234,7 @@
         <nav class="w3-row {% block nav_style %}primary{% endblock %} w3-animate-top" id="navbar">
             <div class="w3-row w3-center tertiary pointer beta-alert-view" hidden>This is Knotters Beta, not Knotters. {% trans "Click here to learn more." %}</div>
             {% block nav_title %}
-            <div class="w3-col s1 m3">
+            <div class="w3-col s1 m4">
             <a
                 style="padding:8px"
                 href="{% block nav_href %}{% if request.GET.previous %}{{request.GET.previous}}{% else %}{{ROOT}}{% endif %}{% endblock %}{% if request.GET.miniwin %}?miniwin=1{% endif %}" 
@@ -245,7 +252,7 @@
             </div>
             {% endblock %}
             {% block nav_right %}
-            <div class="w3-col s11 m9">
+            <div class="w3-col s11 m8">
             <span class="w3-right w3-animate-right nav-tabs-span">
                 <button aria-label="App update available" class="negative" data-icon="update" title="Update available" id="new-update-action" hidden></button>
                 <button aria-label="Theme switch" class="secondary themeswitch" data-icon="brightness_medium"></button>
@@ -341,7 +348,7 @@
               <strong class="">We are actively looking for mentors and moderators. <a class="underline text-accent" href="https://forms.gle/s1bHV5Au6ysS1A1A6" target="_blank">Click here to request</a> to be one.</strong>
               <span class="w3-right no-pad w3-large pointer" id='close-mod-mentor-looking'><i class="w3-large">close</i></span>
             </div>
-            <div class="w3-row accent w3-padding w3-center first-time-view" id="intern-looking">
+            <div class="w3-row accent w3-padding w3-center first-time-vie" id="intern-looking" hidden>
               <strong class="">We are actively looking for core contributors and interns. <a class="underline text-accent" href="https://forms.gle/YGtoPazzg5civUQcA" target="_blank">Click here to apply</a> to be one.</strong>
               <span class="w3-right no-pad w3-large pointer" id='close-intern-looking'><i class="w3-large">close</i></span>
             </div>
@@ -629,6 +636,24 @@
                     </div><br/>
                     <br/>
                 </div>
+                <div class="w3-row w3-padding-large w3-center">
+                    <br/>
+                    <div class='w3-row w3-padding-large'>
+                       <div class='w3-row'>
+                                <h2 class='w3-jumbo w3-hide-small'>{% blocktrans %}Partners & Recognitions{% endblocktrans %}</h2>
+                                <h2 class='w3-hide-large w3-hide-medium'>{% blocktrans %}Partners & Recognitions{% endblocktrans %}</h2>
+                                <br/><br/>
+                            <div class='w3-row'>
+ 			       {% for p in partners %}
+                              <div class='w3-col s12 m6 l3 w3-padding'>
+ 			  	 <a href="{{p.get_link}}" target="_blank"><img src="{{ p.get_image }}" alt="{{ p.get_name }}" width="{{p.width|or:'100'}}%" loading="lazy" /></a>
+			      </div>
+			      {% endfor %}
+			    </div>
+                           <br/><br/><br/>
+                       </div>
+                    </div><br/>
+                </div>
                 <div class="w3-row browser-view" data-type="{{BROWSE.CORE_CONTRIBS}}">
                 </div>
                 <div class="w3-row browser-view" data-type="{{BROWSE.CORE_MEMBERS}}">
@@ -706,8 +731,9 @@
                 <a href="{{URLS.LANDING}}" class="text-secondary w3-animate-left">{% trans "The Landing Page" %}</a><br/>
                 <a href="https://api.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "API" %}</a><br/>
                 <a href="https://events.knotters.org/" target="_blank" class="text-secondary w3-animate-left">{{APPNAME}} {% trans "Events" %}</a><br/>
-                <a href="https://beta.knotters.org/" target="_blank" rel="nofollow" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/>
+                {% comment %} <a href="https://beta.knotters.org/" target="_blank" rel="nofollow" class="text-secondary w3-animate-left">{% trans "Beta" %} program</a><br/> {% endcomment %}
                 <a href="https://knotters.org/projects/profile/knottrans" target="_blank" class="text-secondary w3-animate-left">{% trans "Translation Project" %}</a><br/>
+                <a href="{{URLS.CAREERS}}" class="text-secondary w3-animate-left">{% trans "Careers" %}</a><br/>
                 </div>
             </div>
             <div class="w3-col w3-half w3-padding-small w3-animate-right">

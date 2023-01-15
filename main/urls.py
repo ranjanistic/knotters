@@ -93,6 +93,9 @@ urlpatterns = [
     path(URL.VIEW_SNAPSHOT, snapshot),
     path(URL.DONATE, donation),
     path(URL.THANKYOU, thankyou),
+    path(URL.CAREERS, careers),
+    path(URL.CAREERS_APPLY, careers_apply),
+
     # dev/admin
     path('email/<str:template>', mailtemplate),
     path('template/<str:template>', template),

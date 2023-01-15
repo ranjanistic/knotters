@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files.base import File
-from django.db import models
+from djongo import models
 from django.db.models import Sum
 from django.utils import timezone
 from main.env import SITE
@@ -14,6 +14,7 @@ from main.strings import MANAGEMENT, Message, url
 from management.models import Invitation
 from people.models import Profile, Topic
 from projects.models import FreeProject
+from howto.models import Article
 
 from .apps import APPNAME
 
@@ -247,6 +248,8 @@ class Competition(models.Model):
     """qualifier_rank (IntegerField): The maximum required rank from the qualifier competition"""
     admirers = models.ManyToManyField(
         Profile, through="CompetitionAdmirer", related_name='competition_admirers', default=[])
+
+    submission_mode = models.CharField(choices=[("project", "project"), ("article", "article")], default=("project"), max_length=100)
 
     def __str__(self) -> str:
         return self.title
@@ -1021,6 +1024,8 @@ class Competition(models.Model):
             cache.set(cacheKey, competition, settings.CACHE_MINI)
         return competition
 
+    def modeProject(self):
+        return self.submission_mode == "project" or not self.submission_mode
 
 class Perk(models.Model):
     """
@@ -1105,6 +1110,8 @@ class Submission(models.Model):
     free_project: FreeProject = models.ForeignKey(
         FreeProject, on_delete=models.SET_NULL, null=True, blank=True)
     """free_project (ForeignKey<FreeProject>): The free project of this submission."""
+    article: Article = models.ForeignKey(
+        Article, on_delete=models.SET_NULL, null=True, blank=True)
     submitted: bool = models.BooleanField(default=False)
     """submitted (BooleanField): Whether this submission is submitted."""
     createdOn: datetime = models.DateTimeField(
@@ -1248,6 +1255,8 @@ class Submission(models.Model):
         """
         if self.free_project:
             return self.free_project.get_link
+        elif self.article:
+            return self.article.getLink()
         return self.repo if self.repo else ''
 
     def submittingLate(self) -> bool:
@@ -1279,6 +1288,9 @@ class Submission(models.Model):
         """
         return Result.objects.filter(submission=self, competition=self.competition, rank=1).exists()
 
+
+    def modeProject(self):
+        return self.competition.modeProject()
 
 class SubmissionParticipant(models.Model):
     """

@@ -156,7 +156,9 @@ def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(),
     Returns:
         HttpResponseRedirect: The redirect http response.
     """
-    return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,success=success,otherQueries=(path.__contains__('?') or path.__contains__('&')))}")
+    p = f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,success=success,otherQueries=(path.__contains__('?') or path.__contains__('&')))}"
+    p = p.replace("//","/")
+    return redirect(p)
 
 
 def getDeepFilePaths(dir_name: str, appendWhen: callable = None):

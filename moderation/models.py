@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
 from compete.models import Competition
-from django.db import models
+from djongo import models
 from django.utils import timezone
 from main.exceptions import IllegalModerationEntity
 from main.methods import maxLengthInList

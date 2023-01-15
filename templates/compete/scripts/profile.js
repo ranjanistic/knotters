@@ -49,4 +49,47 @@ const userFreeProjectsSelect = (done = (_) => {}) => {
         return done(false);
     });
 };
+const userArticlesSelect = (done = (_) => {}) => {
+    Swal.fire({
+        title: "Select your article to submit",
+        html: `
+         <h6>Please make sure that the publish date of your article should not predate this competition's duration. 
+         Your article should be created within the duration of this competition only.<br/>
+         <br/>
+        <a href="{{URLS.Howto.CREATE}}" target="_blank">Click here to create a new article</a> for this competition.</h6>
+        The following list will only show your articles that are created after {{compete.startAt}}
+        <br/>Refresh this page to see the updated list.
+        <select class="pallete-slab wide" id="selected-article">
+         <option value="">Click to choose</option>
+         {% for proj in request.user.profile.get_articles %}
+         {% if proj.createdOn >= compete.startAt %}
+          <option value="{{proj.get_id}}">{{proj.heading}}</option>
+          {% endif %}
+         {% endfor %}
+        </select>
+         This will override any previously saved submission for this competition.
+         <span class="negative-text" id="error-qp"></span>
+      `,
+        preConfirm: () => {
+            const selectedID = getElement(
+                "selected-article"
+            ).value.trim();
+            if (!selectedID) {
+                getElement("error-qp").innerHTML =
+                    "Please select an article from list";
+                return false;
+            }
+            return selectedID;
+        },
+        showConfirmButton: true,
+        confirmButtonText: "Set as submission",
+        showCancelButton: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            return done(result.value);
+        }
+        return done(false);
+    });
+};
+
 {% endif %}
