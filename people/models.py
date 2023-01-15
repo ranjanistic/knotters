@@ -33,12 +33,15 @@ from management.models import (GhMarketPlan, Invitation, Management,
 
 from .apps import APPNAME
 
+import names
+from multiavatar.multiavatar import multiavatar
+import random
 
 def isPictureDeletable(picture: str) -> bool:
     """
     Checks whether the given profile picture is a third-party picture, and therefore can be deleted or not.
     """
-    return picture != defaultImagePath() and not (str(picture).startswith('http') and str(picture).startswith(settings.SITE))
+    return not (str(picture).startswith('http') and str(picture).startswith(settings.SITE))
 
 
 class UserAccountManager(BaseUserManager):
@@ -375,9 +378,15 @@ def profileImagePath(instance: "Profile", filename: str) -> str:
     fileparts = filename.split('.')
     return f"{APPNAME}/avatars/{str(instance.get_userid)}_{str(uuid4().hex)}.{fileparts[-1]}"
 
-
 def defaultImagePath() -> str:
-    return f"{APPNAME}/default.png"
+    try:
+        import wand.image
+        svg_code = multiavatar(uuid4().hex, None, None)
+        imgstr = wand.image.Image(blob=svg_code.encode('utf-8'), format='svg').make_blob('png')
+        imageFile = ContentFile(imgstr, name=f"{uuid4().hex}.png")
+        return imageFile
+    except:
+        return f"{APPNAME}/default.png"
 
 
 class Profile(models.Model):
