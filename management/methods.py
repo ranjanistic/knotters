@@ -49,7 +49,7 @@ def rendererstr(request: WSGIRequest, file: str, data: dict = dict()) -> HttpRes
 def createCompetition(creator: Profile, title: str, tagline: str, shortdescription: str,
                       description: str, perks: list, startAt: str, endAt: str, eachTopicMaxPoint: int, topicIDs: list,
                       judgeIDs: list, taskSummary: str, taskDetail: str, taskSample: str, max_grouping: int,
-                      reg_fee: float, fee_link: str, qualifier: Competition = None, qualifier_rank: int = 0
+                      reg_fee: float, fee_link: str, qualifier: Competition = None, qualifier_rank: int = 0, mode = "project"
                       ) -> Competition:
     """Create a new competition, draft by default.
 
@@ -111,7 +111,8 @@ def createCompetition(creator: Profile, title: str, tagline: str, shortdescripti
             fee_link=fee_link,
             resultDeclared=False,
             qualifier=qualifier,
-            qualifier_rank=qualifier_rank
+            qualifier_rank=qualifier_rank,
+            submission_mode=mode
         )
         topics = Topic.objects.filter(id__in=topicIDs)
         if len(topics) < 1:

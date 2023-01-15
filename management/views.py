@@ -873,6 +873,7 @@ def submitCompetition(request: WSGIRequest) -> HttpResponse:
     compete = None
     try:
         title = str(request.POST["comptitle"]).strip()
+        mode = str(request.POST.get("compmode","project"))
         tagline = str(request.POST["comptagline"]).strip()
         shortdesc = str(request.POST["compshortdesc"]).strip()
         desc = str(request.POST["compdesc"]).strip()
@@ -911,6 +912,7 @@ def submitCompetition(request: WSGIRequest) -> HttpResponse:
         if not (title and
                 tagline and
                 shortdesc and
+                mode and
                 desc and
                 modID and
                 startAt and
@@ -957,7 +959,8 @@ def submitCompetition(request: WSGIRequest) -> HttpResponse:
             reg_fee=reg_fee,
             fee_link=fee_link,
             qualifier=qualifier,
-            qualifier_rank=qualifier_rank
+            qualifier_rank=qualifier_rank,
+            mode=mode
         )
         if not compete:
             raise Exception("Competition not created", compete,
