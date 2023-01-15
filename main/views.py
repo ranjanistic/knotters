@@ -112,7 +112,6 @@ def careers(request: WSGIRequest) -> HttpResponse:
     return renderView(request, Template.CAREERS, dict(positions=positions,applied=applied))
 
 @normal_profile_required
-@ratelimit(key='user_or_ip', rate='1/s', block=True)
 @decode_JSON
 def careers_apply(request: WSGIRequest, posID: UUID) -> HttpResponse:
     """To apply for a position
