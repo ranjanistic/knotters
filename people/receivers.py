@@ -37,8 +37,8 @@ def on_profile_create(sender, instance: Profile, created, **kwargs):
     """
     if created:
         ProfileSetting.objects.create(profile=instance)
-        Sender.addUserToMailingServer(
-            instance.user.email, instance.user.first_name, instance.user.last_name)
+#        Sender.addUserToMailingServer(
+#            instance.user.email, instance.user.first_name, instance.user.last_name)
 
 
 @receiver(post_delete, sender=Profile)

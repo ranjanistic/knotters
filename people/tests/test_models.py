@@ -65,7 +65,7 @@ class UserTest(TestCase):
         self.assertTrue(profile.to_be_zombie)
         self.assertTrue(profile.is_zombie)
         self.assertFalse(profile.is_active)
-        self.assertTrue(str(profile.getDP()).endswith(defaultImagePath()))
+        self.assertFalse(isPictureDeletable(profile.picture))
         self.assertEqual(profile.getFName(), Code.ZOMBIE)
         self.assertEqual(profile.getName(), Code.ZOMBIE)
         self.assertEqual(profile.getEmail(), Code.ZOMBIEMAIL)
@@ -146,7 +146,8 @@ class ProfileAttributeTest(TestCase):
         self.assertEqual(self.profile.__str__(), self.profile.getEmail())
         self.assertEqual(self.profile.getUserID(), self.user.getID())
         self.assertEqual(self.profile.getUserID(), self.profile.user.getID())
-        self.assertTrue(str(self.profile.getDP()).endswith(defaultImagePath()))
+
+        self.assertFalse(isPictureDeletable(self.profile.picture))
         self.assertEquals(self.profile.getFName(), self.user.first_name)
         self.assertEquals(self.profile.getEmail(), self.user.email)
         self.assertFalse(self.profile.isRemoteDp())
