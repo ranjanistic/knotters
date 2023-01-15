@@ -59,7 +59,7 @@ class TestViews(TestCase):
 
         client.login(email=self.email, password=self.password)
         resp = client.get(follow=True, path=root(url.howto.CREATE))
-        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
+        self.assertEqual(resp.status_code, HttpResponse.status_code)
         client.logout()
 
         client.login(email=self.m_email, password=self.m_password)

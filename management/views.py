@@ -289,7 +289,7 @@ def searchEligibleMentor(request: WSGIRequest) -> JsonResponse:
         mgm = request.user.profile.management()
         profile = mgm.people.filter(Q(
             Q(is_active=True,
-                suspended=False, to_be_zombie=False, is_mentor=False, is_moderator=False),
+                suspended=False, to_be_zombie=False, is_mentor=True, is_moderator=False),
             Q(user__email__startswith=query)
             | Q(user__first_name__startswith=query)
             | Q(githubID__startswith=query)
@@ -754,6 +754,7 @@ def searchMentor(request: WSGIRequest) -> JsonResponse:
                 | Q(nickname__startswith=query)
             )
         ).exclude(user__id__in=excludeIDs).first()
+        print(profile)
         if profile:
             if not profile.isBlocked(request.user):
                 return respondJson(Code.OK, dict(mnt=dict(

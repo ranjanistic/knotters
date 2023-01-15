@@ -1730,6 +1730,20 @@ class Profile(models.Model):
             errorLog(e)
             return []
 
+    def get_articles(self) -> models.QuerySet:
+        """Returns the user's published article instances
+
+        Returns:
+            models.QuerySet: The article instances list
+        """
+        try:
+            from howto.models import Article
+            return Article.objects.filter(author=self, is_draft=False)
+        except Exception as e:
+            errorLog(e)
+            return []
+
+
     def recommended_topics(self, atleast: int = 1, atmost: int = 5) -> models.QuerySet:
         """Returns the user's recommended topics instances
 

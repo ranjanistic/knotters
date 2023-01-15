@@ -124,12 +124,12 @@ def submissionsModeratedAlert(competition: Competition) -> list:
     if (not competition.moderated()) or competition.resultDeclared:
         return False
     list(map(
-        lambda judge: user_device_notify(competition.judge.user, "Submissions Moderated",
+        lambda judge: user_device_notify(judge.user, "Submissions Moderated",
                                          f"The submissions for '{competition.title}' competition have been made ready for judgement by the moderator. You may now proceed with alloting points to submissions.", competition.getJudgementLink())
-        if DeviceNotificationSubscriber.objects.filter(user=competition.judge.user, device_notification__notification__code=NotificationCode.SUBM_MOD_ALERT).exists() else None, competition.getJudges()))
+        if DeviceNotificationSubscriber.objects.filter(user=judge.user, device_notification__notification__code=NotificationCode.SUBM_MOD_ALERT).exists() else None, competition.getJudges()))
     return list(map(
         lambda judge: sendActionEmail(
-                to=competition.judge.get_email(),
+                to=judge.get_email(),
                 subject=f"Submissions Judgement Ready: {competition.title}",
                 greeting=f"Respected judge",
                 username=judge.get_name,
@@ -141,7 +141,7 @@ def submissionsModeratedAlert(competition: Competition) -> list:
                 footer=f"Your assigned points will be the decisive factor for final rankings of submissions, therefore please judge carefully.",
                 conclusion=f"You received this email because you are a judge for the mentioned competition. If this is an error, then please report to us."
                 )
-        if EmailNotificationSubscriber.objects.filter(user=competition.judge.user, email_notification__notification__code=NotificationCode.SUBM_MOD_ALERT).exists() else None, competition.getJudges()
+        if EmailNotificationSubscriber.objects.filter(user=judge.user, email_notification__notification__code=NotificationCode.SUBM_MOD_ALERT).exists() else None, competition.getJudges()
     ))
 
 
@@ -267,7 +267,7 @@ def certsAllotedAlert(competition: Competition) -> list:
 
 def filteredMails(s: Submission, competition: Competition):
     profiles = list(filter(lambda m: EmailNotificationSubscriber.objects.filter(
-        user=m.user, device_notification__notification__code=NotificationCode.PART_JOINED_ALERT).exists(), s.getMembers()))
+        user=m.user, email_notification__notification__code=NotificationCode.PART_JOINED_ALERT).exists(), s.getMembers()))
     emails = list(map(lambda x: x.get_email, profiles))
     if len(emails) < 1:
         return None
@@ -318,9 +318,9 @@ def resultsDeclaredJudgeAlert(competition: Competition) -> list:
     if not competition.resultDeclared:
         return False
     list(map(
-        lambda judge: user_device_notify(competition.judge.user, f"Results Declared: {competition.title}",
+        lambda judge: user_device_notify(judge.user, f"Results Declared: {competition.title}",
                                          f"This is to inform you that the results of '{competition.title}' competition have been declared. This marks the successfull end of this competition. The following link button will lead you to competition results page.", competition.get_link)
-        if DeviceNotificationSubscriber.objects.filter(user=competition.judge.user, device_notification__notification__code=NotificationCode.RES_DEC_JUDGE_ALERT).exists() else None, competition.getJudges()))
+        if DeviceNotificationSubscriber.objects.filter(user=judge.user, device_notification__notification__code=NotificationCode.RES_DEC_JUDGE_ALERT).exists() else None, competition.getJudges()))
     return list(map(
         lambda judge: sendActionEmail(
             to=judge.get_email,
@@ -334,7 +334,7 @@ def resultsDeclaredJudgeAlert(competition: Competition) -> list:
             }],
             footer=f"The results were based on aggregated markings by independent judgement panel, including you. It was an honour to have you as judge for this competition.",
             conclusion=f"You received this email because you judged the mentioned competition. If this is an error, then please report to us."
-        )if EmailNotificationSubscriber.objects.filter(user=competition.judge.user, email_notification__notification__code=NotificationCode.RES_DEC_JUDGE_ALERT).exists() else None, competition.getJudges()
+        )if EmailNotificationSubscriber.objects.filter(user=judge.user, email_notification__notification__code=NotificationCode.RES_DEC_JUDGE_ALERT).exists() else None, competition.getJudges()
     ))
 
 

@@ -161,7 +161,7 @@ def setupCompetitionChannel(compete: Competition) -> str:
         str: The discord channel ID
         bool: False if failed to create a channel
     """
-    return Discord.create_channel(compete.get_nickname(), public=True, category="COMPETITIONS", message=f"Official discord channel for {compete.title} {compete.get_abs_link}")
+    return Discord.createChannel(compete.get_nickname(), public=True, category="COMPETITIONS", message=f"Official discord channel for {compete.title} {compete.get_abs_link}")
 
 
 def labelRenderData(request: WSGIRequest, type: str, labelID: UUID) -> dict:
