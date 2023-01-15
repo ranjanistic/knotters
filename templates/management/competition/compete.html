@@ -54,6 +54,7 @@
             <strong>Is History</strong><br/>
             {% endif %}
             <strong>Max members in a group: {{compete.max_grouping}}</strong><br/>
+            <strong>Submission mode: {{compete.submission_mode}}</strong><br/>
             <strong>Max points for a topic: {{compete.eachTopicMaxPoint}}</strong><br/>
             <strong>Short description: {{compete.shortdescription|truncatechars:100}}</strong><br/>
             <strong>Description: {{compete.description|truncatechars:100}}</strong><br/>
@@ -67,7 +68,7 @@
             {% endfor %}</strong><br/>
             {% if compete.qualifier %}
             <h6>Qualifier: <a href="{{compete.qualifier.get_link}}" target="_blank">{{compete.qualifier.title}}</a></h6>
-            <strong>Qualifier rank: {{compete.qualifier_rank}}</strong>
+            <strong>Qualifier rank: {{compete.qualifier_rank}}</strong><br/><br/>
             {% endif %}
             <strong>Total submssions: {{compete.totalSubmissions}}</strong><br/>
             <strong>Total valid submssions: {{compete.totalValidSubmissions}}</strong><br/>
@@ -176,8 +177,8 @@
             </span>
             {% endif %}
 
-            {% if not compete.resultDeclared %}
-                <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge {{compete.canChangeJudges}}</button>
+            {% if not compete.resultDeclared and compete.canChangeJudges %}
+                <button title="Add another judge" type="button" class="primary" data-icon="add" id="addjudgebutton">Add judge</button>
             {% endif %}
 
             {% if compete.canBeEdited %}

@@ -289,7 +289,7 @@ def searchEligibleMentor(request: WSGIRequest) -> JsonResponse:
         mgm = request.user.profile.management()
         profile = mgm.people.filter(Q(
             Q(is_active=True,
-                suspended=False, to_be_zombie=False, is_mentor=False, is_moderator=False),
+                suspended=False, to_be_zombie=False, is_mentor=True, is_moderator=False),
             Q(user__email__startswith=query)
             | Q(user__first_name__startswith=query)
             | Q(githubID__startswith=query)
@@ -754,6 +754,7 @@ def searchMentor(request: WSGIRequest) -> JsonResponse:
                 | Q(nickname__startswith=query)
             )
         ).exclude(user__id__in=excludeIDs).first()
+        print(profile)
         if profile:
             if not profile.isBlocked(request.user):
                 return respondJson(Code.OK, dict(mnt=dict(
@@ -872,6 +873,7 @@ def submitCompetition(request: WSGIRequest) -> HttpResponse:
     compete = None
     try:
         title = str(request.POST["comptitle"]).strip()
+        mode = str(request.POST.get("compmode","project"))
         tagline = str(request.POST["comptagline"]).strip()
         shortdesc = str(request.POST["compshortdesc"]).strip()
         desc = str(request.POST["compdesc"]).strip()
@@ -910,6 +912,7 @@ def submitCompetition(request: WSGIRequest) -> HttpResponse:
         if not (title and
                 tagline and
                 shortdesc and
+                mode and
                 desc and
                 modID and
                 startAt and
@@ -956,7 +959,8 @@ def submitCompetition(request: WSGIRequest) -> HttpResponse:
             reg_fee=reg_fee,
             fee_link=fee_link,
             qualifier=qualifier,
-            qualifier_rank=qualifier_rank
+            qualifier_rank=qualifier_rank,
+            mode=mode
         )
         if not compete:
             raise Exception("Competition not created", compete,
