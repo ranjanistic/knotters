@@ -72,7 +72,7 @@ class Article(models.Model):
                     return self.nickname
                 nickname = self.get_id
             else:
-                nickname = filterNickname(self.heading, 25)
+                nickname = filterNickname("-".join(self.heading.split()), 25)
                 if Article.objects.filter(nickname__iexact=nickname).exclude(id=self.id).exists():
                     nickname = nickname[:12]
                     currTime = int(time())
@@ -289,6 +289,17 @@ class Article(models.Model):
         if done:
             return True
         return False
+
+
+    def is_submission(self) -> bool:
+        """Returns True if the project is a competition's submission"""
+        from compete.models import Submission
+        return Submission.objects.filter(article=self).exists()
+
+    def submission(self):
+        """Returns the project's competition submission if exists"""
+        from compete.models import Submission
+        return Submission.objects.filter(article=self).first()
 
 def sectionMediaPath(instance, filename):
     fileparts = filename.split('.')

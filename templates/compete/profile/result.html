@@ -88,7 +88,6 @@
 {% endif %}
 
 {% if results.count %}
-{% cache CACHE_MIN competition_results compete.get_id request.user.is_authenticated %}
 {% for result in results %}
 <div class="w3-row pallete-slab w3-padding-small">
     <div class="w3-col m3">
@@ -131,7 +130,6 @@
     </div>
 </div>
 {% endfor %}
-{% endcache %}
 {% else %}
     <br/><br/>
     <center>
