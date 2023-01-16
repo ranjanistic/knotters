@@ -1281,7 +1281,6 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             else:
                 return respondJson(Code.OK, dict(snapIDs=[]))
         elif type == Browse.NEW_PROFILES:
-            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=[], count=0))
             profiles = cache.get(cachekey, [])
             if not len(profiles):
                 if request.user.is_authenticated:
@@ -1292,7 +1291,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                         timezone.now()+timedelta(days=-60)),
                     suspended=False, to_be_zombie=False, is_active=True).order_by('-createdOn')[:limit]
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
-#            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
+            return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
 
         elif type == Browse.NEW_PROJECTS:
             projects = cache.get(cachekey, [])
