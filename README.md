@@ -314,6 +314,8 @@ There are total 5 runners in the repository, hosted on our own servers, for the 
 
 - Try to publish the server sided changes before client side ones for better update delivery.
 
-- Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates. 
+- Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates.
+
+- Wand (ImageMagick binding for Python), which is being used for svg to png conversion, requires installation of ImageMagick. Follow the [official Wand documentation](https://docs.wand-py.org/en/0.6.11/guide/install.html) to install ImageMagick on your system.
 
 Jump to [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guide now.
