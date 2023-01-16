@@ -7,13 +7,15 @@
 <div class="w3-row w3-padding-small">
     <center><h4>{% trans "All participants must adhere to our" %} <a class="mini-window-action" data-url="{{ URLS.Docs.TYPE|params:'competitionguidelines' }}">{% trans "competition guidelines" %}</a>, <br/>{% trans "and then the following." %}</h4></center>
     <br/>
+    <h6>Your account name {% if request.user.is_authenticated %}"{{request.user.get_name}}" {% endif %}will be used on your certificate. Make sure that it is proper.<h6>
     <h4 class="dead-text">{% trans "What to submit" %}</h4>
-    <p>{% trans "Your submission should be a valid URL with all the neccessary content required by the task of this competition." %} {% trans "Make sure that your provided URL is publicly available all the time after submission." %}
-    {% trans "If our judges and moderator are unable to access the content provided on your submission URL, then your submission will stand INVALID." %}
+    <p>{% trans "Your submission should be a valid project or article with all the neccessary content required by the task of this competition." %}
+    {% trans "If our judges and moderator are unable to access your submission, then your submission will stand INVALID." %}
     </p>
     
     <h4 class="dead-text">{% trans "Where to submit" %}</h4>
-    <p>For your submission to be considered valid, you must only submit from the only <strong>Submission</strong> tab in this page. {% trans "For small devices, submission tab will the 4th bubble above this view." %}<br/>
+    <p>For your submission to be considered valid, you must only submit from the only <strong>Submission</strong> tab in this page. {% trans "For small devices, submission tab will be the <i>send</i> bubble above this view." %}<br/>
+    Choose your prepared project/article from the pop-up (refresh page to see your latest ones), then final submit.<br/>
     Only the <strong>submissions from this page</strong> will be considered <strong>VALID</strong>. We strictly advise you to <strong>NOT use any other means of submission</strong>.
     If you provide your submission via any means <strong class="negative-text">other than this page</strong>, then your submission
     will be <strong class="negative-text">INVALID</strong>
