@@ -637,14 +637,15 @@ def createDummyUsers(limit=5):
     try:
         from people.models import User, Profile
         from auth2.tests.utils import getTestPassword
-        import wand.image
+        from wand.image import Image
+        from wand.color import Color
         DUMMY_MAIL = 'dummymail.com'
         def getDetails():
             gender_choices = ['male', 'female']
             user_name = names.get_full_name(gender=random.choice(gender_choices)).split()
             email_address = '_'.join(user_name)+'@'+DUMMY_MAIL
             svg_code = multiavatar(" ".join(user_name), None, None)
-            imgstr = wand.image.Image(blob=svg_code.encode('utf-8'), format='svg').make_blob('png')
+            imgstr = Image(blob=svg_code.encode('utf-8'), format='svg', background=Color('transparent')).make_blob('png')
             imageFile = ContentFile(imgstr, name=f"{uuid4().hex}.png")
             user = User(first_name=user_name[0], last_name=user_name[-1], email=email_address, password=make_password(getTestPassword()))
             profile = Profile(user=user, is_dummy=True, picture=imageFile)
