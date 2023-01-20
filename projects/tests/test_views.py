@@ -324,7 +324,7 @@ class TestViews(TestCase):
         resp = client.get(delrequest.get_link, follow=True)
         self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)
         resp = client.post(delrequest.get_act_link, follow=True)
-        self.assertEqual(resp.status_code, HttpResponseForbidden.status_code)        
+        self.assertEqual(resp.status_code, HttpResponseNotFound.status_code)        
         # core project approved trashing invite valid
         client2 = Client()
         resp = client2.post(authroot(url.auth.LOGIN), data=dict(login=self.moduser.email, password=self.password))
