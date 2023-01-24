@@ -1179,37 +1179,38 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         cachekey = f"main_browser_{type}{request.LANGUAGE_CODE}"
         excludeUserIDs = []
         if request.user.is_authenticated:
-
             excludeUserIDs = request.user.profile.blockedIDs()
             cachekey = f"{cachekey}{request.user.id}"
 
         limit = int(request.POST.get('limit', request.GET.get('limit', 10)))
         if type == Browse.PROJECT_SNAPSHOTS:
             if request.user.is_authenticated:
-                excludeIDs = request.POST.get('excludeIDs', [])
+                # excludeIDs = request.POST.get('excludeIDs', [])
+                start = request.POST.get('start', 0)
                 limit = int(request.POST.get(
                     'limit', request.GET.get('limit', 5)))
-                cachekey = f"{cachekey}{limit}"
-                if len(excludeIDs):
-                    cachekey = cachekey + "".join(excludeIDs)
+                cachekey = f"{cachekey}{limit}_{start}"
+                # cachekey = cachekey + "".join(excludeIDs)
                 snaps = cache.get(cachekey, [])
                 snapIDs = [snap.id for snap in snaps]
                 if not len(snaps):
-                    projIDs = Submission.objects.filter(competition__admirers=request.user.profile).exclude(
-                        free_project=None).values_list("free_project__id", flat=True)
-                    snaps = Snapshot.objects.filter(
-                        Q(
-                            Q(creator=request.user.profile)
-                            | Q(base_project__creator=request.user.profile)
-                            | Q(base_project__co_creators=request.user.profile)
-                            | Q(base_project__id__in=list(projIDs))
-                            | Q(creator__admirers=request.user.profile)
-                            | Q(base_project__admirers=request.user.profile)
-                        ),
-                        base_project__suspended=False, base_project__trashed=False, base_project__is_archived=False, suspended=False
-                    ).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
+                    snap_ids = r.lrange(f"{Browse.PROJECT_SNAPSHOTS}_{request.user.profile.id}", start, start+limit-1)
+                    snaps = Snapshot.objects.filter(id__in=snap_ids)
+                    # projIDs = Submission.objects.filter(competition__admirers=request.user.profile).exclude(
+                    #     free_project=None).values_list("free_project__id", flat=True)
+                    # snaps = Snapshot.objects.filter(
+                    #     Q(
+                    #         Q(creator=request.user.profile)
+                    #         | Q(base_project__creator=request.user.profile)
+                    #         | Q(base_project__co_creators=request.user.profile)
+                    #         | Q(base_project__id__in=list(projIDs))
+                    #         | Q(creator__admirers=request.user.profile)
+                    #         | Q(base_project__admirers=request.user.profile)
+                    #     ),
+                    #     base_project__suspended=False, base_project__trashed=False, base_project__is_archived=False, suspended=False
+                    # ).exclude(id__in=excludeIDs).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")[:limit]
                     snapIDs = [snap.id for snap in snaps]
-                    cache.set(cachekey, snaps, settings.CACHE_INSTANT)
+                    # cache.set(cachekey, snaps, settings.CACHE_INSTANT)
 
                 data = dict(
                     html=renderString(
@@ -1242,13 +1243,11 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             if not len(projects):
                 project_ids = r.lrange(Browse.NEW_PROJECTS, 0, -1)
                 queryset = BaseProject.objects.filter(id__in=project_ids).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit]
+                    creator__user__id__in=excludeUserIDs).distinct()[:limit]
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 # projects = BaseProject.objects.filter(createdOn__gte=(
                 #     timezone.now()+timedelta(days=-30)), suspended=False, trashed=False).exclude(creator__user__id__in=excludeUserIDs).order_by('-createdOn')[:limit]
 
-                projects = list(
-                    set(list(filter(lambda p: p.is_approved(), projects))))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
 
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWBIE, dict(projects=projects, count=len(projects)))
@@ -1269,10 +1268,10 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             count = len(projects)
             if not count:
                 if request.user.is_authenticated:
-                    project_ids = r.lrange(f"{Browse.RECOMMENDED_PROJECTS}_{request.user.profile.id}")
+                    project_ids = r.lrange(f"{Browse.RECOMMENDED_PROJECTS}_{request.user.profile.id}", 0, -1)
                 else:
                     project_ids = r.lrange(Browse.RECOMMENDED_PROJECTS)
-                queryset = BaseProject.objects.filter(id__in=project_ids)[:limit]
+                queryset = BaseProject.objects.filter(id__in=project_ids).distinct()[:limit]
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 # query = Q()
                 # authquery = query
@@ -1306,12 +1305,12 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             if not len(projects):
                 project_ids = r.lrange(Browse.TRENDING_PROJECTS, 0, -1)
                 queryset = BaseProject.objects.filter(id__in=project_ids).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit]
+                    creator__user__id__in=excludeUserIDs).distinct()[:limit]
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 # projects = BaseProject.objects.filter(Q(trashed=False, suspended=False)).exclude(
                 #     creator__user__id__in=excludeUserIDs).annotate(num_admirers=Count('admirers')).order_by('-num_admirers')[:limit]
-                projects = list(
-                    set(list(filter(lambda p: p.is_approved(), projects))))
+                # projects = list(
+                #     set(list(filter(lambda p: p.is_approved(), projects))))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_PROFILES:
@@ -1422,8 +1421,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 topic = r.get(f"{Browse.TOPIC_PROJECTS}_{request.user.profile.id}_topic")
                 if not projects:
                     project_ids = r.lrange(Browse.TOPIC_PROJECTS, 0, -1)
-                    queryset = CoreProject.objects.filter(id__in=project_ids).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit]
+                    queryset = BaseProject.objects.filter(id__in=project_ids).distinct()[:limit]
                     projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                     cache.set(cachekey, projects, settings.CACHE_MINI)
                 # tcacheKey = f"{cachekey}_topic"

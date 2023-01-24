@@ -10,7 +10,7 @@ const loadBrowseSnaps = async () => {
             setUrlParams(URLS.BROWSER, BROWSE.PROJECT_SNAPSHOTS),
             { n: snapshotExcludeIDS[snapshotExcludeIDS.length - 1] || 0 }
         ),
-        data: { excludeIDs: snapshotExcludeIDS },
+        data: { start: snapshotExcludeIDS.length },
         retainCache: true,
         allowCache: true,
         silent: true,

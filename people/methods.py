@@ -18,9 +18,10 @@ from main.methods import errorLog, renderString, renderView, addMethodToAsyncQue
 from main.strings import COMPETE, Code, Browse
 from main.strings import profile as profileString
 from moderation.models import Moderation
-from projects.models import BaseProject, Project
+from projects.models import BaseProject, Project, Snapshot
 from requests import get as getRequest
 from howto.models import Article
+from compete.models import Submission
 from .apps import APPNAME
 from .models import (Framework, Profile, ProfileSetting, Topic, User,
                      defaultImagePath, isPictureDeletable)
@@ -497,9 +498,10 @@ def recommendedProjectsList(profile: Profile, excludeUserIDs: list):
             creator__user__id__in=excludeUserIDs)
         projects = list(
             set(list(filter(lambda p: p.is_approved(), projects))))
-    if projects:
+    project_ids = [str(project.id) for project in projects]
+    if project_ids:
         r.delete(f"{Browse.RECOMMENDED_PROJECTS}_{profile.id}")
-        r.rpush(f"{Browse.RECOMMENDED_PROJECTS}_{profile.id}", *projects)
+        r.rpush(f"{Browse.RECOMMENDED_PROJECTS}_{profile.id}", *project_ids)
 
 def topicProjectsList(profile: Profile, excludeUserIDs: list):
     """
@@ -515,9 +517,10 @@ def topicProjectsList(profile: Profile, excludeUserIDs: list):
         creator__user__id__in=excludeUserIDs)
     projects = list(
         set(list(filter(lambda p: p.is_approved(), projects))))
-    if projects:
+    project_ids = [str(project.id) for project in projects]
+    if project_ids:
         r.delete(f"{Browse.TOPIC_PROJECTS}_{profile.id}")
-        r.rpush(f"{Browse.TOPIC_PROJECTS}_{profile.id}", *projects)
+        r.rpush(f"{Browse.TOPIC_PROJECTS}_{profile.id}", *project_ids)
 
 def topicProfilesList(profile: Profile, excludeUserIDs: list):
     """
@@ -531,6 +534,31 @@ def topicProfilesList(profile: Profile, excludeUserIDs: list):
     r.set(f"{Browse.TOPIC_PROFILES}_{profile.id}_topic", topic)
     profiles = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, topics=topic).exclude(
         user__id__in=excludeUserIDs)
-    if profiles:
+    profile_ids = [str(profile.id) for profile in profiles]
+    if profile_ids:
         r.delete(f"{Browse.TOPIC_PROFILES}_{profile.id}")
-        r.rpush(f"{Browse.TOPIC_PROFILES}_{profile.id}", *profiles)
+        r.rpush(f"{Browse.TOPIC_PROFILES}_{profile.id}", *profile_ids)
+
+def snapshotsList(profile: Profile, excludeUserIDs: list):
+    """
+    Updates present list of snapshots for a given profile
+    """
+    r = settings.REDIS_CLIENT
+    projIDs = Submission.objects.filter(competition__admirers=profile).exclude(
+                        free_project=None).values_list("free_project__id", flat=True)
+    snaps = Snapshot.objects.filter(
+        Q(
+            Q(creator=profile)
+            | Q(base_project__creator=profile)
+            | Q(base_project__co_creators=profile)
+            | Q(base_project__id__in=list(projIDs))
+            | Q(creator__admirers=profile)
+            | Q(base_project__admirers=profile)
+        ),
+        base_project__suspended=False, base_project__trashed=False, base_project__is_archived=False, suspended=False
+    ).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")
+    print(snaps)
+    snap_ids = [str(snap.id) for snap in snaps]
+    if snap_ids:
+        r.delete(f"{Browse.PROJECT_SNAPSHOTS}_{profile.id}")
+        r.rpush(f"{Browse.PROJECT_SNAPSHOTS}_{profile.id}", *snap_ids)
