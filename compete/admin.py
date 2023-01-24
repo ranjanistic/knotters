@@ -31,7 +31,7 @@ class SubmitAdmin(admin.ModelAdmin):
 @admin.register(SubmissionTopicPoint)
 class TopicPointAdmin(admin.ModelAdmin):
     list_display = ["__str__", "topic", "judge", "points"]
-    list_filter = ["topic"]
+    list_filter = ["topic", "judge", "submission__competition"]
     ordering = ["points"]
 
 
