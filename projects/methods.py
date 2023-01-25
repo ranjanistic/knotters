@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import Sum
 from django.db.models.query_utils import Q
 from django.http.response import HttpResponse
 from main.bots import Discord, GithubKnotters
@@ -16,16 +17,15 @@ from main.methods import (addMethodToAsyncQueue, errorLog, renderString,
 from main.strings import Code, Event, Message, url
 from management.models import HookRecord
 from people.methods import addTopicToDatabase
-from people.models import Profile
+from people.models import Profile, Topic
 from moderation.models import Moderation
 from .apps import APPNAME
 from .mailers import (sendCoreProjectApprovedNotification,
                       sendProjectApprovedNotification)
 from .models import (BaseProject, Category, CoreProject,
                      CoreProjectVerificationRequest, FileExtension,
-                     FreeProject, FreeProjectVerificationRequest, License,
-                     Project, ProjectSocial, Tag)
-from people.models import Topic
+                     TopicFileExtension, FreeProject, FreeProjectVerificationRequest, 
+                     License, Project, ProjectSocial, Tag)
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -1068,6 +1068,7 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
     Returns:
         bool, str: True, message if handled, False, error message if not handled
     """
+    import math
     try:
         statusKey = f'gh_event_hook_status_{hookrecordID}'
         status = cache.get(statusKey, Code.NO)
@@ -1081,6 +1082,8 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
             repository = postData["repository"]
             addTopicToDatabase(repository['language'])
             committers = {}
+            committer_commits = {}
+            ext_changes = {}
             un_committers = []
             for commit in commits:
                 commit_author_ghID = commit["author"]["username"]
@@ -1105,50 +1108,59 @@ def handleGithubKnottersRepoHook(hookrecordID: UUID, ghevent: str, postData: dic
                     removed = commit.get("removed", [])
                     modified = commit.get("modified", [])
                     changed = added + removed + modified
-                    extensions = {}
+                    commit_extensions = set()
                     for change in changed:
                         parts = change.split('.')
                         if len(parts) < 1:
                             continue
                         ext = parts[-1]
-                        extdic = extensions.get(ext, {})
-                        fileext = extdic.get('fileext', None)
-                        if not fileext:
-                            if not FileExtension.objects.filter(extension__iexact=ext).exists():
-                                fileext: FileExtension = FileExtension.objects.create(
-                                    extension__iexact=ext)
-                            extensions[ext] = dict(fileext=fileext, topics=[])
-                            try:
-                                ftops = fileext.getTopics()
-                                if not len(ftops):
-                                    fileext.topics.set(
-                                        ftops | project.topics.all())
-                            except:
-                                pass
-                        for topic in fileext.topics.all():
-                            hastopic = False
-                            increase = True
-                            lastxp = 0
-                            tpos = -1
-                            if len(extensions[ext]['topics']) > 0:
-                                for top in extensions[ext]['topics']:
-                                    tpos = tpos + 1
-                                    if top['topic'] == topic:
-                                        hastopic = True
-                                        lastxp = top['xp']
-                                        if lastxp > 4:
-                                            increase = False
-                                        break
-
-                            if increase:
-                                by = 1
-                                commit_committer.increaseTopicPoints(
-                                    topic=topic, by=by, notify=False, reason=f"{commit_author_ghID} committed to {project.name}")
-                                if hastopic:
-                                    extensions[ext]['topics'][tpos]['xp'] = lastxp+by
-                                else:
-                                    extensions[ext]['topics'].append(
-                                        dict(topic=topic, xp=(lastxp+by)))
+                        ext_changes[ext] = ext_changes.get(ext, 0) + 1
+                        commit_extensions.add(ext)
+                    if committer_commits.get(commit_committer, None):
+                        committer_commits[commit_committer].append(commit_extensions)
+                    else:
+                        committer_commits[commit_committer] = [commit_extensions]            
+            extensions = list(ext_changes.keys())
+            proj_topics = project.topics.all() 
+            file_ext = {}
+            for ext in extensions:
+                fileext, _ = FileExtension.objects.get_or_create(
+                    extension__iexact=ext, defaults={'extension' : ext},)
+                file_ext[ext] = fileext
+                topfileext_list = TopicFileExtension.objects.filter(file_extension=fileext, topic__in=proj_topics)
+                existing_topics = set([obj.topic for obj in topfileext_list])
+                new_topics = [topic for topic in proj_topics if topic not in existing_topics]
+                creation_list = [TopicFileExtension(file_extension=fileext, topic=topic, score=ext_changes[ext]) for topic in new_topics]
+                if len(creation_list):
+                    TopicFileExtension.objects.bulk_create(creation_list)
+                if len(topfileext_list):
+                    for topfileext in topfileext_list:
+                        topfileext.score += ext_changes[ext]
+                        topfileext.save()
+                    # TopicFileExtension.objects.bulk_update(topfileext_list, ['score'], batch_size=1000)
+            committers_topic_xp = {}
+            ext_topic_score = {}
+            ext_total_score = {}
+            for committer in committers.values():
+                for ext_set in committer_commits[committer]:
+                    for topic in proj_topics:
+                        ext_top_xp = 1
+                        for ext in ext_set:
+                            ext_tot_score = ext_total_score.get(ext, TopicFileExtension.objects.filter(file_extension=file_ext[ext]).aggregate(Sum('score'))['score__sum'])
+                            if ext_topic_score.get(ext, None):
+                                ext_topic_score[ext][topic] = ext_topic_score[ext].get(topic, TopicFileExtension.objects.get(file_extension=file_ext[ext], topic=topic).score)
+                            else:
+                                ext_topic_score[ext] = {topic : TopicFileExtension.objects.get(file_extension=file_ext[ext], topic=topic).score}
+                            ext_top_score = ext_topic_score[ext][topic]
+                            ext_top_xp = max(ext_top_xp, math.ceil(5*ext_top_score/ext_tot_score))
+                        if committers_topic_xp.get(committer, None):
+                            committers_topic_xp[committer][topic] = committers_topic_xp[committer].get(topic, 0) + ext_top_xp
+                        else:
+                            committers_topic_xp[committer] = {topic : ext_top_xp}
+            for committer_ghID, committer in committers.items():
+                for topic in proj_topics:
+                    committer.increaseTopicPoints(
+                        topic=topic, by=committers_topic_xp[committer][topic], notify=False, reason=f"{committer_ghID} committed to {project.name}")
             if len(changed) > 1:
                 project.creator.increaseXP(
                     by=(((len(commits)//len(committers))//2) or 1), notify=False, reason=f"Commits pushed to {project.name}")

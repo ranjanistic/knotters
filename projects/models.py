@@ -2542,6 +2542,7 @@ class TopicFileExtension(models.Model):
     file_extension: FileExtension = models.ForeignKey(
         FileExtension, on_delete=models.CASCADE, related_name='topic_file_extension_extension')
     """file_extension (ForeignKey<FileExtension>): file extension related to the topic"""
+    score: int = models.IntegerField(default=1)
 
 
 class ProjectTransferInvitation(Invitation):
