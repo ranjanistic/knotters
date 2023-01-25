@@ -31,7 +31,7 @@ from webpush import send_group_notification, send_user_notification
 
 from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISPRODUCTION, ISTESTING
 from .strings import (AUTH, AUTH2, COMPETE, DOCS, MANAGEMENT, MODERATION,
-                      PEOPLE, PROJECTS, HOWTO, Code, url)
+                      PEOPLE, PROJECTS, HOWTO, Code, url, Browse)
 
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
@@ -617,3 +617,27 @@ def human_readable_size(num: float, suffix="B") -> str:
 
 def filterNickname(nickname, limit=30):
     return re_sub(r'[^a-zA-Z0-9\-]', "", "-".join(filter(lambda x: x, nickname.split("-"))))[:limit].lower()
+
+
+def updatePresentLists(profile, plist: str):
+    """
+    Updates the present lists for a particular profile asynchronously.
+
+     Args:
+        profile (Profile): The profile instance of user.
+        plist (str): Name of present list to be updated.
+
+    Returns:
+        None
+    """
+    from people.methods import topicProfilesList
+    from projects.methods import recommendedProjectsList, topicProjectsList, snapshotsList
+    excludeUserIDs = profile.blockedIDs()
+    if plist==Browse.RECOMMENDED_PROJECTS:
+        addMethodToAsyncQueue(f"{PROJECTS}.methods.{recommendedProjectsList.__name__}", profile, excludeUserIDs)
+    if plist==Browse.TOPIC_PROJECTS:
+        addMethodToAsyncQueue(f"{PROJECTS}.methods.{topicProjectsList.__name__}", profile, excludeUserIDs)
+    if plist==Browse.TOPIC_PROFILES:
+        addMethodToAsyncQueue(f"{PEOPLE}.methods.{topicProfilesList.__name__}", profile, excludeUserIDs)
+    if plist==Browse.PROJECT_SNAPSHOTS:
+        addMethodToAsyncQueue(f"{PROJECTS}.methods.{snapshotsList.__name__}", profile, excludeUserIDs)

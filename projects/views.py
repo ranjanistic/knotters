@@ -22,8 +22,8 @@ from main.env import PUBNAME
 from main.exceptions import InvalidUserOrProfile
 from main.methods import (addMethodToAsyncQueue, base64ToFile,
                           base64ToImageFile, errorLog, renderString,
-                          respondJson, respondRedirect)
-from main.strings import URL, Action, Code, Message, Template, setURLAlerts
+                          respondJson, respondRedirect, updatePresentLists)
+from main.strings import URL, Action, Code, Message, Template, setURLAlerts, Browse
 from management.models import GhMarketApp, ReportCategory
 from moderation.methods import (assignModeratorToObject,
                                 requestModerationForCoreProject,
@@ -1380,6 +1380,8 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 projectAdmired(request, project)
         elif admire in ["false", False]:
             project.admirers.remove(request.user.profile)
+        if project.base_project_snapshot.exists():
+            updatePresentLists(request.user.profile, Browse.PROJECT_SNAPSHOTS)
         if json_body:
             return respondJson(Code.OK)
         return redirect(project.getLink())
@@ -2011,6 +2013,13 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
     try:
         baseproject: BaseProject = BaseProject.objects.get(
             id=projID, trashed=False, is_archived=False, suspended=False)
+        
+        if action in [Action.CREATE, Action.REMOVE]:
+            updatePresentLists(request.user.profile, Browse.PROJECT_SNAPSHOTS)
+            updatePresentLists(baseproject.creator, Browse.PROJECT_SNAPSHOTS)
+            for co_creator in baseproject.co_creators.all():
+                updatePresentLists(co_creator, Browse.PROJECT_SNAPSHOTS)
+
         if action == Action.CREATE:
             if not baseproject.can_post_snapshots(request.user.profile):
                 raise ObjectDoesNotExist(request.user, baseproject)

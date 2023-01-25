@@ -14,8 +14,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from main.decorators import (decode_JSON, github_only, normal_profile_required,
                              require_JSON)
-from main.methods import base64ToImageFile, errorLog, respondJson
-from main.strings import Code, Event, Message, Template, setURLAlerts
+from main.methods import base64ToImageFile, errorLog, respondJson, updatePresentLists
+from main.strings import Code, Event, Message, Template, setURLAlerts, Browse
 from management.models import ReportCategory
 from projects.methods import addTagToDatabase, tagSearchList, topicSearchList
 from projects.models import Tag
@@ -472,7 +472,9 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
                 updated = True
 
         if updated:
-            #update presonalised present list
+            updatePresentLists(profile, Browse.TOPIC_PROFILES)
+            updatePresentLists(profile, Browse.TOPIC_PROJECTS)
+            updatePresentLists(profile, Browse.RECOMMENDED_PROJECTS)
             cache.delete(profile.CACHE_KEYS.topic_ids)
 
         if json_body:
@@ -981,6 +983,8 @@ def toggleAdmiration(request: WSGIRequest, userID: UUID) -> JsonResponse:
             admireAlert(profile, request)
         elif request.POST['admire'] in ["false", False]:
             profile.admirers.remove(request.user.profile)
+        if profile.project_snapshot_creator.exists():
+            updatePresentLists(request.user.profile, Browse.PROJECT_SNAPSHOTS)
         if json_body:
             return respondJson(Code.OK)
         return redirect(profile.get_link)

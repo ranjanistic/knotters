@@ -17,8 +17,8 @@ from main.decorators import (decode_JSON, manager_only, mentor_only,
                              normal_profile_required, require_JSON)
 from main.exceptions import InactiveCompetitionError
 from main.methods import (addMethodToAsyncQueue, errorLog, respondJson,
-                          respondRedirect)
-from main.strings import URL, Action, Code, Message, Template
+                          respondRedirect, updatePresentLists)
+from main.strings import URL, Action, Code, Message, Template, Browse
 from people.models import Profile, ProfileTopic, Topic
 from projects.models import FreeProject
 from ratelimit.decorators import ratelimit
@@ -1254,6 +1254,8 @@ def toggleAdmiration(request: WSGIRequest, compID: UUID) -> JsonResponse:
             competitionAdmireNotification(request.user.profile, compete)
         elif admire in ["false", False]:
             compete.admirers.remove(request.user.profile)
+        if len(compete.getSubmissions()):
+            updatePresentLists(request.user.profile, Browse.PROJECT_SNAPSHOTS)
         if json_body:
             return respondJson(Code.OK)
         return redirect(compete.get_link)
