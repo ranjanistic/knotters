@@ -1195,7 +1195,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 snapIDs = [snap.id for snap in snaps]
                 if not len(snaps):
                     snap_ids = r.lrange(f"{Browse.PROJECT_SNAPSHOTS}_{request.user.profile.id}", start, start+limit-1)
-                    snaps = Snapshot.objects.filter(id__in=snap_ids)
+                    queryset = Snapshot.objects.filter(id__in=snap_ids)
+                    snaps = sorted(queryset, key=lambda x : snap_ids.index(str(x.id)))
                     # projIDs = Submission.objects.filter(competition__admirers=request.user.profile).exclude(
                     #     free_project=None).values_list("free_project__id", flat=True)
                     # snaps = Snapshot.objects.filter(
