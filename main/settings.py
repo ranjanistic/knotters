@@ -194,7 +194,7 @@ if env.REDIS_LOCATION:
         'TIMEOUT': None
     }
     import redis
-    REDIS_CLIENT = redis.Redis(host=env.REDIS_HOST,port=env.REDIS_PORT, username=env.REDIS_USER, password=env.REDIS_PASSWORD, decode_responses=True)
+    REDIS_CLIENT = redis.Redis(host=env.REDIS_HOST,port=env.REDIS_PORT, username=env.REDIS_USER, password=env.REDIS_PASSWORD, db=env.REDIS_DB, decode_responses=True)
 
 if not env.ISTESTING:
     CACHES = {
