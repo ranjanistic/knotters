@@ -24,6 +24,7 @@ from django.shortcuts import redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django_q.tasks import async_task
+from django.contrib.auth.hashers import make_password
 from htmlmin.minify import html_minify
 from management.models import ActivityRecord
 from requests import post as postRequest
@@ -32,7 +33,10 @@ from webpush import send_group_notification, send_user_notification
 from .env import ASYNC_CLUSTER, ISDEVELOPMENT, ISPRODUCTION, ISTESTING
 from .strings import (AUTH, AUTH2, COMPETE, DOCS, MANAGEMENT, MODERATION,
                       PEOPLE, PROJECTS, HOWTO, Code, url, Browse)
-
+                    
+import names
+from multiavatar.multiavatar import multiavatar
+import random
 
 def renderData(data: dict = dict(), fromApp: str = str()) -> dict:
     """Returns default context data for the given subapplication.
@@ -152,7 +156,9 @@ def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(),
     Returns:
         HttpResponseRedirect: The redirect http response.
     """
-    return redirect(f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,success=success,otherQueries=(path.__contains__('?') or path.__contains__('&')))}")
+    p = f"{url.getRoot(fromApp)}{path}{url.getMessageQuery(alert=alert,error=error,success=success,otherQueries=(path.__contains__('?') or path.__contains__('&')))}"
+    p = p.replace("//","/")
+    return redirect(p)
 
 
 def getDeepFilePaths(dir_name: str, appendWhen: callable = None):
@@ -641,3 +647,43 @@ def updatePresentLists(profile, plist: str):
         addMethodToAsyncQueue(f"{PEOPLE}.methods.{topicProfilesList.__name__}", profile, excludeUserIDs)
     if plist==Browse.PROJECT_SNAPSHOTS:
         addMethodToAsyncQueue(f"{PROJECTS}.methods.{snapshotsList.__name__}", profile, excludeUserIDs)
+
+        
+def createDummyUsers(limit=5):
+    """Creates a given number of dummy users.
+
+    Args:
+        limit (int, optional): Number of dummy users to be generated. Defaults to 5.
+
+    Returns:
+        bool: True if dummy users are successfully generated, otherwise False.
+    """
+    try:
+        from people.models import User, Profile
+        from auth2.tests.utils import getTestPassword
+        from wand.image import Image
+        from wand.color import Color
+        DUMMY_MAIL = 'dummymail.com'
+        def getDetails():
+            gender_choices = ['male', 'female']
+            user_name = names.get_full_name(gender=random.choice(gender_choices)).split()
+            email_address = '_'.join(user_name)+'@'+DUMMY_MAIL
+            svg_code = multiavatar(" ".join(user_name), None, None)
+            imgstr = Image(blob=svg_code.encode('utf-8'), format='svg', background=Color('transparent')).make_blob('png')
+            imageFile = ContentFile(imgstr, name=f"{uuid4().hex}.png")
+            user = User(first_name=user_name[0], last_name=user_name[-1], email=email_address, password=make_password(getTestPassword()))
+            profile = Profile(user=user, is_dummy=True, picture=imageFile)
+            return user, profile
+        dummy_users_list = []
+        dummy_profiles_list = []
+        for _ in range(limit):
+            user, profile = getDetails()
+            dummy_users_list.append(user)
+            dummy_profiles_list.append(profile)
+        User.objects.bulk_create(dummy_users_list)
+        Profile.objects.bulk_create(dummy_profiles_list)
+        return True
+    except Exception as e:
+        errorLog(e)
+        return False
+

@@ -155,24 +155,24 @@ getElement("addjudgebutton").onclick = (_) => {
         `,
         didOpen: () => {
             getElement("judgequery").oninput = async (e) => {
-                const data = await postRequest(URLS.JUDGESEARCH, {
+                const data = await postRequest(URLS.MNTSEARCH, {
                     query: e.target.value,
                     excludeIDs: excludejudges,
                 });
                 if (!data) return;
-                if (data.code === code.OK && data.judge) {
+                if (data.code === code.OK && data.mnt) {
                     getElement("judgequeryresult").innerHTML = `
-                    <button class="primary" type='button' id="${data.judge.id}">
+                    <button class="primary" type='button' id="${data.mnt.id}">
                         <img src="${
-                            data.judge.dp
+                            data.mnt.dp
                         }" width="20" class="w3-circle primary" /> ${
-                        data.judge.name
+                        data.mnt.name
                     }</button>
-                    <a href="${data.judge.url}" target="_blank">${Icon(
+                    <a href="${data.mnt.url}" target="_blank">${Icon(
                         "open_in_new"
                     )}</a>`;
-                    getElement(data.judge.id).onclick = (e) => {
-                        const id = e.target.id.replaceAll("-", "");
+                    getElement(data.mnt.id).onclick = (e) => {
+                        const id = getElement(data.mnt.id).id.replaceAll("-", "");
                         let existing = String(
                             getElement("judgeIDs").value
                         ).trim();
@@ -184,9 +184,9 @@ getElement("addjudgebutton").onclick = (_) => {
                         getElement("selectedjudgesview").innerHTML += `
                         <button type='button' title="Judge" class="primary negative-text selected-compete-judge" data-judgeID='${id}' id="removejudge${id}">
                         ${Icon("close")}<img src="${
-                            data.judge.dp
+                            data.mnt.dp
                         }" width="20" class="w3-circle primary" /> ${
-                            data.judge.name
+                            data.mnt.name
                         }</button>`;
                     };
                 } else {
@@ -244,7 +244,7 @@ getElement("selectmodbutton").onclick = (ebtn) => {
                     )}</a>
                     `;
                     getElement(data.mod.id).onclick = (e) => {
-                        const id = e.target.id.replaceAll("-", "");
+                        const id = getElement(data.mod.id).id.replaceAll("-", "");
                         getElement("compmodID").value = id;
                         excludejudges = excludejudges.filter(
                             (id) => id != lastmodid
@@ -260,7 +260,6 @@ getElement("selectmodbutton").onclick = (ebtn) => {
                         }
                         </button>`;
                         hide(getElement("selectmodbutton"));
-                        success("Moderator selected!");
                     };
                 } else {
                     getElement("modqueryresult").innerHTML = "No results.";
@@ -357,7 +356,7 @@ const editorsParams = [
         autosave: {
             enabled: true,
             uniqueId: "comptaskSummary",
-            delay: 1000,
+            delay: 100,
         },
     },
     {
@@ -365,7 +364,7 @@ const editorsParams = [
         autosave: {
             enabled: true,
             uniqueId: "comptaskDetail",
-            delay: 1000,
+            delay: 100,
         },
     },
     {
@@ -373,7 +372,7 @@ const editorsParams = [
         autosave: {
             enabled: true,
             uniqueId: "comptaskSample",
-            delay: 1000,
+            delay: 100,
         },
     },
 ];

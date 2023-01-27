@@ -350,7 +350,9 @@ class Message():
     MODERATION_RESUMED = _(
         "Moderation Resumed."
     )
-    
+    ALREADY_APPLIED = "Already applied"
+    INCOMP_DETAILS = "Incomplete details."
+    APPLIED = "Applied."
     def isValid(self, message: str) -> bool:
         """
         Whether the given string is a valid message response to be sent to client or not. This check will ensure that
@@ -541,6 +543,7 @@ class Browse():
     TRENDING_ARTICLES = "trending-articles"
     DISPLAY_MENTORS = "display-mentors"
     CORE_MEMBERS = "core-members"
+    CORE_CONTRIBS = "core-contributors"
     TOPIC_PROJECTS = "topic-wise-projects"
     TOPIC_PROFILES = "topic-wise-profiles"
 
@@ -622,6 +625,11 @@ class URL():
     DONATE = 'donate/'
     
     THANKYOU = 'thankyou/'
+    CAREERS = 'careers/'
+    CAREERS_APPLY = 'careers/<str:posID>/'
+
+    def careers_apply(self, posID: UUID) -> str:
+        return setPathParams(self.CAREERS_APPLY, posID)
 
     BASE_GITHUB_EVENTS = 'github-events/<str:type>/<str:targetID>/'
     VIEW_SNAPSHOT = 'snapshot/<str:snapID>/'
@@ -1515,6 +1523,8 @@ class Template():
         PROJECTS = "projects.js"
         ARTICLE = "article.js"
         ARTICLE_EDIT = "article_edit.js"
+        CAREERS_APPLY = "careers-apply.js"
+        HEAD = "head.js"
 
         def getScriptTemplates(self) -> list:
             TEMPLATES = []
@@ -1614,16 +1624,27 @@ class Template():
     DONATION = "donation"
 
     THANKYOU = "thankyou"
-    
 
     @property
     def thankyou(self):
         return f'{self.THANKYOU}.html'
-    
-    
+
     @property
     def donation(self):
         return f'{self.DONATION}.html'
+
+    CAREERS = "careers"
+
+    @property
+    def careers(self):
+        return f'{self.CAREERS}.html'
+
+    CAREERS_APPLY = "careers-apply"
+
+    @property
+    def careers_apply(self):
+        return f'{self.CAREERS_APPLY}.html'
+
 
     class Auth():
         DIRNAME = 'account'
@@ -1927,6 +1948,7 @@ class Template():
             return f'{self.DIRNAME}/{self.BROWSE_DISPLAY_MENTORS}.html'
 
         BROWSE_CORE_MEMBERS = 'browse/core-members'
+        BROWSE_CORE_CONTRIBS = 'browse/core-contributors'
 
         BROWSE_TOPIC_PROFILES = 'browse/topic-profiles'
 

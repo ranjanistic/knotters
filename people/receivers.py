@@ -37,8 +37,8 @@ def on_profile_create(sender, instance: Profile, created, **kwargs):
     """
     if created:
         ProfileSetting.objects.create(profile=instance)
-        Sender.addUserToMailingServer(
-            instance.user.email, instance.user.first_name, instance.user.last_name)
+#        Sender.addUserToMailingServer(
+#            instance.user.email, instance.user.first_name, instance.user.last_name)
 
 
 @receiver(post_delete, sender=Profile)
@@ -67,7 +67,7 @@ def on_user_signup(request, user: User, **kwargs):
         if len(email)>0:
             on_email_confirmation(request, email[0])
         accs = SocialAccount.objects.filter(user=user)
-        picture = getProfileImageBySocialAccount(accs.first())
+        picture = defaultImagePath()
         githubID = None
         try:
             acc = accs.filter(provider=GitHubProvider.id).first()
@@ -123,10 +123,6 @@ def social_added(request, sociallogin: SocialLogin, **kwargs):
                     changed = True
             except:
                 pass
-        if str(profile.picture) == defaultImagePath():
-            profile.picture = getProfileImageBySocialAccount(
-                sociallogin.account)
-            changed = True
         if changed:
             profile.save()
     except:
@@ -142,9 +138,6 @@ def social_updated(request, sociallogin: SocialLogin, **kwargs):
             data = SocialAccount.objects.get(
                 user=sociallogin.account.user, provider=GitHubProvider.id)
             profile.update_githubID(getUsernameFromGHSocial(data))
-        if str(profile.picture) == defaultImagePath():
-            profile.picture = getProfileImageBySocialAccount(
-                sociallogin.account)
         profile.save()
     except:
         pass

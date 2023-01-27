@@ -1,9 +1,9 @@
 from allauth.account.models import EmailAddress
-from main.env import PUBNAME
+from main.env import PUBNAME, SITE
 from main.mailers import sendActionEmail, sendAlertEmail, sendToAdmin
 from people.models import Profile
 from auth2.models import DeviceNotificationSubscriber, EmailNotificationSubscriber
-from management.models import ContactRequest, Management, ManagementInvitation
+from management.models import ContactRequest, Management, ManagementInvitation,CareerApplication
 from main.constants import NotificationCode
 from main.methods import user_device_notify
 
@@ -140,4 +140,23 @@ def newContactRequestAlert(contactRequest: ContactRequest) -> str:
         subject="New Contact Request",
         body=f"New contact request from {contactRequest.senderName} ({contactRequest.senderEmail}) on {contactRequest.createdOn}.\n\nCategory: {contactRequest.contactCategory.name}\n\nRequest Message: {contactRequest.message}\n",
         html=f"New contact request from {contactRequest.senderName} ({contactRequest.senderEmail}) on {contactRequest.createdOn}.<br/><br/>Category: {contactRequest.contactCategory.name}<br/><br/>Request Message: {contactRequest.message}\n"
+    )
+
+
+def newCareerApplication(ca: CareerApplication) -> str:
+    """To send email for a new applicant
+
+    Returns:
+        str: Task ID of the email
+    """
+    return sendActionEmail(
+        to=ca.position.email,
+        subject=f"New application: {ca.position.name}",
+        header=f"A new application has been received for {ca.position.name}.<br/> <br/>Name: {ca.name}<br/>Email: {ca.email}<br/>Phone: {ca.phone}<br/>Experience: {ca.experience}",
+            actions=[{
+                'text': 'View resume',
+                'url': ca.get_resume()
+            }],
+        footer=f"Please take a look.",
+        conclusion=f"This email was sent because your email was linked with this career posting."
     )

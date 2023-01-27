@@ -26,15 +26,15 @@
     <center>
         <div class="material-icons w3-jumbo">code</div>
         <h1>{% trans "Third Party Licenses" %}</h1>
-        <h3>{% trans "The third party libraries which are being utilized for smooth functioning of this platform." %}</h3>
-        <strong>If you want to checkout the licenses available on {{APPNAME}} for your own project, <a href="{{URLS.Projects.ALLLICENSES}}">click here</a>.</strong>
+        <h5>{% trans "The third party libraries which are being utilized for smooth functioning of this platform." %}</h3>
+        <strong class="dead-text">If you want to checkout the licenses available on {{APPNAME}} for your own project, <a href="{{URLS.Projects.ALLLICENSES}}">click here</a>.</strong>
     </center><br/>
     <div class="w3-padding text-medium">
         {% for tpl in tpls %}
            <li class="pallete-slab">
             {{tpl.title}} <a class="w3-right" href="{{tpl.link}}" target="_blank" rel="noreferrer"><button class="primary small" data-icon="open_in_new">Homepage</button></a> <a class="w3-right"><button class="primary small license-expand-action" data-icon="expand_more" id="">License</button></a>
             <div class="w3-padding license-expand-view" hidden>
-                <blockquote>{{tpl.license}}</blockquote>
+                <blockquote style="word-break: break-word;">{{tpl.license}}</blockquote>
             </div>
           </li><br/>
         {% endfor %}

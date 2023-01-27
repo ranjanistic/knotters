@@ -5,7 +5,7 @@ from deprecated import deprecated
 from django.conf import settings
 from django.core.cache import cache
 from django.core.files.base import File
-from django.db import models
+from djongo import models
 from django.db.models import Q
 from django.utils import timezone
 from github.Repository import Repository
@@ -2542,6 +2542,7 @@ class TopicFileExtension(models.Model):
     file_extension: FileExtension = models.ForeignKey(
         FileExtension, on_delete=models.CASCADE, related_name='topic_file_extension_extension')
     """file_extension (ForeignKey<FileExtension>): file extension related to the topic"""
+    score: int = models.IntegerField(default=1)
 
 
 class ProjectTransferInvitation(Invitation):

@@ -2,7 +2,7 @@ from django.conf import settings
 from management.models import ThirdPartyAccount
 from people.models import Profile
 
-from .env import BOTMAIL, PUBNAME, SITE, VERSION
+from .env import BOTMAIL, PUBNAME, SITE, VERSION, ISBETA, ISPRODUCTION
 from .methods import renderData
 from .strings import DIVISIONS, URL, Action, Browse, Code, Message, Template
 from projects.models import LegalDoc
@@ -34,6 +34,9 @@ GlobalContextData = dict(
     CACHE_LONGER=settings.CACHE_LONGER,
     CACHE_MAX=settings.CACHE_MAX,
     CACHE_ETERNAL=settings.CACHE_ETERNAL,
+    ISBETA=ISBETA,
+    ISPRODUCTION=ISPRODUCTION,
+    ISMAIN=ISPRODUCTION and not ISBETA
 )
 
 

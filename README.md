@@ -133,35 +133,18 @@ These will create collections in your `DB_NAME` named value in .env, as database
 
 If the above commands are failing for you due to some kind of database error, then you can follow the steps below to fix the issue.
 
-- In [`main/settings.py`](main/settings.py), find the following piece of code and comment it out (temporarily)
-
-```python
-# before
-...
-if not env.ISTESTING:
-    INSTALLED_APPS.append("django_q")
-...
-```
-
-```python
-# after
-...
-# if not env.ISTESTING:
-#    INSTALLED_APPS.append("django_q")
-...
-```
-
-- Then run the above `makemigrations` and `migrate` commands again.
-- After the commands execute successfully (you're seeing `OK` on your console), then you can uncomment the commented part in [`main/settings.py`](main/settings.py) (or use `git restore .`).
-
-- Then run the following
-
 ```bash
 python3 manage.py makemigrations
 python3 manage.py migrate --fake
 ```
 
-- This should fix the issue for you.
+### Initial setup
+
+Create default necessary records
+
+```bash
+python3 manage.py setup
+```
 
 ### Notification setup
 
@@ -173,15 +156,13 @@ python3 manage.py syncnotifications
 
 ### Accounts setup
 
-Create a superuser using the same email address as `BOTMAIL` value in `.env` file, using the following
+Create a superuser account for yourself.
 
 ```bash
 python3 manage.py createsuperuser
 ```
 
-Provide aribtrary values for name and password (this superuser account is neccessary for the web application to work) as this account will be used as the bot.
-
-Then, create another superuser account for yourself, using the same above command. This account can be used to login and access the administration view as well, at `http://localhost:8000/<ADMINPATH>/`. The `<ADMINPATH>` here is an environment variable from your `.env`.
+This account can be used to login and access the administration view as well, at `http://localhost:8000/<ADMINPATH>/`. The `<ADMINPATH>` here is an environment variable from your `.env`.
 
 ## Server
 
@@ -207,22 +188,6 @@ python3 manage.py runserver
 ```
 
 You're now eligible to jump into [CONTRIBUTING.md](CONTRIBUTING.md), but it is recommended only after reading the complete README.md first.
-
-If while navigating in localhost website you're getting an error similar to `site matching query does not exist`, then do the following to resolve it
-
-```bash
-python3 manage.py shell
-```
-
-Then in the python shell
-
-```py
-from django.contrib.sites.models import Site
-Site.objects.create(id=1, name="Knotters", domain="example.com")
-exit()
-```
-
-This should fix the issue for you.
 
 ## Testing
 
@@ -349,6 +314,8 @@ There are total 5 runners in the repository, hosted on our own servers, for the 
 
 - Try to publish the server sided changes before client side ones for better update delivery.
 
-- Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates. 
+- Try to group changes in [`./static`](static) directory under single commit to avoid instantaneous multiple client side updates.
+
+- Wand (ImageMagick binding for Python), which is being used for svg to png conversion, requires installation of ImageMagick. Follow the [official Wand documentation](https://docs.wand-py.org/en/0.6.11/guide/install.html) to install ImageMagick on your system.
 
 Jump to [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guide now.

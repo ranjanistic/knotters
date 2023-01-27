@@ -8,6 +8,19 @@ a {
     color: var(--positive);
     cursor: pointer;
 }
+button,
+textarea,
+input,
+select,
+a {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
 a:hover {
     opacity: 0.8;
 }
@@ -148,13 +161,13 @@ strong {
     hyphens: auto;
 }
 button {
-    padding: 4px 12px;
-    border-radius: 22px;
+    padding: 8px 12px;
+    border-radius: 52px;
     margin: 1px 2px;
     font-family: var(--head-font);
     outline: none;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 14px;
     transition: var(--delay);
     border: 0;
     box-shadow: 2px 1px 12px 1px #0000001f;
@@ -171,12 +184,12 @@ button > span.w3-hide-small {
 
 button > i {
     vertical-align: middle;
-    padding: 0px 2px 2px 0px;
+    padding: 2px 4px;
     font-size: 18px !important;
 }
 button > img {
     vertical-align: middle;
-    padding: 0px 2px 2px 0px;
+    padding: 2px 4px;
 }
 
 button > label {
@@ -190,7 +203,7 @@ button > label {
 
 button:hover {
     outline: none;
-    padding: 4px 18px;
+    padding: 8px 18px;
 }
 button:active {
     outline: none;
@@ -200,6 +213,14 @@ button:active {
 
 button.primary {
     color: var(--positive);
+}
+
+button.w3-tiny {
+  padding: 2px 6px;
+}
+
+.accent input {
+  border-color: var(--secondary);
 }
 
 .pallete {
@@ -327,11 +348,11 @@ details > summary::-webkit-details-marker {
 
 input,
 textarea {
-    border: 0;
+    border: 3px solid var(--tertiary-text);
     outline: 0;
     padding: 8px 8px;
     font-size: 18px;
-    border-radius: 8px;
+    border-radius: 6px;
     background-color: var(--tertiary);
     color: var(--tertiary-text);
     transition: var(--delay);
@@ -353,6 +374,37 @@ textarea.positive {
 input:disabled,
 textarea:disabled {
     opacity: 0.4;
+}
+
+input:focus,
+textarea:focus {
+    border-color: var(--positive);
+}
+
+
+input.negative:focus,
+textarea.negative:focus {
+    border-color: var(--negative);
+}
+
+input.positive:focus,
+textarea.positive:focus {
+    border-color: var(--positive);
+}
+
+input.accent:focus,
+textarea.accent:focus {
+    border-color: var(--accent);
+}
+
+input.active:focus,
+textarea.active:focus {
+    border-color: var(--active);
+}
+
+input.vibrant:focus,
+textarea.vibrant:focus {
+    border-color: var(--vibrant);
 }
 
 i.circle {
@@ -391,8 +443,8 @@ i.circle:active {
 }
 
 button.small {
-    font-size: 14px;
-    padding: 2px 6px;
+    font-size: 12px;
+    padding: 4px 8px;
 }
 
 button.small > i {
@@ -739,55 +791,83 @@ label > input[type="checkbox"] {
     text-align: right;
 }
 
-button.border-joy{
+button.border-joy {
     border: 2px solid;
     border-bottom-color: var(--active);
     border-top-color: var(--accent);
     border-left-color: var(--positive);
-    border-right-color: var(--vibrant)
+    border-right-color: var(--vibrant);
 }
-.border-joy{
+.border-joy {
     border: 4px solid;
     border-bottom-color: var(--active);
     border-top-color: var(--accent);
     border-left-color: var(--positive);
-    border-right-color: var(--vibrant)
+    border-right-color: var(--vibrant);
 }
-.border-accent{
+.border-accent {
     border: 4px solid var(--accent);
 }
-button.border-accent{
+button.border-accent {
     border: 2px solid var(--accent);
 }
-.border-active{
+.border-active {
     border: 4px solid var(--active);
 }
-button.border-active{
+button.border-active {
     border: 2px solid var(--active);
 }
-.border-positive{
+.border-positive {
     border: 4px solid var(--positive);
 }
-button.border-positive{
+button.border-positive {
     border: 2px solid var(--positive);
 }
-.border-vibrant{
+.border-vibrant {
     border: 4px solid var(--vibrant);
 }
-button.border-vibrant{
+button.border-vibrant {
     border: 2px solid var(--vibrant);
 }
-.border-negative{
+.border-negative {
     border: 4px solid var(--negative);
 }
-button.border-negative{
+button.border-negative {
     border: 2px solid var(--negative);
 }
-.no-opacity-change, .no-opacity-change:hover, .no-opacity-change:active{
+.no-opacity-change,
+.no-opacity-change:hover,
+.no-opacity-change:active {
     opacity: 1 !important;
 }
 .search-media {
-    width:  100%;
+    width: 100%;
     height: 15rem;
     object-fit: contain;
+}
+
+
+input.border-negative:focus,
+textarea.border-negative:focus {
+    border-color: var(--negative);
+}
+
+input.border-positive:focus,
+textarea.border-positive:focus {
+    border-color: var(--positive);
+}
+
+input.border-accent:focus,
+textarea.border-accent:focus {
+    border-color: var(--accent);
+}
+
+input.border-active:focus,
+textarea.border-active:focus {
+    border-color: var(--active);
+}
+
+input.border-vibrant:focus,
+textarea.border-vibrant:focus {
+    border-color: var(--vibrant);
 }

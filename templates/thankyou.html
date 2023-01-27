@@ -11,7 +11,7 @@
 {% block og_description %}Our core contributors who made what {{APPNAME}} is today.{% endblock %}
 {% block og_site_name %}Thank you{% endblock %}
 
-{% block tw_url %}{{URLS.LANDING}}{% endblock %}
+{% block tw_url %}{{URLS.THANKYOU}}{% endblock %}
 {% block tw_title %}Thank you{% endblock %}
 {% block tw_description %}Our core contributors who made what {{APPNAME}} is today.{% endblock %}
 
@@ -31,7 +31,7 @@
     </div>
     <div class="w3-row w3-padding">
         {% for contributor in contributors %}
-        <div class="w3-col w3-quarter w3-padding"> 
+        <div class="w3-col m4 l2 s12 w3-padding"> 
             <a href="{{contributor.get_link|or:URLS.PEOPLE}}" {% if contributor.get_link %}target="_blank" rel="noreferrer"
                 {% endif %}>
                 <div class="pallete w3-center no-pad">

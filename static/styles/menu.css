@@ -12,11 +12,12 @@
     height: 100vh;
     z-index: 1000;
     padding-top: 200px;
-    transition: 0.4s;
+    animation: dragoff 1s;
 }
 
 .mobile-nav.is-active{
     display: block;
+    animation: drag 0.3s ease-out;
 }
 
 @media only screen and (max-width:1205px) {
@@ -40,7 +41,7 @@
 
 .menu-close-btn{
   position: fixed;
-  bottom: 10%;
+  bottom: 2%;
 }
 
 /* Style the buttons that are used to open and close the accordion panel */
@@ -64,4 +65,23 @@
 .panel ul{
   list-style: none;
   padding-left: 0;
+}
+
+
+@keyframes drag {
+    0% {
+        transform: translate(100%, 0);
+    }
+    100% {
+        transform: translate(0%, 0);
+    }
+}
+
+@keyframes dragoff {
+    0% {
+        transform: translate(0%, 0);
+    }
+    100% {
+        transform: translate(100%, 0);
+    }
 }

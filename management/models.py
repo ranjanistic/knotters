@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
-
+from django.core.files.base import File
 from auth2.models import Address, PhoneNumber
 from django.conf import settings
 from django.core.cache import cache
-from django.db import models
+from djongo import models
 from django.utils import timezone
 from github.Organization import Organization
 from main.strings import PEOPLE, Code, Message, Profile, url
@@ -825,3 +825,147 @@ class Donor(models.Model):
 
     def __str__(self):
         return f"{self.profile} is a donor!"
+
+class CareerType(models.Model):
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """created_on (DateTimeField): date and time when this pos was created"""
+    name: str = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): name of the pos"""
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class CareerPosition(models.Model):
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """created_on (DateTimeField): date and time when this pos was created"""
+    creator = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.CASCADE, related_name='position_creator')
+    name: str = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): name of the pos"""
+    email: str = models.EmailField(max_length=100, null=True, blank=True)
+    """email (EmailField): email of the pos poster"""
+    positions: int = models.IntegerField(default=1)
+    opened:bool = models.BooleanField(default=True)
+    location:str = models.CharField(max_length=200,default="Remote")
+    about: str = models.TextField(max_length=1000)
+    roles:str = models.TextField(max_length=2000)
+    requirements:str = models.TextField(max_length=2000)
+    type: CareerType = models.ForeignKey(CareerType, on_delete=models.CASCADE, related_name='position_type')
+    duration: str = models.CharField(max_length=80, null=True, blank=True)
+    experience: str = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.name} {self.email}"
+
+    def getLink(self, error: str = '', success: str = '', alert: str = '') -> str:
+        return f'{url.getRoot()}{url.careers_apply(posID=self.id.hex)}{url.getMessageQuery(alert,error,success)}'
+
+    def total_applicants(self):
+        return CareerApplication.objects.filter(position=self).count()
+
+def resumePath(instance: "CareerApplication", filename: str) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/careers/{str(instance.id)}_{uuid4().hex}.{fileparts[len(fileparts)-1]}"
+
+class CareerApplication(models.Model):
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    applicant = models.ForeignKey(
+        f'{PEOPLE}.Profile', on_delete=models.SET_NULL, null=True, related_name='applicant_profile')
+    """profile (ForeignKey<Profile>): profile of the applicant, null if not set"""
+    position: CareerPosition = models.ForeignKey(
+        CareerPosition, on_delete=models.CASCADE, related_name='applicant_position')
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """created_on (DateTimeField): date and time when this applicant was created"""
+    name: str = models.CharField(max_length=100)
+    """name (CharField): name of the applicant"""
+    email: str = models.EmailField(max_length=100)
+    """email (EmailField): email of the applicant"""
+    phone: str = models.CharField(max_length=100)
+    """phone (ForeignKey<PhoneNumber>): phone number of the applicant"""
+    resume: File = models.FileField(
+        upload_to=resumePath)
+    experience: str = models.TextField(max_length=500)
+
+    def __str__(self):
+        return f"{self.applicant} for {self.position}"
+
+    def get_resume(self):
+        return f"{settings.MEDIA_URL}{str(self.resume)}"
+
+
+def corepartnerImagePath(instance: "CoreContributor", filename: str) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/corepartner/{instance.get_id}.{fileparts[-1]}"
+
+
+class CorePartner(models.Model):
+    """Display palletes of core partners"""
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile = models.OneToOneField(
+        f'{PEOPLE}.Profile', on_delete=models.SET_NULL, related_name='display_partner_profile', null=True, blank=True)
+    """profile (OneToOneField<Profile>): The profile of partner, if present."""
+    name: datetime = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): The name of the partner"""
+    about: str = models.CharField(max_length=500, null=True, blank=True)
+    """about (CharField): The about of the partner"""
+    picture: str = models.ImageField(
+        upload_to=corepartnerImagePath,null=True, blank=True)
+    """picture (ImageField): The picture of the partner"""
+    website: datetime = models.URLField(max_length=500, null=True, blank=True)
+    """website (URLField): The website of the display mentor"""
+    hidden: datetime = models.BooleanField(default=False)
+    """hidden (BooleanField): Whether the display partner is hidden"""
+    width:int = models.IntegerField(default=100)
+    createdOn: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """createdOn (DateTimeField): The time the display partner was created"""
+
+    def __str__(self):
+        return self.name or self.get_name or str(self.id)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    @property
+    def get_picture(self):
+        if self.profile:
+            return self.profile.getDP()
+        dp = str(self.picture)
+        return settings.MEDIA_URL+dp if not dp.startswith('/') else settings.MEDIA_URL + dp.removeprefix('/')
+
+    @property
+    def get_image(self):
+        return self.get_picture
+
+    @property
+    def get_name(self) -> str:
+        if self.name:
+            return self.name
+        if self.profile:
+            return self.profile.getName()
+        return "Core partner"
+
+    @property
+    def get_about(self) -> str:
+        if self.about:
+            return self.about
+        if self.profile and self.profile.getBio():
+            return self.profile.getBio()
+        return self.get_name
+
+    @property
+    def get_link(self) -> str:
+        if self.profile:
+            return self.profile.getLink()
+        return self.website

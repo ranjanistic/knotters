@@ -54,9 +54,9 @@ knottrans/
 locale/
 prod/
 first_pro/
-shubham/
 log.*
 knotters_env/
 knotts_env/
 .DS_Store
 knotters-env
+*.swp

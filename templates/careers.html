@@ -1,0 +1,87 @@
+{% extends 'index.html' %}
+{% load i18n %}
+{% load l10n %}
+{% load tz %}
+{% load cache %}
+{% load custom_tags %}
+
+{% block meta_description %}Contribute to the {{APPNAME}} platform from the inside.{% endblock %}
+{% block og_url %}{{URLS.CAREERS}}{% endblock %}
+{% block og_title %}Careers{% endblock %}
+{% block og_description %}Contribute to the {{APPNAME}} platform from the inside.{% endblock %}
+{% block og_site_name %}Careers{% endblock %}
+
+{% block tw_url %}{{URLS.CAREERS}}{% endblock %}
+{% block tw_title %}Careers{% endblock %}
+{% block tw_description %}Contribute to the {{APPNAME}} platform from the inside.{% endblock %}
+
+{% block themecolor %}tertiary{% endblock %}
+{% block nav_style %}tertiary{% endblock %}
+
+{% block title %}
+{% trans "Careers" %}
+{% endblock %}
+{% block nav_text %}
+{% trans "Careers" %}
+{% endblock %}
+{% block content %}
+
+<div class="w3-row">
+<div class="w3-row w3-padding tertiary">
+    <div class="w3-row w3-padding">
+        <h1>Careers</h1>
+                    <div class="w3-row text-large dead-text" >
+        Contribute to the {{APPNAME}} platform from the inside.
+</div>
+    <br />
+
+    </div>
+</div>
+    <br />
+
+  <div class="w3-row w3-padding primary">
+    <div class="w3-row w3-padding">
+{% comment %}
+{% if not request.user.is_authenticated %}
+       <div class="w3-row w3-padding w3-center">
+      <i class="w3-jumbo">work</i>
+	<h5><a href="{{URLS.Auth.SIGNUP}}?next={{URLS.CAREERS}}">Login or signup</a> to apply for a position.</h5>
+	</div>
+{% else %}
+{% endcomment %}
+        {% for position in positions %}
+        <div class="w3-col w3-half w3-padding"> 
+<a href="{{position.getLink}}">
+<div class="pallete-slab positive-text">
+        <h3>{{position.name}}<i class="w3-right">arrow_forward</i></h3>
+        <div class="w3-row text-large dead-text" >
+		{{position.created_on.date}}
+	</div><br/>
+        <div class="w3-row dead-text" >
+		<span class="align w3-left">
+		<i class="w3-medium">location_on</i>&nbsp;{{position.location}}
+&nbsp;&nbsp;&nbsp;
+<i class="w3-medium">work</i>&nbsp;{{position.type}}
+&nbsp;&nbsp;&nbsp;
+<i class="w3-medium">timelapse</i>&nbsp;{{position.duration}}
+           </span>
+	</div>
+</div>
+</a>
+        </div>
+        {% empty %}
+        <br/>
+       <div class="w3-row w3-padding w3-center dead-text">
+      <i class="w3-jumbo">work</i>
+	<h5>No positions available as of now.</h5>
+	</div>
+        {% endfor %}
+   </div>
+    <br />
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

@@ -21,6 +21,7 @@ from main.methods import (addMethodToAsyncQueue, errorLog, respondJson,
 from main.strings import URL, Action, Code, Message, Template, Browse
 from people.models import Profile, ProfileTopic, Topic
 from projects.models import FreeProject
+from howto.models import Article
 from ratelimit.decorators import ratelimit
 
 from .apps import APPNAME
@@ -432,6 +433,9 @@ def removeMember(request: WSGIRequest, subID: UUID, userID: UUID) -> HttpRespons
         elif submission.free_project and submission.free_project.creator == member:
             submission.free_project = None
             submission.save()
+        elif submission.article and submission.article.author == member:
+            submission.article = None
+            submission.save()
         if conf:
             member.decreaseXP(by=5)
             participationWithdrawnAlert(member, submission)
@@ -484,9 +488,14 @@ def save(request: WSGIRequest, compID: UUID, subID: UUID) -> HttpResponse:
         fprojID = request.POST['submissionfreeproject']
         if fprojID == Action.REMOVE:
             subm.free_project = None
+            subm.article = None
         else:
-            subm.free_project = FreeProject.objects.get(
-                id=fprojID, creator=request.user.profile, suspended=False, trashed=False, createdOn__gte=subm.competition.startAt)
+            if subm.modeProject():
+                subm.free_project = FreeProject.objects.get(
+                    id=fprojID, creator=request.user.profile, suspended=False, trashed=False, createdOn__gte=subm.competition.startAt)
+            else:
+                subm.article = Article.objects.get(
+                    id=fprojID, author=request.user.profile, is_draft=False, createdOn__gte=subm.competition.startAt)
         subm.modifiedOn = now
         subm.save()
         if json_body:
@@ -530,7 +539,7 @@ def finalSubmit(request: WSGIRequest, compID: UUID, subID: UUID) -> JsonResponse
         if submission.competition.isNotAllowedToParticipate(request.user.profile):
             raise ObjectDoesNotExist(
                 'not allowed to participate', submission, request.user)
-        if not submission.free_project:
+        if not submission.free_project and not submission.article:
             raise ObjectDoesNotExist(
                 'no submission made', submission, request.user)
         if submission.competition.moderated():
@@ -1222,7 +1231,7 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         pass
-    raise Http404(e)
+    raise Http404()
 
 
 @normal_profile_required

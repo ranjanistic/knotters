@@ -2622,7 +2622,7 @@ def coreProjectModTransferInviteAction(request: WSGIRequest, inviteID: UUID) -> 
         raise Http404(e)
 
 
-@moderator_only
+#@moderator_only
 @require_GET
 def verProjectDeleteRequest(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
     """To render the verified project deletion request view
@@ -2653,7 +2653,7 @@ def verProjectDeleteRequest(request: WSGIRequest, inviteID: UUID) -> HttpRespons
         raise Http404(e)
 
 
-@moderator_only
+#@moderator_only
 @require_POST
 @decode_JSON
 def verProjectDeleteRequestAction(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
@@ -2698,7 +2698,7 @@ def verProjectDeleteRequestAction(request: WSGIRequest, inviteID: UUID) -> HttpR
         raise Http404(e)
 
 
-@moderator_only
+#@moderator_only
 @require_GET
 def coreProjectDeleteRequest(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
     """To render the core project deletion request view
@@ -2729,7 +2729,7 @@ def coreProjectDeleteRequest(request: WSGIRequest, inviteID: UUID) -> HttpRespon
         raise Http404(e)
 
 
-@moderator_only
+#@moderator_only
 @require_POST
 @decode_JSON
 def coreProjectDeleteRequestAction(request: WSGIRequest, inviteID: UUID) -> HttpResponse:
