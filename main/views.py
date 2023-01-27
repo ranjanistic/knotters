@@ -1246,7 +1246,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 if request.user.is_authenticated:
                     project_ids = r.lrange(f"{Browse.RECOMMENDED_PROJECTS}_{request.user.profile.id}", 0, -1)
                 else:
-                    project_ids = r.lrange(Browse.RECOMMENDED_PROJECTS)
+                    project_ids = r.lrange(Browse.RECOMMENDED_PROJECTS, 0, -1)
                 queryset = BaseProject.objects.filter(id__in=project_ids).distinct()[:limit]
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 count = len(projects)
