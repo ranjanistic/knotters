@@ -129,7 +129,7 @@ def submissionsModeratedAlert(competition: Competition) -> list:
         if DeviceNotificationSubscriber.objects.filter(user=judge.user, device_notification__notification__code=NotificationCode.SUBM_MOD_ALERT).exists() else None, competition.getJudges()))
     return list(map(
         lambda judge: sendActionEmail(
-                to=judge.get_email(),
+                to=judge.get_email,
                 subject=f"Submissions Judgement Ready: {competition.title}",
                 greeting=f"Respected judge",
                 username=judge.get_name,
@@ -158,7 +158,7 @@ def submissionsJudgedAlert(competition: Competition, judge: Profile) -> str:
 
     if EmailNotificationSubscriber.objects.filter(user=competition.creator.user, email_notification__notification__code=NotificationCode.SUB_JUDGE_ALERT).exists():
         email = sendActionEmail(
-            to=competition.creator.get_email(),
+            to=competition.creator.get_email,
             subject=f"Submissions Judged: {competition.title}",
             username=competition.creator.get_name,
             header=f"The submissions for '{competition.title}' competition have been judged by the respected judge - {judge.get_name}. You can check the status of judgment.",
