@@ -190,7 +190,7 @@ if env.REDIS_LOCATION:
             'PASSWORD': env.REDIS_PASSWORD,
             'db': env.REDIS_DB,
         },
-        "KEY_PREFIX": "beta:" if env.ISBETA else "",
+        "KEY_PREFIX": env.REDIS_PREFIX,
         'TIMEOUT': None
     }
     import redis
