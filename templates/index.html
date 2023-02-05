@@ -645,7 +645,7 @@
                             <div class='w3-row'>
  			       {% for p in partners %}
                               <div class='w3-col s12 m6 l3 w3-padding'>
- 			  	 <a href="{{p.get_link}}" target="_blank"><img src="{{ p.get_image }}" alt="{{ p.get_name }}" width="{{p.width|or:'100'}}%" loading="lazy" /></a>
+ 			  	 <a href="{{p.get_link}}" target="_blank"><img src="{{ p.get_image }}" alt="{{ p.get_name }}" width="{{p.width|or:'100'}}%" height="100%" loading="lazy" /></a>
 			      </div>
 			      {% endfor %}
 			    </div>
