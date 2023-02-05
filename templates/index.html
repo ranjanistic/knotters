@@ -405,7 +405,7 @@
                             <br/>
                             <div class="pallete no-pad w3-center ">
                                 <a href="{{project.get_link}}" target="_blank">
-                                    <img class="primary pallete" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" height="100%" style="border-bottom: 8px solid var(--{{project.theme}})" />
+                                    <img class="primary pallete" src="{{ project.getDP }}" alt="{{ project.name }}" width="100%" height="100%" style="border-bottom: 8px solid var(--{{project.theme}})" loading="lazy" />
                                 </a>
                                 <div class="w3-row w3-padding">
                                     <h4 class="{% if project.is_verified %}align{% endif %}">{{ project.name|truncatechars:18 }}{% if project.is_verified %}<i class="positive-text w3-large">verified</i>{% endif %}</h4>
@@ -414,7 +414,6 @@
                                     {% for topic in project.getPalleteTopics %}
                                     <a href="{{URLS.SEARCH|getquery:'query=topic:'}}{{topic.name}}"><button class="primary border-joy small w3-left">{{topic}}</button></a>
                                     {% endfor %}
-                                    <a href="{{project.get_link}}" target="_blank"><button class="primary small w3-right" data-icon="open_in_new">View profile</button></a>
                                 </div>
                             </div><br/>
                         </div>
