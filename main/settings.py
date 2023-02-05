@@ -573,7 +573,7 @@ CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com", "*.goog
                    "*.licdn.com", "*.discordapp.com", "*.knotters.org"
                    )
 
-CSP_IMG_SRC = ("'self'", "data:", "*.digitaloceanspaces.com",
+CSP_IMG_SRC = ("'self'", "data:", "*.digitaloceanspaces.com","*.googletagmanager.com",
                "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
                "*.licdn.com", "*.discordapp.com", "*.knotters.org"
                )
