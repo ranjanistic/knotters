@@ -69,7 +69,7 @@ jsonLookup==0.9.0
 multiavatar==1.0.3
 multidict==6.0.2
 names==0.3.0
-oauthlib==3.2.0
+oauthlib==3.2.2
 outcome==1.1.0
 packaging==21.3
 phonenumbers==8.12.47
