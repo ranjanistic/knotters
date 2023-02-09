@@ -331,6 +331,8 @@ if not DEBUG:
     os_environ["wsgi.url_scheme"] = "https"
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_DOMAIN = '.knotters.org'
+    SESSION_COOKIE_NAME = f'{env.REDIS_PREFIX}authsessionId'
     CSRF_COOKIE_SECURE = True
     CSRF_TRUSTED_ORIGINS = env.HOSTS
     SECURE_HSTS_SECONDS = 31536000
