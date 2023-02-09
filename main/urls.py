@@ -68,6 +68,10 @@ urlpatterns = [
         url=f"/{URL.AUTH}{URL.Auth.LOGIN}")),
     path(URL.Auth.REGISTER, RedirectView.as_view(
         url=f"/{URL.AUTH}{URL.Auth.SIGNUP}")),
+    path('community',RedirectView.as_view(
+        url=f"/{URL.PEOPLE}")),
+    path('articles', RedirectView.as_view(
+        url=f"/{URL.HOWTO}")),
     # root urls
     path(URL.SCRIPTS_SUBAPP, scripts_subapp),
     path(URL.SCRIPTS, scripts),
