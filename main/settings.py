@@ -568,13 +568,14 @@ CSP_FONT_SRC = ("'self'", "data:", "maxcdn.bootstrapcdn.com", "*.knotters.org")
 
 CSP_SCRIPT_SRC = ("'self'", "'unsafe-eval'", "*.knotters.org", "*.googletagmanager.com","*.googleoptimize.com")
 
-CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com", "*.googletagmanager.com", "*.doubleclick.net",
+CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com", "*.google.co.in",
+                   "*.googletagmanager.com", "*.doubleclick.net", "*.googleoptimize.com",
                    "*.gstatic.com", "cdn.jsdelivr.net", "maxcdn.bootstrapcdn.com",
                    "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
                    "*.licdn.com", "*.discordapp.com", "*.knotters.org"
                    )
 
-CSP_IMG_SRC = ("'self'", "data:", "*.digitaloceanspaces.com",
+CSP_IMG_SRC = ("'self'", "data:", "*.digitaloceanspaces.com","*.googletagmanager.com",
                "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
                "*.licdn.com", "*.discordapp.com", "*.knotters.org"
                )
