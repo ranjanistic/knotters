@@ -996,6 +996,18 @@ class Profile(models.Model):
             return 'vibrant'
         return "positive"
 
+    def theme_counter(self) -> str:
+        """Returns the user's theme's counter theme
+        This depends on client side theme classes.
+        """
+        if self.is_moderator:
+            return 'secondary'
+        if self.is_mentor:
+            return 'secondary'
+        if self.is_manager():
+            return 'tertiary'
+        return "primary"
+
     def text_theme(self) -> str:
         """Returns the user's text theme.
         This depends on client side theme classes.

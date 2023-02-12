@@ -15,12 +15,14 @@ from django.views.decorators.http import require_GET, require_POST
 from main.decorators import (decode_JSON, github_only, normal_profile_required,
                              require_JSON)
 from main.methods import base64ToImageFile, errorLog, respondJson, updatePresentLists
-from main.strings import Code, Event, Message, Template, setURLAlerts, Browse
+from main.strings import Code, Event, Message, Template, setURLAlerts, Browse, COMPETE
 from management.models import ReportCategory
 from projects.methods import addTagToDatabase, tagSearchList, topicSearchList
-from projects.models import Tag
+from projects.models import Tag, BaseProject, FreeProject,CoreProject,Project
 from ratelimit.decorators import ratelimit
-
+from howto.models import Article
+from compete.models import CompetitionJudge, Result
+from moderation.models import Moderation
 from .methods import (addTopicToDatabase, convertToFLname, filterBio, filterExtendedBio,
                       getProfileSectionHTML, getSettingSectionHTML,
                       profileRenderData, renderer, rendererstr)
@@ -121,6 +123,84 @@ def profileTab(request: WSGIRequest, userID: UUID, section: str) -> HttpResponse
         errorLog(e)
         raise Http404(e)
 
+@require_GET
+def profileProjects(request:WSGIRequest, nickname:str):
+    try:
+        if request.user.is_authenticated and request.user.profile.nickname == nickname:
+            profile: Profile = request.user.profile
+        else:
+            profile: Profile = Profile.objects.get(
+                nickname=nickname)
+        if request.user.is_authenticated:
+            if profile.isBlocked(request.user):
+                raise ObjectDoesNotExist(profile)
+        ptype = int(request.GET.get('type', -1))
+        if ptype == 0:
+            projects = FreeProject.objects.filter(Q(Q(trashed=False), Q(
+                    creator=profile) | Q(co_creators=profile))).distinct()
+        elif ptype == 1:
+            projects = Project.objects.filter(Q(Q(trashed=False), Q(
+                    creator=profile) | Q(co_creators=profile))).distinct()
+        elif ptype == 2:
+            projects = CoreProject.objects.filter(Q(Q(trashed=False), Q(
+                    creator=profile) | Q(co_creators=profile))).distinct()
+        else:
+            projects = BaseProject.objects.filter(Q(Q(trashed=False), Q(
+                    creator=profile) | Q(co_creators=profile))).distinct()
+        
+        return renderer(request, Template.People.PROJECTS, dict(projects=projects, profile=profile))
+    except (ObjectDoesNotExist, ValidationError,ValueError) as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+
+@require_GET
+def profileArticles(request:WSGIRequest, nickname:str):
+    try:
+        if request.user.is_authenticated and request.user.profile.nickname == nickname:
+            profile: Profile = request.user.profile
+        else:
+            profile: Profile = Profile.objects.get(
+                nickname=nickname)
+        if request.user.is_authenticated:
+            if profile.isBlocked(request.user):
+                raise ObjectDoesNotExist(profile)
+        articles = Article.objects.filter(is_draft=False,author=profile).distinct()
+        
+        return renderer(request, Template.People.ARTICLES, dict(articles=articles, profile=profile))
+    except (ObjectDoesNotExist, ValidationError,ValueError) as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
+
+@require_GET
+def profileAchievements(request:WSGIRequest, nickname:str):
+    try:
+        if request.user.is_authenticated and request.user.profile.nickname == nickname:
+            profile: Profile = request.user.profile
+        else:
+            profile: Profile = Profile.objects.get(
+                nickname=nickname)
+        if request.user.is_authenticated:
+            if profile.isBlocked(request.user):
+                raise ObjectDoesNotExist(profile)
+        results = Result.objects.filter(
+                submission__members=profile).order_by('-rank', '-points')
+      
+        judgements = CompetitionJudge.objects.filter(
+                competition__resultDeclared=True, judge=profile).order_by("-competition__createdOn")
+        moderations = Moderation.objects.filter(
+                type=COMPETE, moderator=profile, resolved=True, status=Code.APPROVED, competition__resultDeclared=True).order_by('-respondOn')
+        
+        return renderer(request, Template.People.ACHIEVEMENTS, dict(results=results, judgements=judgements,moderations=moderations, profile=profile))
+    except (ObjectDoesNotExist, ValidationError,ValueError) as o:
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        raise Http404(e)
 
 @require_GET
 def timeline_content(request: WSGIRequest, userID: UUID) -> HttpResponse:

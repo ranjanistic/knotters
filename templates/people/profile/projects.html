@@ -40,6 +40,14 @@
           <strong>{% trans "Don't worry. Keep exploring." %}</strong>
           </div>
           {% endfor %}
+          {% if approved.0 %}
+          <div class="w3-row w3-padding-small"> 
+          <a href="{{URLS.PROFILEPROJECTS|params:person.profile.nickname}}">
+          <div class="w3-row pallete-slab positive-text">
+                  <h6>View all<br/>projects<i class="w3-right">arrow_forward</i></h6>
+          </div></a>
+        </div>
+        {% endif %}
           </div>
         </div>
       </div>
@@ -139,5 +147,13 @@
                 <h6>Give {{person.profile.getFName}} some time. We know they'll grow soon.</h6>
             </center>
       {% endfor %}
+      {% if approved.0 %}
+        <div class="w3-col w3-third w3-padding-small"> 
+        <a href="{{URLS.PROFILEPROJECTS|params:person.profile.nickname}}">
+        <div class="w3-row pallete-slab positive-text">
+                <h6>View all<br/>projects<i class="w3-right">arrow_forward</i></h6>
+        </div></a>
+      </div>
+      {% endif %}
   {% endif  %}
 </div>

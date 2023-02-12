@@ -980,6 +980,13 @@ class URL():
         def settingTab(self, section):
             return setPathParams(self.SETTINGTAB, section)
 
+        PROFILEPROJECTS = 'profile/<str:nickname>/projects/'
+        PROFILEARTICLES = 'profile/<str:nickname>/articles/'
+        PROFILEACHIEVEMENTS = 'profile/<str:nickname>/achievements/'
+        PROFILECOMPETES = 'profile/<str:nickname>/competitions/'
+        PROFILEMODERATIONS = 'profile/<str:nickname>/moderations/'
+        PROFILEMENTORSHIPS = 'profile/<str:nickname>/mentorships/'
+
         ACCOUNTPREFERENCES = "account/preferences"
 
         EXTENDEDBIOEDIT = 'extendedbioedit'
@@ -1910,6 +1917,21 @@ class Template():
         @property
         def profile(self):
             return f'{self.DIRNAME}/{self.PROFILE}.html'
+
+        PROJECTS = 'projects'
+        @property
+        def projects(self):
+            return f'{self.DIRNAME}/{self.PROJECTS}.html'
+
+        ARTICLES = 'articles'
+        @property
+        def articles(self):
+            return f'{self.DIRNAME}/{self.ARTICLES}.html'
+
+        ACHIEVEMENTS = 'achievements'
+        @property
+        def achievements(self):
+            return f'{self.DIRNAME}/{self.ACHIEVEMENTS}.html'
 
         BROWSE_NEWBIE = 'browse/newbie'
 
