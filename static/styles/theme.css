@@ -235,29 +235,29 @@
   border: 4px solid var(--primary);
 }
 
-.border-secondary:hover {
+.border-secondary {
   border: 4px solid var(--secondary);
 }
 
-.border-tertiary:hover {
+.border-tertiary {
   border: 4px solid var(--tertiary);
 }
 
-.border-accent:hover {
+.border-accent {
   border: 4px solid var(--accent);
 }
 
-.border-active:hover {
+.border-active {
   border: 4px solid var(--active);
 }
 
-.border-positive:hover {
+.border-positive {
   border: 4px solid var(--positive);
 }
-.border-negative:active {
+.border-negative {
   border: 4px solid var(--negative);
 }
 
-.border-vibrant:hover {
+.border-vibrant {
   border: 4px solid var(--vibrant);
 }
