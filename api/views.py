@@ -38,7 +38,7 @@ def verifyCredentials(request: WSGIRequest):
             token = jwt.encode(dict(id=profile.get_userid, exp=timezone.now()+timedelta(days=7)), settings.SECRET_KEY, algorithm="HS256")
             return respondJson(Code.OK, data=dict(token=token))
         return respondJson(Code.OK, data=dict(user=dict(
-                   id=profile.get_userid, name=profile.get_name, email=profile.get_email, is_moderator=profile.is_moderator, is_mentor=profile.is_mentor, is_verified=profile.is_verified,is_manager=profile.is_manager(), nickname=profile.nickname)))
+                   id=profile.get_userid, name=profile.get_name, email=profile.get_email, is_moderator=profile.is_moderator, is_mentor=profile.is_mentor, is_verified=profile.is_verified,is_manager=profile.is_manager(), nickname=profile.nickname, picture=profile.get_abs_dp)))
     except KeyError:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST, status=400)
     except ObjectDoesNotExist:
@@ -75,7 +75,7 @@ def tokenUser(request: WSGIRequest):
     try:
         profile = request.user.profile
         return respondJson(Code.OK, data=dict(user=dict(
-                   id=profile.get_userid, name=profile.get_name, email=profile.get_email,is_moderator=profile.is_moderator, is_mentor=profile.is_mentor, is_verified=profile.is_verified, is_manager=profile.is_manager(), nickname=profile.nickname)))
+                   id=profile.get_userid, name=profile.get_name, email=profile.get_email,is_moderator=profile.is_moderator, is_mentor=profile.is_mentor, is_verified=profile.is_verified, is_manager=profile.is_manager(), nickname=profile.nickname, picture=profile.get_abs_dp)))
         print(request.user)
         token = jwt.encode(dict(id=request.user.profile.get_userid, exp=timezone.now()+timedelta(minutes=5)), settings.SECRET_KEY, algorithm="HS256")
         return respondJson(Code.OK, data=dict(token=token))
