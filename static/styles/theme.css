@@ -1,231 +1,263 @@
 :root {
-    --primary: #ffffff;
-    --primary-text: #000000;
-    --secondary: #000000ff;
-    --secondary-text: #ffffff;
-    --tertiary: #efefef;
-    --tertiary-text: #141414;
-    --accent: #f5d702;
-    --accent-text: #000000;
-    --active: #12e49d;
-    --active-text: #000000;
-    --positive: #1657ce;
-    --positive-text: #eeeeee;
-    --negative: #cc352a;
-    --negative-text: #fcfcfc;
-    --dead-text: #5e5e5e;
-    --head-font: "Poppins", sans-serif;
-    --body-font: -apple-system, BlinkMacSystemFont, "Product Sans Light",
-        "Product Sans", "Product Sans Font", "Questrial", system-ui;
-    --delay: 0.3s;
-    --button-radius: 22px;
-    --vibrant: #673ab7;
-    --vibrant-text: #dfdfdf;
+  --primary: #ffffff;
+  --primary-text: #000000;
+  --secondary: #000000ff;
+  --secondary-text: #ffffff;
+  --tertiary: #efefef;
+  --tertiary-text: #141414;
+  --accent: #f5d702;
+  --accent-text: #000000;
+  --active: #12e49d;
+  --active-text: #000000;
+  --positive: #1657ce;
+  --positive-text: #eeeeee;
+  --negative: #cc352a;
+  --negative-text: #fcfcfc;
+  --dead-text: #5e5e5e;
+  --head-font: "Poppins", sans-serif;
+  --body-font: -apple-system, BlinkMacSystemFont, "Product Sans Light",
+    "Product Sans", "Product Sans Font", "Questrial", system-ui;
+  --delay: 0.3s;
+  --button-radius: 22px;
+  --vibrant: #673ab7;
+  --vibrant-text: #dfdfdf;
 }
 
 [data-theme="dark"] {
-    --primary: #000000;
-    --primary-text: #eaeaea;
-    --secondary: #05050a;
-    --secondary-text: #ffffff;
-    --tertiary: #232323;
-    --tertiary-text: #ffffff;
-    --accent: #de9846;
-    --accent-text: #000000;
-    --active: #4dbb96;
-    --active-text: #000000;
-    --positive: #7796d0;
-    --positive-text: #000000;
-    --negative: #ce6862;
-    --negative-text: #000000;
-    --dead-text: #817f7f;
-    --vibrant: #a788dd;
-    --vibrant-text: #000000;
+  --primary: #000000;
+  --primary-text: #eaeaea;
+  --secondary: #05050a;
+  --secondary-text: #ffffff;
+  --tertiary: #232323;
+  --tertiary-text: #ffffff;
+  --accent: #de9846;
+  --accent-text: #000000;
+  --active: #4dbb96;
+  --active-text: #000000;
+  --positive: #7796d0;
+  --positive-text: #000000;
+  --negative: #ce6862;
+  --negative-text: #000000;
+  --dead-text: #817f7f;
+  --vibrant: #a788dd;
+  --vibrant-text: #000000;
 }
 
 .primary {
-    background-color: var(--primary) !important;
-    color: var(--primary-text);
+  background-color: var(--primary) !important;
+  color: var(--primary-text);
 }
 
 .primary-text {
-    color: var(--primary) !important;
+  color: var(--primary) !important;
 }
 .text-primary {
-    color: var(--primary-text) !important;
+  color: var(--primary-text) !important;
 }
 
 .secondary {
-    background-color: var(--secondary) !important;
-    color: var(--secondary-text);
+  background-color: var(--secondary) !important;
+  color: var(--secondary-text);
 }
 .secondary-text {
-    color: var(--secondary) !important;
+  color: var(--secondary) !important;
 }
 .text-secondary {
-    color: var(--secondary-text) !important;
+  color: var(--secondary-text) !important;
 }
 
 .tertiary {
-    background-color: var(--tertiary) !important;
-    color: var(--tertiary-text);
+  background-color: var(--tertiary) !important;
+  color: var(--tertiary-text);
 }
 .tertiary-text {
-    color: var(--tertiary) !important;
+  color: var(--tertiary) !important;
 }
 .text-tertiary {
-    color: var(--tertiary-text) !important;
+  color: var(--tertiary-text) !important;
 }
 
 .accent {
-    background-color: var(--accent) !important;
-    color: var(--accent-text) !important;
+  background-color: var(--accent) !important;
+  color: var(--accent-text) !important;
 }
 .accent-text {
-    color: var(--accent) !important;
+  color: var(--accent) !important;
 }
 .text-accent {
-    color: var(--accent-text) !important;
+  color: var(--accent-text) !important;
 }
 
 .negative {
-    background-color: var(--negative) !important;
-    color: var(--negative-text);
+  background-color: var(--negative) !important;
+  color: var(--negative-text);
 }
 .negative-text {
-    color: var(--negative) !important;
+  color: var(--negative) !important;
 }
 .text-negative {
-    color: var(--negative-text) !important;
+  color: var(--negative-text) !important;
 }
 
 .positive {
-    background-color: var(--positive) !important;
-    color: var(--positive-text);
+  background-color: var(--positive) !important;
+  color: var(--positive-text);
 }
 
 .positive-text {
-    color: var(--positive) !important;
+  color: var(--positive) !important;
 }
 .text-positive {
-    color: var(--positive-text) !important;
+  color: var(--positive-text) !important;
 }
 
 .active {
-    background-color: var(--active) !important;
-    color: var(--active-text) !important;
+  background-color: var(--active) !important;
+  color: var(--active-text) !important;
 }
 
 .active-text {
-    color: var(--active) !important;
+  color: var(--active) !important;
 }
 .text-active {
-    color: var(--active-text) !important;
+  color: var(--active-text) !important;
 }
 
 .sub-accent {
-    background-color: var(--active) !important;
-    color: var(--active-text);
+  background-color: var(--active) !important;
+  color: var(--active-text);
 }
 .sub-accent-text {
-    color: var(--active) !important;
+  color: var(--active) !important;
 }
 
 .dead-text {
-    color: var(--dead-text) !important;
+  color: var(--dead-text) !important;
 }
 
 .vibrant {
-    background-color: var(--vibrant) !important;
-    color: var(--vibrant-text) !important;
+  background-color: var(--vibrant) !important;
+  color: var(--vibrant-text) !important;
 }
 .vibrant-text {
-    color: var(--vibrant) !important;
+  color: var(--vibrant) !important;
 }
 .text-vibrant {
-    color: var(--vibrant-text) !important;
+  color: var(--vibrant-text) !important;
 }
 
-.hover-primary:hover{
-    background-color: var(--primary) !important;
-    color: var(--primary-text) !important;
+.hover-primary:hover {
+  background-color: var(--primary) !important;
+  color: var(--primary-text) !important;
 }
 
-.hover-primary:active{
-    background-color: var(--primary) !important;
-    color: var(--primary-text) !important;
+.hover-primary:active {
+  background-color: var(--primary) !important;
+  color: var(--primary-text) !important;
 }
 
-.hover-secondary:hover{
-    background-color: var(--secondary) !important;
-    color: var(--secondary-text) !important;
+.hover-secondary:hover {
+  background-color: var(--secondary) !important;
+  color: var(--secondary-text) !important;
 }
 
-.hover-secondary:active{
-    background-color: var(--secondary) !important;
-    color: var(--secondary-text) !important;
+.hover-secondary:active {
+  background-color: var(--secondary) !important;
+  color: var(--secondary-text) !important;
 }
 
-.hover-tertiary:hover{
-    background-color: var(--tertiary) !important;
-    color: var(--tertiary-text) !important;
+.hover-tertiary:hover {
+  background-color: var(--tertiary) !important;
+  color: var(--tertiary-text) !important;
 }
 
-.hover-tertiary:active{
-    background-color: var(--tertiary) !important;
-    color: var(--tertiary-text) !important;
+.hover-tertiary:active {
+  background-color: var(--tertiary) !important;
+  color: var(--tertiary-text) !important;
 }
 
-.hover-accent:hover{
-    background-color: var(--accent) !important;
-    color: var(--accent-text) !important;
+.hover-accent:hover {
+  background-color: var(--accent) !important;
+  color: var(--accent-text) !important;
 }
 
-.hover-accent:active{
-    background-color: var(--accent) !important;
-    color: var(--accent-text) !important;
+.hover-accent:active {
+  background-color: var(--accent) !important;
+  color: var(--accent-text) !important;
 }
 
-.hover-active:hover{
-    background-color: var(--active) !important;
-    color: var(--active-text) !important;
+.hover-active:hover {
+  background-color: var(--active) !important;
+  color: var(--active-text) !important;
 }
 
-.hover-active:active{
-    background-color: var(--active) !important;
-    color: var(--active-text) !important;
+.hover-active:active {
+  background-color: var(--active) !important;
+  color: var(--active-text) !important;
 }
 
-.hover-positive:hover{
-    background-color: var(--positive) !important;
-    color: var(--positive-text) !important;
+.hover-positive:hover {
+  background-color: var(--positive) !important;
+  color: var(--positive-text) !important;
 }
 
-.hover-positive:active{
-    background-color: var(--positive) !important;
-    color: var(--positive-text) !important;
+.hover-positive:active {
+  background-color: var(--positive) !important;
+  color: var(--positive-text) !important;
 }
 
-.hover-text-positive:hover,.hover-text-positive:active{
-    color: var(--positive) !important;
+.hover-text-positive:hover,
+.hover-text-positive:active {
+  color: var(--positive) !important;
 }
 
-.hover-negative:hover{
-    background-color: var(--negative) !important;
-    color: var(--negative-text) !important;
+.hover-negative:hover {
+  background-color: var(--negative) !important;
+  color: var(--negative-text) !important;
 }
 
-.hover-negative:active{
-    background-color: var(--negative) !important;
-    color: var(--negative-text) !important;
+.hover-negative:active {
+  background-color: var(--negative) !important;
+  color: var(--negative-text) !important;
 }
 
-.hover-vibrant:hover{
-    background-color: var(--vibrant) !important;
-    color: var(--vibrant-text) !important;
+.hover-vibrant:hover {
+  background-color: var(--vibrant) !important;
+  color: var(--vibrant-text) !important;
 }
 
-.hover-vibrant:active{
-    background-color: var(--vibrant) !important;
-    color: var(--vibrant-text) !important;
+.hover-vibrant:active {
+  background-color: var(--vibrant) !important;
+  color: var(--vibrant-text) !important;
+}
+
+.border-primary {
+  border: 4px solid var(--primary);
+}
+
+.border-secondary:hover {
+  border: 4px solid var(--secondary);
+}
+
+.border-tertiary:hover {
+  border: 4px solid var(--tertiary);
+}
+
+.border-accent:hover {
+  border: 4px solid var(--accent);
+}
+
+.border-active:hover {
+  border: 4px solid var(--active);
+}
+
+.border-positive:hover {
+  border: 4px solid var(--positive);
+}
+.border-negative:active {
+  border: 4px solid var(--negative);
+}
+
+.border-vibrant:hover {
+  border: 4px solid var(--vibrant);
 }
