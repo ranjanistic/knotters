@@ -57,6 +57,7 @@ urlpatterns = [
     path(URL.MANAGEMENT, include(f'{MANAGEMENT}.urls')),
     path(URL.HOWTO, include(f'{HOWTO}.urls')),
     path(URL.WEBPUSH, include('webpush.urls')),
+    path(URL.API, include('api.urls')),
     
     
     # redirects

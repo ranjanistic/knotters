@@ -116,7 +116,7 @@ def renderString(request: WSGIRequest, view: str, data: dict = dict(), fromApp: 
     return htmlmin(render_to_string(f"{str() if fromApp == str() else f'{fromApp}/' }{view}.html", renderData(data, fromApp), request))
 
 
-def respondJson(code: str, data: dict = dict(), error: str = str(), message: str = str(), success: str = str()) -> JsonResponse:
+def respondJson(code: str, data: dict = dict(), error: str = str(), message: str = str(), success: str = str(), status = 200) -> JsonResponse:
     """returns json http response, with custom data.
 
     Args:
@@ -140,7 +140,7 @@ def respondJson(code: str, data: dict = dict(), error: str = str(), message: str
     return JsonResponse(dict(
         code=code,
         **data
-    ), encoder=JsonEncoder)
+    ),status=status, encoder=JsonEncoder)
 
 
 def respondRedirect(fromApp: str = str(), path: str = str(), alert: str = str(), error: str = str(), success: str = str()) -> HttpResponseRedirect:

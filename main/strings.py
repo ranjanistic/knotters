@@ -584,6 +584,7 @@ class URL():
     SEARCH = 'search/'
     SEARCH_RESULT = 'search-result/'
     WEBPUSH = 'webpush/'
+    API = "api/"
     AT_NICKNAME = "@<str:nickname>"
 
     def at_nickname(self, nickname: str) -> str:
@@ -681,6 +682,12 @@ class URL():
 
     def githubProfile(self, ghID):
         return f"https://github.com/{ghID}"
+
+    class Api():
+        VERIFY_CREDENTIALS = 'verify-credentials/'
+        REFRESH_TOKEN = 'refresh-token/'
+        USER = 'user/'
+    api = Api()
 
     class Auth():
 

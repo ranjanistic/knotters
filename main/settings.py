@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'allauth_2fa',
     "webpush",
     "mfa",
-    # "corsheaders"
+    "corsheaders"
 ] + DIVISIONS
 
 if not env.ISTESTING:
@@ -272,7 +272,9 @@ elif DEBUG:
     STATIC_ROOT = env.STATIC_ROOT
 
 
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOWED_ORIGIN_REGEXES = [
+  r"^https://\w+\.knotters\.org$"
+]
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
