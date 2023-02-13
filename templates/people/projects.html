@@ -34,12 +34,12 @@
 {% block nav_back_theme %}primary{% endblock %}
 
 {% block nav_text %}{% endblock %}   
-{% block nav_text_style %}{{ profile.theme }}-text{% endblock %}
-{% block nav_style %}{{ profile.theme_counter }}{% endblock %}
+{% block nav_text_style %}{{ profile.theme_text }}{% endblock %}
+{% block nav_style %}{{ profile.theme }}{% endblock %}
 
 {% block content %}
 <div class="w3-row">
-    <div class="w3-row w3-padding {{profile.theme_counter}} {{profile.theme_text}}">
+    <div class="w3-row w3-padding {{profile.theme}}">
         <div class="w3-row w3-padding">
             
             <div class="w3-col l10">
@@ -50,7 +50,7 @@
             </div>
             <div class="w3-col l2 m2 s2 w3-padding w3-hide-small">
                 <a href="{{profile.getLink}}">
-                <img class="w3-right border-{{profile.theme}} w3-circle" width="100" src="{{profile.get_dp}}" />
+                <img class="w3-right border-{{profile.theme_counter}} w3-circle" width="100" src="{{profile.get_dp}}" />
                 </a>
             </div>
             
