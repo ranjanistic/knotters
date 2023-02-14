@@ -60,3 +60,7 @@ knotts_env/
 .DS_Store
 knotters-env
 *.swp
+lib/
+lib64
+*.cfg
+share/

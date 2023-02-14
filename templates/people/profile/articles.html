@@ -161,7 +161,7 @@
         </div>
         <div class="w3-col l8 m8 s8" >
             <div class="w3-row w3-padding">
-            <h6>{{ article.heading | truncatewords:5 }}</h5>
+            <h6>{{ article.heading | truncatewords:8 }}</h5>
             </div>
         </div>
       </div>
@@ -171,8 +171,17 @@
             <center class="dead-text">
                 <i class="w3-jumbo">widgets</i>
                 <h3>{% trans "No articles, yet." %}</h3>
-                <h6>Give {{person.profile.getFName}} some time.</h6>
+                <h6>Give {{person.profile.getFName}} somje time.</h6>
             </center>
       {% endfor %}
+      {% if published.0 %}
+      <div class="w3-col w3-third w3-padding-small"> 
+      <a href="{{URLS.PROFILEARTICLES|params:person.profile.nickname}}">
+      <div class="w3-row pallete-slab positive-text">
+              <h6>View all<br/>articles<i class="w3-right">arrow_forward</i></h6>
+      </div></a>
+    </div>
+    {% endif %}
+    
   {% endif  %}
 </div>

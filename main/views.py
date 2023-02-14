@@ -1274,9 +1274,9 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             if not len(profiles):
                 if request.user.is_authenticated:
                     excludeUserIDs.append(request.user.profile.getUserID())
-                profile_ids = r.lrange(REDIS_PREFIX+Browse.NEW_PROFILES, 0, -1)
+                profile_ids = r.lrange(REDIS_PREFIX+Browse.NEW_PROFILES, 0, limit)
                 queryset = Profile.objects.filter(id__in=profile_ids).exclude(
-                    user__id__in=excludeUserIDs)[:limit]
+                    user__id__in=excludeUserIDs)
                 profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_NEWBIE, dict(profiles=profiles, count=len(profiles)))
@@ -1284,9 +1284,9 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.NEW_PROJECTS:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                project_ids = r.lrange(REDIS_PREFIX+Browse.NEW_PROJECTS, 0, -1)
+                project_ids = r.lrange(REDIS_PREFIX+Browse.NEW_PROJECTS, 0, limit)
                 queryset = BaseProject.objects.filter(id__in=project_ids).exclude(
-                    creator__user__id__in=excludeUserIDs).distinct()[:limit]
+                    creator__user__id__in=excludeUserIDs).distinct()
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
 
@@ -1295,8 +1295,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.RECENT_WINNERS:
             results = cache.get(cachekey, None)
             if results is None:
-                result_ids = r.lrange(REDIS_PREFIX+Browse.RECENT_WINNERS, 0, -1)
-                queryset = Result.objects.filter(id__in=result_ids)[:limit]
+                result_ids = r.lrange(REDIS_PREFIX+Browse.RECENT_WINNERS, 0, limit)
+                queryset = Result.objects.filter(id__in=result_ids)
                 results = sorted(queryset, key=lambda x: result_ids.index(str(x.id)))
                 cache.set(cachekey, results, settings.CACHE_MINI)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_RECENT_WINNERS, dict(results=results, count=len(results))))
@@ -1308,8 +1308,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 if request.user.is_authenticated:
                     project_ids = r.lrange(f"{REDIS_PREFIX}{Browse.RECOMMENDED_PROJECTS}_{request.user.profile.id}", 0, -1)
                 else:
-                    project_ids = r.lrange(REDIS_PREFIX+Browse.RECOMMENDED_PROJECTS, 0, -1)
-                queryset = BaseProject.objects.filter(id__in=project_ids).distinct()[:limit]
+                    project_ids = r.lrange(REDIS_PREFIX+Browse.RECOMMENDED_PROJECTS, 0, limit)
+                queryset = BaseProject.objects.filter(id__in=project_ids).distinct()
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 count = len(projects)
 
@@ -1325,52 +1325,52 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TRENDING_PROJECTS:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                project_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_PROJECTS, 0, -1)
+                project_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_PROJECTS, 0, limit)
                 queryset = BaseProject.objects.filter(id__in=project_ids).exclude(
-                    creator__user__id__in=excludeUserIDs).distinct()[:limit]
+                    creator__user__id__in=excludeUserIDs).distinct()
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_PROFILES:
             profiles = cache.get(cachekey, [])
             if not len(profiles):
-                profile_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_PROFILES, 0, -1)
+                profile_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_PROFILES, 0, limit)
                 queryset = Profile.objects.filter(id__in=profile_ids).exclude(
-                    user__id__in=excludeUserIDs)[:limit]
+                    user__id__in=excludeUserIDs)
                 profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_TRENDING, dict(profiles=profiles, count=len(profiles)))
         elif type == Browse.NEWLY_MODERATED:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                project_ids = r.lrange(REDIS_PREFIX+Browse.NEWLY_MODERATED, 0, -1)
+                project_ids = r.lrange(REDIS_PREFIX+Browse.NEWLY_MODERATED, 0, limit)
                 queryset = BaseProject.objects.filter(id__in=project_ids).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit]
+                    creator__user__id__in=excludeUserIDs)
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_NEWLY_MODERATED, dict(projects=projects, count=len(projects)))
         elif type == Browse.HIGHEST_MONTH_XP_PROFILES:
             profiles = cache.get(cachekey, [])
             if not len(profiles):
-                profile_ids = r.lrange(REDIS_PREFIX+Browse.HIGHEST_MONTH_XP_PROFILES, 0, -1)
+                profile_ids = r.lrange(REDIS_PREFIX+Browse.HIGHEST_MONTH_XP_PROFILES, 0, limit)
                 queryset = Profile.objects.filter(id__in=profile_ids).exclude(
-                    user__id__in=excludeUserIDs)[:limit]
+                    user__id__in=excludeUserIDs)
                 profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
             return peopleRendererstr(request, Template.People.BROWSE_HIGHEST_MONTH_XP_PROFILES, dict(profiles=profiles, count=len(profiles)))
         elif type == Browse.LATEST_COMPETITIONS:
             competitions = cache.get(cachekey, [])
             if not len(competitions):
-                competition_ids = r.lrange(REDIS_PREFIX+Browse.LATEST_COMPETITIONS, 0, -1)
-                queryset = Competition.objects.filter(id__in=competition_ids)[:limit]
+                competition_ids = r.lrange(REDIS_PREFIX+Browse.LATEST_COMPETITIONS, 0, limit)
+                queryset = Competition.objects.filter(id__in=competition_ids)
                 competitions = sorted(queryset, key=lambda x: competition_ids.index(str(x.id)))
                 cache.set(cachekey, competitions, settings.CACHE_MINI)
             return HttpResponse(competeRendererstr(request, Template.Compete.BROWSE_LATEST_COMP, dict(competitions=competitions, count=len(competitions))))
         elif type == Browse.TRENDING_MENTORS:
             mentors = cache.get(cachekey, [])
             if not len(mentors):
-                profile_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_MENTORS, 0, -1)
-                queryset = Profile.objects.filter(id__in=profile_ids)[:limit]
+                profile_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_MENTORS, 0, limit)
+                queryset = Profile.objects.filter(id__in=profile_ids)
                 mentors = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
                 if request.user.is_authenticated:
                     mentors = request.user.profile.filterBlockedProfiles(
@@ -1380,8 +1380,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TRENDING_MODERATORS:
             moderators = cache.get(cachekey, [])
             if not len(moderators):
-                profile_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_MODERATORS, 0, -1)
-                queryset = Profile.objects.filter(id__in=profile_ids)[:limit]
+                profile_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_MODERATORS, 0, limit)
+                queryset = Profile.objects.filter(id__in=profile_ids)
                 moderators = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
                 if request.user.is_authenticated:
                     moderators = request.user.profile.filterBlockedProfiles(
@@ -1392,8 +1392,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             dmentors = cache.get(cachekey, [])
             count = len(dmentors)
             if not count:
-                dmentor_ids = r.lrange(REDIS_PREFIX+Browse.DISPLAY_MENTORS, 0, -1)
-                queryset = DisplayMentor.objects.filter(id__in=dmentor_ids)[:limit]
+                dmentor_ids = r.lrange(REDIS_PREFIX+Browse.DISPLAY_MENTORS, 0, limit)
+                queryset = DisplayMentor.objects.filter(id__in=dmentor_ids)
                 dmentors = sorted(queryset, key=lambda x: dmentor_ids.index(str(x.id)))
                 count = len(dmentors)
                 if count:
@@ -1403,8 +1403,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             coremems = cache.get(cachekey, [])
             count = len(coremems)
             if not count:
-                coremem_ids = r.lrange(REDIS_PREFIX+Browse.CORE_MEMBERS, 0, -1)
-                queryset = CoreMember.objects.filter(id__in=coremem_ids)[:limit]
+                coremem_ids = r.lrange(REDIS_PREFIX+Browse.CORE_MEMBERS, 0, limit)
+                queryset = CoreMember.objects.filter(id__in=coremem_ids)
                 coremems = sorted(queryset, key=lambda x: coremem_ids.index(str(x.id)))
                 count = len(coremems)
                 if count:
@@ -1428,8 +1428,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 except:
                     topic = None
                 if topic and not projects:
-                    project_ids = r.lrange(f"{REDIS_PREFIX}{Browse.TOPIC_PROJECTS}_{request.user.profile.id}", 0, -1)
-                    queryset = BaseProject.objects.filter(id__in=project_ids).distinct()[:limit]
+                    project_ids = r.lrange(f"{REDIS_PREFIX}{Browse.TOPIC_PROJECTS}_{request.user.profile.id}", 0, limit)
+                    queryset = BaseProject.objects.filter(id__in=project_ids).distinct()
                     projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                     cache.set(cachekey, projects, settings.CACHE_MINI)
                 return projectsRendererstr(request, Template.Projects.BROWSE_TOPIC_PROJECTS, dict(projects=projects, count=len(projects), topic=topic))
@@ -1444,8 +1444,8 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 except:
                     topic = None
                 if topic and not profiles:
-                    profile_ids = r.lrange(f"{REDIS_PREFIX}{Browse.TOPIC_PROFILES}_{request.user.profile.id}", 0, -1)
-                    queryset = Profile.objects.filter(id__in=profile_ids)[:limit]
+                    profile_ids = r.lrange(f"{REDIS_PREFIX}{Browse.TOPIC_PROFILES}_{request.user.profile.id}", 0, limit)
+                    queryset = Profile.objects.filter(id__in=profile_ids)
                     profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
                     cache.set(cachekey, profiles, settings.CACHE_MINI)
                 return peopleRendererstr(request, Template.People.BROWSE_TOPIC_PROFILES, dict(profiles=profiles, count=len(profiles), topic=topic))
@@ -1454,36 +1454,36 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TRENDING_CORE:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                project_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_CORE, 0, -1)
+                project_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_CORE, 0, limit)
                 queryset = CoreProject.objects.filter(id__in=project_ids).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit]
+                    creator__user__id__in=excludeUserIDs)
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_CORE, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_VERIFIED:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                project_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_VERIFIED, 0, -1)
+                project_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_VERIFIED, 0, limit)
                 queryset = Project.objects.filter(id__in=project_ids).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit]
+                    creator__user__id__in=excludeUserIDs)
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_VERIFIED, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_QUICK:
             projects = cache.get(cachekey, [])
             if not len(projects):
-                project_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_QUICK, 0, -1)
+                project_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_QUICK, 0, limit)
                 queryset = FreeProject.objects.filter(id__in=project_ids).exclude(
-                    creator__user__id__in=excludeUserIDs)[:limit]
+                    creator__user__id__in=excludeUserIDs)
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 cache.set(cachekey, projects, settings.CACHE_MINI)
             return projectsRendererstr(request, Template.Projects.BROWSE_TRENDING_QUICK, dict(projects=projects, count=len(projects)))
         elif type == Browse.TRENDING_ARTICLES:
             articles = cache.get(cachekey, [])
             if not len(articles):
-                article_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_ARTICLES, 0, -1)
+                article_ids = r.lrange(REDIS_PREFIX+Browse.TRENDING_ARTICLES, 0, limit)
                 queryset = Article.objects.filter(id__in=article_ids).exclude(
-                    author__user__id__in=excludeUserIDs)[:limit]
+                    author__user__id__in=excludeUserIDs)
                 articles = sorted(queryset, key=lambda x: article_ids.index(str(x.id)))
                 cache.set(cachekey, articles, settings.CACHE_MINI)
             return howtoRendererstr(request, Template.Howto.BROWSE_TRENDING_ARTICLES, dict(articles=articles, count=len(articles)))

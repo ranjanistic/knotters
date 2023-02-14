@@ -16,6 +16,11 @@ urlpatterns = [
     path(URL.People.TAGSEARCH, tagsSearch),
     path(URL.People.TAGSUPDATE, tagsUpdate),
     path(URL.People.ZOMBIE, zombieProfile),
+    path(URL.People.PROFILEPROJECTS, profileProjects),
+    path(URL.People.PROFILEARTICLES, profileArticles),
+    path(URL.People.PROFILEACHIEVEMENTS, profileAchievements),
+
+
 
     # settings
     path(URL.People.SETTINGTAB, settingTab),

@@ -204,7 +204,7 @@ def profileRenderData(request: WSGIRequest, userID: UUID = None, nickname: str =
         return False
 
 
-def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> dict:
+def getProfileSectionData(section: str, profile: Profile, requestUser: User,size=11) -> dict:
     """Returns the context data to render a profile section.
 
     Args:
@@ -237,10 +237,10 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             if not selfprofile:
                 projects = projects.filter(suspended=False)
                 data[Code.APPROVED] = list(
-                    filter(lambda p: p.is_approved(), projects))
+                    filter(lambda p: p.is_approved(), projects))[:size]
             else:
                 data[Code.APPROVED] = list(
-                    filter(lambda p: p.is_approved(), projects))
+                    filter(lambda p: p.is_approved(), projects))[:4]
                 data[Code.MODERATION] = list(
                     filter(lambda p: p.is_pending(), projects))
                 data[Code.REJECTED] = list(
@@ -248,23 +248,27 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
             if len(projects):
                 cache.set(cachekey, projects, settings.CACHE_INSTANT)
         elif section == profileString.ACHEIVEMENTS:
-            results = cache.get(f"{cachekey}{Code.RESULTS}", [])
+            results = cache.get(f"{cachekey}{Code.RESULTS}", [])[:5]
             if not len(results):
                 results = Result.objects.filter(
-                    submission__members=profile).order_by('-rank', '-points')
+                    submission__members=profile).order_by('-rank', '-points')[:5]
                 cache.set(cachekey, results, settings.CACHE_INSTANT)
-            judements = cache.get(f"{cachekey}{Code.JUDGEMENTS}", [])
-            if not len(judements):
-                judements = CompetitionJudge.objects.filter(
-                    competition__resultDeclared=True, judge=profile).order_by("-competition__createdOn")
-                cache.set(cachekey, judements, settings.CACHE_INSTANT)
-            moderations = cache.get(f"{cachekey}{Code.MODERATIONS}", [])
-            if not len(moderations):
-                moderations = Moderation.objects.filter(
-                    type=COMPETE, moderator=profile, resolved=True, status=Code.APPROVED, competition__resultDeclared=True).order_by('-respondOn')
-                cache.set(cachekey, moderations, settings.CACHE_INSTANT)
+            judgements = []
+            moderations = []
+            if len(results) < 5:
+                judgements = cache.get(f"{cachekey}{Code.JUDGEMENTS}", [])[:5-len(results)]
+                if not len(judgements):
+                    judgements = CompetitionJudge.objects.filter(
+                        competition__resultDeclared=True, judge=profile).order_by("-competition__createdOn")[:5-len(results)]
+                    cache.set(cachekey, judgements, settings.CACHE_INSTANT)
+                    if (len(results) + len(judgements)) < 5:
+                        moderations = cache.get(f"{cachekey}{Code.MODERATIONS}", [])[:5-(len(results)+len(judgements))]
+                        if not len(moderations):
+                            moderations = Moderation.objects.filter(
+                                type=COMPETE, moderator=profile, resolved=True, status=Code.APPROVED, competition__resultDeclared=True).order_by('-respondOn')[:5-(len(results)+len(judgements))]
+                            cache.set(cachekey, moderations, settings.CACHE_INSTANT)
             data[Code.RESULTS] = results
-            data[Code.JUDGEMENTS] = judements
+            data[Code.JUDGEMENTS] = judgements
             data[Code.MODERATIONS] = moderations
         elif section == profileString.ARTICLES:
             articles = cache.get(cachekey, [])
@@ -272,7 +276,7 @@ def getProfileSectionData(section: str, profile: Profile, requestUser: User) -> 
                 articles = Article.objects.filter(author=profile).order_by("-createdOn").distinct()
                 cache.set(cachekey, articles, settings.CACHE_INSTANT)
             data[Code.PUBLISHED] = list(
-                    filter(lambda p: not p.is_draft, articles))
+                    filter(lambda p: not p.is_draft, articles))[:size]
             if selfprofile:
                 data[Code.DRAFTED] = list(
                     filter(lambda p: p.is_draft, articles))

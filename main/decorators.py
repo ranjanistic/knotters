@@ -21,13 +21,13 @@ from django.http.response import (Http404, HttpResponse,
 from django.shortcuts import render
 from django.utils.encoding import force_bytes
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from requests import get as getRequest
-
+from people.models import User
 from .env import ISTESTING
 from .methods import errorLog, respondJson
 from .strings import Code, Event, Message
-
+import jwt
 
 def decDec(inner_dec: callable) -> callable:
     """To be used as a decorator to decorate a decorator.
@@ -351,4 +351,55 @@ def github_bot_only(function: callable) -> callable:
         except Exception as e:
             errorLog(e)
             return HttpResponseBadRequest('Error occurred.')
+    return wrap
+
+
+def knotters_only(function: callable) -> callable:
+    """To make sure that the request is received from a Knotters service, by checking the following:
+        1. The request Authorization header contains the valid INTERNAL_SHARED_SECRET.
+        2. The request body is a valid JSON payload.
+
+    Args:
+        function (callable): The function to be decorated.
+
+    Returns:
+        HttpResponseUnauthorized: If the request is not received from a Knotters source.
+        HttpResponseBadRequest: If the request is authorised, but the body is invalid.
+        callable: The decorated function, if the request is properly received from a GitHub Bot.
+    """
+    @wraps(function)
+    def wrap(request: WSGIRequest, *args, **kwargs):
+        try:
+            if request.headers['X-KNOT-INTERNAL-KEY'] != settings.INTERNAL_SHARED_SECRET:
+                return respondJson(Code.NO, error="Unauthorized", status=401)
+            if request.method != "GET":
+                try:
+                    request.POST = json_loads(request.body.decode(Code.UTF_8))
+                except: pass
+            return function(request, *args, **kwargs)
+        except KeyError:
+            return respondJson(Code.NO, error="Unauthorized", status=401)
+        except Exception as e:
+            errorLog(e)
+            return respondJson(Code.NO, error="Bad request", status=400)
+    return wrap
+
+def bearer_required(function: callable) -> callable:
+    @wraps(function)
+    def wrap(request: WSGIRequest, *args, **kwargs):
+        try:
+            bearer = request.headers['Authorization']
+            token = bearer.split(" ")[1]
+            data = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            request.user = User.objects.get(id=data["id"])
+            if not request.user.profile.isNormal():
+                raise jwt.exceptions.ExpiredSignatureError()
+            return function(request, *args, **kwargs)
+        except KeyError:
+            return respondJson(Code.NO, error="Unauthorized", status=401)
+        except jwt.exceptions.ExpiredSignatureError:
+            return respondJson(Code.NO, error="Expired token", status=410)
+        except Exception as e:
+            errorLog(e)
+            return respondJson(Code.NO, error="Bad request", status=400)
     return wrap

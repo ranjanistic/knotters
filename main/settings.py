@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'allauth_2fa',
     "webpush",
     "mfa",
-    # "corsheaders"
+    "corsheaders"
 ] + DIVISIONS
 
 if not env.ISTESTING:
@@ -272,7 +272,9 @@ elif DEBUG:
     STATIC_ROOT = env.STATIC_ROOT
 
 
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ALLOWED_ORIGIN_REGEXES = [
+  r"^https://\w+\.knotters\.org$"
+]
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
@@ -331,6 +333,8 @@ if not DEBUG:
     os_environ["wsgi.url_scheme"] = "https"
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_DOMAIN = '.knotters.org'
+    SESSION_COOKIE_NAME = f'{env.REDIS_PREFIX}authsessionId'
     CSRF_COOKIE_SECURE = True
     CSRF_TRUSTED_ORIGINS = env.HOSTS
     SECURE_HSTS_SECONDS = 31536000
@@ -566,13 +570,14 @@ CSP_FONT_SRC = ("'self'", "data:", "maxcdn.bootstrapcdn.com", "*.knotters.org")
 
 CSP_SCRIPT_SRC = ("'self'", "'unsafe-eval'", "*.knotters.org", "*.googletagmanager.com","*.googleoptimize.com")
 
-CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com", "*.googletagmanager.com", "*.doubleclick.net",
+CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com", "*.google.co.in",
+                   "*.googletagmanager.com", "*.doubleclick.net", "*.googleoptimize.com",
                    "*.gstatic.com", "cdn.jsdelivr.net", "maxcdn.bootstrapcdn.com",
                    "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
                    "*.licdn.com", "*.discordapp.com", "*.knotters.org"
                    )
 
-CSP_IMG_SRC = ("'self'", "data:", "*.digitaloceanspaces.com",
+CSP_IMG_SRC = ("'self'", "data:", "*.digitaloceanspaces.com","*.googletagmanager.com",
                "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
                "*.licdn.com", "*.discordapp.com", "*.knotters.org"
                )
