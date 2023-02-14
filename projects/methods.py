@@ -11,10 +11,10 @@ from django.db.models import Sum
 from django.db.models.query_utils import Q
 from django.http.response import HttpResponse
 from main.bots import Discord, GithubKnotters
-from main.env import SITE
+from main.env import SITE, REDIS_PREFIX
 from main.methods import (addMethodToAsyncQueue, errorLog, renderString,
                           renderView)
-from main.strings import Code, Event, Message, url, Browse
+from main.strings import Code, Event, Message, url, Browse, Action
 from management.models import HookRecord
 from people.methods import addTopicToDatabase
 from people.models import Profile, Topic
@@ -1337,77 +1337,99 @@ def transfer_approved_repositories(newmoderator, oldmoderator, approved_moderati
     return True
 
 
-def recommendedProjectsList(profile: Profile, excludeUserIDs: list):
+def recommendedProjectsList(profiles: list, topics: list = list()):
     """
-    Updates present list of recommended projects for given profile.
+    Updates present list of recommended projects for a list of profiles.
     """
     try:
         r = settings.REDIS_CLIENT
-        query = Q(topics__in=profile.getTopics())
-        authquery = ~Q(creator=profile)
+        if len(topics):
+            profiles.extend(list(Profile.objects.filter(topics__in=topics).exclude(id__in=[profile.id for profile in profiles])))
+        for profile in profiles:
+            excludeUserIDs = profile.blockedIDs()
+            query = Q(topics__in=profile.getTopics())
+            authquery = ~Q(creator=profile)
 
-        projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery, query).exclude(creator__user__id__in=excludeUserIDs)
-        projects = list(
-            set(list(filter(lambda p: p.is_approved(), projects))))
-        count = len(projects)
-        if count < 1:
-            projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery).exclude(
-                creator__user__id__in=excludeUserIDs)
+            projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery, query).exclude(creator__user__id__in=excludeUserIDs)
             projects = list(
                 set(list(filter(lambda p: p.is_approved(), projects))))
-        project_ids = [str(project.id) for project in projects]
-        if project_ids:
-            r.delete(f"{Browse.RECOMMENDED_PROJECTS}_{profile.id}")
-            r.rpush(f"{Browse.RECOMMENDED_PROJECTS}_{profile.id}", *project_ids)
+            count = len(projects)
+            if count < 1:
+                projects = BaseProject.objects.filter(Q(trashed=False, suspended=False), authquery).exclude(
+                    creator__user__id__in=excludeUserIDs)
+                projects = list(
+                    set(list(filter(lambda p: p.is_approved(), projects))))
+            project_ids = [str(project.id) for project in projects]
+            if project_ids:
+                r.delete(f"{REDIS_PREFIX}{Browse.RECOMMENDED_PROJECTS}_{profile.id}")
+                r.rpush(f"{REDIS_PREFIX}{Browse.RECOMMENDED_PROJECTS}_{profile.id}", *project_ids)
     except Exception as e:
         errorLog(e)
 
 
-def topicProjectsList(profile: Profile, excludeUserIDs: list):
+def topicProjectsList(profiles: list, topics: list = None):
     """
     Updates present list of topic related projects for given profile.
     """
     try:
         r = settings.REDIS_CLIENT
-        if profile.totalAllTopics():
-            topic = profile.getAllTopics()[0]
-        else:
-            topic = profile.recommended_topics()[0]
-        r.set(f"{Browse.TOPIC_PROJECTS}_{profile.id}_topic", topic)
-        projects = BaseProject.objects.filter(trashed=False, suspended=False, topics=topic).exclude(
-            creator__user__id__in=excludeUserIDs)
-        projects = list(
-            set(list(filter(lambda p: p.is_approved(), projects))))
-        project_ids = [str(project.id) for project in projects]
-        if project_ids:
-            r.delete(f"{Browse.TOPIC_PROJECTS}_{profile.id}")
-            r.rpush(f"{Browse.TOPIC_PROJECTS}_{profile.id}", *project_ids)
+        if len(topics):
+            profiles.extend(list(Profile.objects.filter(topics__in=topics).exclude(id__in=[profile.id for profile in profiles])))
+        for profile in profiles:
+            excludeUserIDs = profile.blockedIDs()
+            if profile.totalAllTopics():
+                topic = profile.getAllTopics()[0]
+            else:
+                topic = profile.recommended_topics()[0]
+            r.set(f"{REDIS_PREFIX}{Browse.TOPIC_PROJECTS}_{profile.id}_topic", topic.get_id)
+            projects = BaseProject.objects.filter(trashed=False, suspended=False, topics=topic).exclude(
+                creator__user__id__in=excludeUserIDs)
+            projects = list(
+                set(list(filter(lambda p: p.is_approved(), projects))))
+            project_ids = [str(project.id) for project in projects]
+            if project_ids:
+                r.delete(f"{REDIS_PREFIX}{Browse.TOPIC_PROJECTS}_{profile.id}")
+                r.rpush(f"{REDIS_PREFIX}{Browse.TOPIC_PROJECTS}_{profile.id}", *project_ids)
     except Exception as e:
         errorLog(e)
 
 
-def snapshotsList(profile: Profile, excludeUserIDs: list):
+def snapshotsList(profiles: list, project: BaseProject = None, creator: Profile = None, snapID: str = None, action: str = None):
     """
     Updates present list of snapshots for a given profile.
     """
     try:
         r = settings.REDIS_CLIENT
-        projIDs = Submission.objects.filter(competition__admirers=profile).exclude(
-                            free_project=None).values_list("free_project__id", flat=True)
-        snaps = Snapshot.objects.filter(
-            Q(
-                Q(creator=profile)
-                | Q(base_project__creator=profile)
-                | Q(base_project__co_creators=profile)
-                | Q(base_project__id__in=list(projIDs))
-                | Q(creator__admirers=profile)
-                | Q(base_project__admirers=profile)
-            ),
-            base_project__suspended=False, base_project__trashed=False, base_project__is_archived=False, suspended=False
-        ).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")
-        snap_ids = [str(snap.id) for snap in snaps]
-        if snap_ids:
-            r.delete(f"{Browse.PROJECT_SNAPSHOTS}_{profile.id}")
-            r.rpush(f"{Browse.PROJECT_SNAPSHOTS}_{profile.id}", *snap_ids)
+        if project:
+            if creator:
+                profiles.append(creator)
+                profiles.extend(list(creator.admirers.all()))
+            profiles.append(project.creator)
+            profiles.extend(list(project.co_creators.all()))
+            profiles.extend(list(project.admirers.all()))
+            profiles = list(set(profiles))
+        if action==Action.REMOVE and snapID:
+            for profile in profiles:
+                r.lrem(f"{REDIS_PREFIX}{Browse.PROJECT_SNAPSHOTS}_{profile.id}", 0, snapID)
+            return
+        for profile in profiles:
+            excludeUserIDs = profile.blockedIDs()
+            projIDs = Submission.objects.filter(competition__admirers=profile).exclude(
+                                free_project=None).values_list("free_project__id", flat=True)
+            snaps = Snapshot.objects.filter(
+                Q(
+                    Q(creator=profile)
+                    | Q(base_project__creator=profile)
+                    | Q(base_project__co_creators=profile)
+                    | Q(base_project__id__in=list(projIDs))
+                    | Q(creator__admirers=profile)
+                    | Q(base_project__admirers=profile)
+                ),
+                base_project__suspended=False, base_project__trashed=False, base_project__is_archived=False, suspended=False
+            ).exclude(creator__user__id__in=excludeUserIDs).distinct().order_by("-created_on")
+            snap_ids = [str(snap.id) for snap in snaps]
+            if snap_ids:
+                r.delete(f"{REDIS_PREFIX}{Browse.PROJECT_SNAPSHOTS}_{profile.id}")
+                r.rpush(f"{REDIS_PREFIX}{Browse.PROJECT_SNAPSHOTS}_{profile.id}", *snap_ids)
     except Exception as e:
         errorLog(e)

@@ -625,28 +625,32 @@ def filterNickname(nickname, limit=30):
     return re_sub(r'[^a-zA-Z0-9\-]', "", "-".join(filter(lambda x: x, nickname.split("-"))))[:limit].lower()
 
 
-def updatePresentLists(profile, plist: str):
+def updatePresentLists(plist: str, profiles: list = list(), **kwargs):
     """
-    Updates the present lists for a particular profile asynchronously.
+    Updates the present lists asynchronously.
 
      Args:
-        profile (Profile): The profile instance of user.
         plist (str): Name of present list to be updated.
+        profiles (list): List of profiles.
 
     Returns:
         None
     """
     from people.methods import topicProfilesList
     from projects.methods import recommendedProjectsList, topicProjectsList, snapshotsList
-    excludeUserIDs = profile.blockedIDs()
+    topics = kwargs.get('topics', list())
+    project = kwargs.get('project', None)
+    creator = kwargs.get('creator', None)
+    action = kwargs.get('action', None)
+    snapID = kwargs.get('snapID', None)
     if plist==Browse.RECOMMENDED_PROJECTS:
-        addMethodToAsyncQueue(f"{PROJECTS}.methods.{recommendedProjectsList.__name__}", profile, excludeUserIDs)
-    if plist==Browse.TOPIC_PROJECTS:
-        addMethodToAsyncQueue(f"{PROJECTS}.methods.{topicProjectsList.__name__}", profile, excludeUserIDs)
+        addMethodToAsyncQueue(f"{PROJECTS}.methods.{recommendedProjectsList.__name__}", profiles, topics)
+    if plist==Browse.TOPIC_PROJECTS:                                            
+        addMethodToAsyncQueue(f"{PROJECTS}.methods.{topicProjectsList.__name__}", profiles, topics)
     if plist==Browse.TOPIC_PROFILES:
-        addMethodToAsyncQueue(f"{PEOPLE}.methods.{topicProfilesList.__name__}", profile, excludeUserIDs)
+        addMethodToAsyncQueue(f"{PEOPLE}.methods.{topicProfilesList.__name__}", profiles, topics)
     if plist==Browse.PROJECT_SNAPSHOTS:
-        addMethodToAsyncQueue(f"{PROJECTS}.methods.{snapshotsList.__name__}", profile, excludeUserIDs)
+        addMethodToAsyncQueue(f"{PROJECTS}.methods.{snapshotsList.__name__}", profiles, project, creator, snapID, action)
 
         
 def createDummyUsers(limit=5):

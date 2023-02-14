@@ -1254,7 +1254,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 snaps = cache.get(cachekey, [])
                 snapIDs = [snap.id for snap in snaps]
                 if not len(snaps):
-                    snap_ids = r.lrange(f"{Browse.PROJECT_SNAPSHOTS}_{request.user.profile.id}", start, start+limit-1)
+                    snap_ids = r.lrange(f"{REDIS_PREFIX}{Browse.PROJECT_SNAPSHOTS}_{request.user.profile.id}", start, start+limit-1)
                     queryset = Snapshot.objects.filter(id__in=snap_ids)
                     snaps = sorted(queryset, key=lambda x : snap_ids.index(str(x.id)))
                     snapIDs = [snap.id for snap in snaps]
@@ -1306,9 +1306,9 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
             count = len(projects)
             if not count:
                 if request.user.is_authenticated:
-                    project_ids = r.lrange(f"{Browse.RECOMMENDED_PROJECTS}_{request.user.profile.id}", 0, -1)
+                    project_ids = r.lrange(f"{REDIS_PREFIX}{Browse.RECOMMENDED_PROJECTS}_{request.user.profile.id}", 0, -1)
                 else:
-                    project_ids = r.lrange(Browse.RECOMMENDED_PROJECTS, 0, -1)
+                    project_ids = r.lrange(REDIS_PREFIX+Browse.RECOMMENDED_PROJECTS, 0, -1)
                 queryset = BaseProject.objects.filter(id__in=project_ids).distinct()[:limit]
                 projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                 count = len(projects)
@@ -1422,9 +1422,13 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TOPIC_PROJECTS:
             if request.user.is_authenticated:
                 projects = cache.get(cachekey, [])
-                topic = r.get(f"{Browse.TOPIC_PROJECTS}_{request.user.profile.id}_topic")
-                if not projects:
-                    project_ids = r.lrange(REDIS_PREFIX+Browse.TOPIC_PROJECTS, 0, -1)
+                topic_id = r.get(f"{REDIS_PREFIX}{Browse.TOPIC_PROJECTS}_{request.user.profile.id}_topic")
+                try:
+                    topic: Topic = Topic.objects.get(id=topic_id)
+                except:
+                    topic = None
+                if topic and not projects:
+                    project_ids = r.lrange(f"{REDIS_PREFIX}{Browse.TOPIC_PROJECTS}_{request.user.profile.id}", 0, -1)
                     queryset = BaseProject.objects.filter(id__in=project_ids).distinct()[:limit]
                     projects = sorted(queryset, key=lambda x: project_ids.index(str(x.id)))
                     cache.set(cachekey, projects, settings.CACHE_MINI)
@@ -1434,9 +1438,13 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
         elif type == Browse.TOPIC_PROFILES:
             if request.user.is_authenticated:
                 profiles = cache.get(cachekey, [])
-                topic = r.get(f"{Browse.TOPIC_PROFILES}_{request.user.profile.id}_topic")
-                if not profiles:
-                    profile_ids = r.lrange(f"{Browse.TOPIC_PROFILES}_{request.user.profile.id}", 0, -1)
+                topic_id = r.get(f"{REDIS_PREFIX}{Browse.TOPIC_PROFILES}_{request.user.profile.id}_topic")
+                try:
+                    topic: Topic = Topic.objects.get(id=topic_id)
+                except:
+                    topic = None
+                if topic and not profiles:
+                    profile_ids = r.lrange(f"{REDIS_PREFIX}{Browse.TOPIC_PROFILES}_{request.user.profile.id}", 0, -1)
                     queryset = Profile.objects.filter(id__in=profile_ids)[:limit]
                     profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
                     cache.set(cachekey, profiles, settings.CACHE_MINI)

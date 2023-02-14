@@ -413,6 +413,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
         visibleTopicIDs = request.POST.get('visibleTopicIDs', None)
         addtopics = request.POST.get('addtopics', None)
         updated = False
+        topics = []
         if not (addtopicIDs or removetopicIDs or visibleTopicIDs or addtopics):
             raise KeyError(addtopicIDs, removetopicIDs,
                            visibleTopicIDs, addtopics)
@@ -423,6 +424,7 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             ProfileTopic.objects.filter(
                 profile=profile, topic__id__in=removetopicIDs).update(trashed=True)
             updated = True
+            topics.extend(removetopicIDs)
 
         if addtopicIDs:
             if not json_body:
@@ -440,7 +442,8 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
             if profile.totalTopics() != newcount:
                 for topic in Topic.objects.filter(id__in=addtopicIDs):
                     profile.topics.add(topic)
-                updated = True
+            updated = True
+            topics.extend(addtopicIDs)
 
         if visibleTopicIDs and len(visibleTopicIDs) > 0:
             if len(visibleTopicIDs) > 5:
@@ -472,9 +475,9 @@ def topicsUpdate(request: WSGIRequest) -> HttpResponse:
                 updated = True
 
         if updated:
-            updatePresentLists(profile, Browse.TOPIC_PROFILES)
-            updatePresentLists(profile, Browse.TOPIC_PROJECTS)
-            updatePresentLists(profile, Browse.RECOMMENDED_PROJECTS)
+            updatePresentLists(plist=Browse.TOPIC_PROFILES, profiles=[profile], topics=topics)
+            updatePresentLists(plist=Browse.TOPIC_PROJECTS, profiles=[profile])
+            updatePresentLists(plist=Browse.RECOMMENDED_PROJECTS, profiles=[profile])
             cache.delete(profile.CACHE_KEYS.topic_ids)
 
         if json_body:
@@ -715,6 +718,10 @@ def blockUser(request: WSGIRequest) -> JsonResponse:
         user: User = User.objects.get(id=userID)
         if not request.user.profile.blockUser(user):
             raise ObjectDoesNotExist(user)
+        updatePresentLists(plist=Browse.TOPIC_PROFILES, profiles=[request.user.profile])
+        updatePresentLists(plist=Browse.TOPIC_PROJECTS, profiles=[request.user.profile])
+        updatePresentLists(plist=Browse.RECOMMENDED_PROJECTS, profiles=[request.user.profile])
+        updatePresentLists(plist=Browse.PROJECT_SNAPSHOTS, profiles=[request.user.profile])
         return respondJson(Code.OK)
     except (ValidationError, ObjectDoesNotExist, KeyError) as o:
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -741,6 +748,10 @@ def unblockUser(request: WSGIRequest) -> JsonResponse:
         user: User = User.objects.get(id=userID)
         if not request.user.profile.unblockUser(user):
             raise ObjectDoesNotExist(user)
+        updatePresentLists(plist=Browse.TOPIC_PROFILES, profiles=[request.user.profile])
+        updatePresentLists(plist=Browse.TOPIC_PROJECTS, profiles=[request.user.profile])
+        updatePresentLists(plist=Browse.RECOMMENDED_PROJECTS, profiles=[request.user.profile])
+        updatePresentLists(plist=Browse.PROJECT_SNAPSHOTS, profiles=[request.user.profile])
         return respondJson(Code.OK)
     except (ObjectDoesNotExist, ValidationError):
         return respondJson(Code.NO, error=Message.INVALID_REQUEST)
@@ -984,7 +995,7 @@ def toggleAdmiration(request: WSGIRequest, userID: UUID) -> JsonResponse:
         elif request.POST['admire'] in ["false", False]:
             profile.admirers.remove(request.user.profile)
         if profile.project_snapshot_creator.exists():
-            updatePresentLists(request.user.profile, Browse.PROJECT_SNAPSHOTS)
+            updatePresentLists(plist=Browse.PROJECT_SNAPSHOTS, profiles=[request.user.profile])
         if json_body:
             return respondJson(Code.OK)
         return redirect(profile.get_link)

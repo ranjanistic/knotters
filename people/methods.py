@@ -15,7 +15,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Q
 from django.http.response import HttpResponse
 from main.methods import errorLog, renderString, renderView, addMethodToAsyncQueue
-from main.strings import COMPETE, Code, Browse
+from main.strings import COMPETE, Code, Browse, Action
 from main.strings import profile as profileString
 from moderation.models import Moderation
 from projects.models import BaseProject, Project
@@ -24,6 +24,7 @@ from howto.models import Article
 from .apps import APPNAME
 from .models import (Framework, Profile, ProfileSetting, Topic, User,
                      defaultImagePath, isPictureDeletable)
+from main.env import REDIS_PREFIX
 
 
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
@@ -471,22 +472,26 @@ def getUsernameFromGHSocial(ghSocial: SocialAccount) -> str or None:
         return None
 
 
-def topicProfilesList(profile: Profile, excludeUserIDs: list):
+def topicProfilesList(profiles: list, topics: list = list()):
     """
-    Updates present list of topic related profiles for given profile.
+    Updates present list of topic related profiles.
     """
-    try:
+    try: 
         r = settings.REDIS_CLIENT
-        if profile.totalAllTopics():
-            topic = profile.getAllTopics()[0]
-        else:
-            topic = profile.recommended_topics()[0]
-        r.set(f"{Browse.TOPIC_PROFILES}_{profile.id}_topic", topic)
-        profiles = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, topics=topic).exclude(
-            user__id__in=excludeUserIDs)
-        profile_ids = [str(profile.id) for profile in profiles]
-        if profile_ids:
-            r.delete(f"{Browse.TOPIC_PROFILES}_{profile.id}")
-            r.rpush(f"{Browse.TOPIC_PROFILES}_{profile.id}", *profile_ids)
+        if len(topics):
+            profiles.extend(list(Profile.objects.filter(topics__in=topics).exclude(id__in=[profile.id for profile in profiles])))
+        for profile in profiles:
+            excludeUserIDs = profile.blockedIDs()
+            if profile.totalAllTopics():
+                topic = profile.getAllTopics()[0]
+            else:
+                topic = profile.recommended_topics()[0]
+            r.set(f"{REDIS_PREFIX}{Browse.TOPIC_PROFILES}_{profile.id}_topic", topic.get_id)
+            profiles = Profile.objects.filter(suspended=False, is_active=True, to_be_zombie=False, topics=topic).exclude(
+                user__id__in=excludeUserIDs)
+            profile_ids = [str(profile.id) for profile in profiles]
+            if profile_ids:
+                r.delete(f"{REDIS_PREFIX}{Browse.TOPIC_PROFILES}_{profile.id}")
+                r.rpush(f"{REDIS_PREFIX}{Browse.TOPIC_PROFILES}_{profile.id}", *profile_ids)
     except Exception as e:
         errorLog(e)

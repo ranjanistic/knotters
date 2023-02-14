@@ -1264,7 +1264,7 @@ def toggleAdmiration(request: WSGIRequest, compID: UUID) -> JsonResponse:
         elif admire in ["false", False]:
             compete.admirers.remove(request.user.profile)
         if len(compete.getSubmissions()):
-            updatePresentLists(request.user.profile, Browse.PROJECT_SNAPSHOTS)
+            updatePresentLists(plist=Browse.PROJECT_SNAPSHOTS, profiles=[request.user.profile])
         if json_body:
             return respondJson(Code.OK)
         return redirect(compete.get_link)

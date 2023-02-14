@@ -1038,7 +1038,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
         addtopicIDs = request.POST.get('addtopicIDs', None)
         removetopicIDs = request.POST.get('removetopicIDs', None)
         addtopics = request.POST.get('addtopics', None)
-
+        topics = []
         project: BaseProject = BaseProject.objects.get(
             id=projID, trashed=False, is_archived=False, suspended=False)
 
@@ -1055,6 +1055,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 removetopicIDs = removetopicIDs.strip(',').split(',')
             ProjectTopic.objects.filter(
                 project=project, topic__id__in=removetopicIDs).delete()
+            topics.extend(removetopicIDs)
 
         if addtopicIDs:
             if not json_body:
@@ -1072,6 +1073,7 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                 project.topics.add(topic)
                 for tag in project.getTags():
                     topic.tags.add(tag)
+            topics.extend(addtopicIDs)
 
         if addtopics and len(addtopics) > 0:
             count = ProjectTopic.objects.filter(project=project).count()
@@ -1090,7 +1092,8 @@ def topicsUpdate(request: WSGIRequest, projID: UUID) -> HttpResponse:
                     topic=topic, project=project))
             if len(projecttopics) > 0:
                 ProjectTopic.objects.bulk_create(projecttopics)
-
+        updatePresentLists(plist=Browse.RECOMMENDED_PROJECTS, topics=topics)
+        updatePresentLists(plist=Browse.TOPIC_PROJECTS, topics=topics)
         if json_body:
             return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
         return redirect(project.getLink(success=Message.TOPICS_UPDATED))
@@ -1381,7 +1384,7 @@ def toggleAdmiration(request: WSGIRequest, projID: UUID) -> HttpResponse:
         elif admire in ["false", False]:
             project.admirers.remove(request.user.profile)
         if project.base_project_snapshot.exists():
-            updatePresentLists(request.user.profile, Browse.PROJECT_SNAPSHOTS)
+            updatePresentLists(plist=Browse.PROJECT_SNAPSHOTS, profiles=[request.user.profile])
         if json_body:
             return respondJson(Code.OK)
         return redirect(project.getLink())
@@ -2013,12 +2016,6 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
     try:
         baseproject: BaseProject = BaseProject.objects.get(
             id=projID, trashed=False, is_archived=False, suspended=False)
-        
-        if action in [Action.CREATE, Action.REMOVE]:
-            updatePresentLists(request.user.profile, Browse.PROJECT_SNAPSHOTS)
-            updatePresentLists(baseproject.creator, Browse.PROJECT_SNAPSHOTS)
-            for co_creator in baseproject.co_creators.all():
-                updatePresentLists(co_creator, Browse.PROJECT_SNAPSHOTS)
 
         if action == Action.CREATE:
             if not baseproject.can_post_snapshots(request.user.profile):
@@ -2047,6 +2044,7 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
                 video=videofile
             )
             snapshotCreated(baseproject, snapshot)
+            updatePresentLists(plist=Browse.PROJECT_SNAPSHOTS, project=baseproject, creator=request.user.profile)
             return redirect(baseproject.getProject().getLink(alert=Message.SNAP_CREATED))
 
         id = request.POST['snapid'][:50]
@@ -2083,9 +2081,11 @@ def snapshot(request: WSGIRequest, projID: UUID, action: str) -> JsonResponse:
             return respondJson(Code.OK, message=Message.SNAP_UPDATED)
 
         if action == Action.REMOVE:
+            snapID = str(snapshot.id)
             done = snapshot.delete()[0] >= 1
             if not done:
                 raise ObjectDoesNotExist(snapshot)
+            updatePresentLists(plist=Browse.PROJECT_SNAPSHOTS, project=baseproject, creator=request.user.profile, snapID=snapID, action=Action.REMOVE)
             return respondJson(Code.OK, message=Message.SNAP_DELETED)
 
         raise KeyError(action)
