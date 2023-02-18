@@ -10,6 +10,8 @@ admin.site.register(EmailNotification)
 admin.site.register(EmailNotificationSubscriber)
 admin.site.register(DeviceNotification)
 admin.site.register(DeviceNotificationSubscriber)
+admin.site.register(APIKey)
+admin.site.register(SSHKey)
 
 
 @admin.register(State)

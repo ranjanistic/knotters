@@ -192,3 +192,62 @@ class DeviceNotificationSubscriber(models.Model):
     created_at: datetime = models.DateTimeField(
         auto_now=False, default=timezone.now)
     """created_at (DateTimeField): The date and time when the subscription relation was created"""
+
+
+class APIKey(models.Model):
+    """The model for API key"""
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    key: str = models.CharField(max_length=100, unique=True,
+                                help_text="Random string at least 32 chars")
+    """key (CharField): API key. Usually this is auto-generated on record creation"""
+    name: str = models.CharField(max_length=100, null=True, blank=True)
+    """name (CharField): name of the API key"""
+    is_internal: bool = models.BooleanField(default=False)
+    """is_internal (BooleanField): True if this is an internal API key, False otherwise. True is meant for internal sensitive access."""
+    creator = models.ForeignKey(
+        f'{PEOPLE}.Profile', related_name='apikey_creator_profile', on_delete=models.CASCADE, null=True)
+    """creator (ForeignKey<Profile>): creator of this API key"""
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """created_on (DateTimeField): date and time when this API key was created"""
+
+    def save(self, *args, **kwargs):
+        """Save this API key record. Also automatically generates the key if it is empty.
+        """
+        if not str(self.key).startswith("knot_"):
+            self.key = f"knot_{self.key}"
+        if(len(self.key.replace("knot_", '')) < 32):
+            return False
+        super(APIKey, self).save(*args, **kwargs)
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    def __str__(self):
+        return self.name or self.get_id
+
+
+class SSHKey(models.Model):
+    """The model for storing SSH key"""
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    public_key: str = models.CharField(max_length=10000, unique=True,
+                                help_text="SSH public key")
+    """public_key (CharField): SSH public key."""
+    name: str = models.CharField(max_length=100)
+    """name (CharField): name of the SSH key"""
+    creator = models.ForeignKey(
+        f'{PEOPLE}.Profile', related_name='sshkey_creator_profile', on_delete=models.CASCADE)
+    """creator (ForeignKey<Profile>): user of this SSH key"""
+    created_on: datetime = models.DateTimeField(
+        auto_now=False, default=timezone.now)
+    """created_on (DateTimeField): date and time when this SSH key was added"""
+
+    @property
+    def get_id(self):
+        return self.id.hex
+
+    def __str__(self):
+        return self.name or self.get_id
