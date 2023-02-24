@@ -586,7 +586,7 @@ CSP_MEDIA_SRC = ("'self'","data:", "*.digitaloceanspaces.com",
                "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
                "*.licdn.com", "*.discordapp.com", "*.knotters.org")
 
-CSP_FRAME_SRC = ("'self'", "www.google.com", "*.knotters.org")
+CSP_FRAME_SRC = ("'self'", "www.google.com","*.razorpay.com", "*.knotters.org")
 
 CSP_INCLUDE_NONCE_IN = ["script-src"]
 
