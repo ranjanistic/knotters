@@ -89,7 +89,7 @@
             {% elif compete.reg_fee %}
               <div class="w3-col w3-half w3-center dead-text w3-padding">
                 <h4>{% trans "To be eligible for prizes here" %},</h4>
-                <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
+                <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#1657CE" data-size="medium">
                 <script nonce="{{request.csp_nonce}}">
                 (function(){
                   var d=document; var x=!d.getElementById('razorpay-embed-btn-js')
@@ -110,7 +110,7 @@
               {% elif compete.reg_fee %}
                 <div class="w3-col w3-center dead-text w3-padding">
                   <h4>{% trans "To be eligible for prizes" %},</h4>
-                  <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
+                  <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#1657CE" data-size="medium">
                     <script nonce="{{request.csp_nonce}}">
                     (function(){
                       var d=document; var x=!d.getElementById('razorpay-embed-btn-js')
