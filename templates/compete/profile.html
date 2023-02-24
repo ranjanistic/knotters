@@ -85,7 +85,7 @@
               <h3>In order to participate</h3>
               <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="positive big-button" data-icon="person_add">Create an account</button></a>
             </div>
-          {% elif compete.reg_fee %}
+          {% elif compete.reg_fee and compete.isActive %}
           <div class="w3-col w3-half w3-center dead-text w3-padding" hidden>
             <h4>{% trans "To be eligible for cash prizes here" %},</h4>
             <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
@@ -105,6 +105,20 @@
             {% if not request.user.is_authenticated %}
               <h3>In order to participate</h3>
               <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="positive big-button" data-icon="person_add">Create an account</button></a>
+              {% elif compete.reg_fee %}
+              <div class="w3-col w3-half w3-center dead-text w3-padding" hidden>
+                <h4>{% trans "To be eligible for cash prizes here" %},</h4>
+                <div class="razorpay-embed-btn" data-url="{{compete.fee_link|safe}}" data-text="Pay ₹{{compete.reg_fee}}" data-color="#F5D702" data-size="medium">
+                  <script nonce="{{request.csp_nonce}}">
+                    (function(){
+                      var d=document; var x=!d.getElementById('razorpay-embed-btn-js')
+                      if(x){ var s=d.createElement('script'); s.defer=!0;s.id='razorpay-embed-btn-js';
+                      s.src='https://cdn.razorpay.com/static/embed_btn/bundle.js';d.body.appendChild(s);} else{var rzp=window['__rzp__'];
+                      rzp && rzp.init && rzp.init()}})();
+                  </script>
+                </div>
+                <h6>{% trans "Do not pay if already paid." %} Read <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>.</h6>
+              </div>
             {% else %}
               <h6>You'll be able to participate when <br/>this competition begins.<br/>In the meantime, checkout</h6>
               <a href="https://discord.gg/F7vZ9fYkhe" target="_blank"><button class="positive big-button" data-icon="open_in_new">Knotters on Discord</button></a>

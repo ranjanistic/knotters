@@ -572,7 +572,7 @@ CSP_SCRIPT_SRC = ("'self'", "'unsafe-eval'", "*.knotters.org", "*.googletagmanag
 
 CSP_CONNECT_SRC = ("'self'", "*.digitaloceanspaces.com", "*.google.com", "*.google.co.in",
                    "*.googletagmanager.com", "*.doubleclick.net", "*.googleoptimize.com",
-                   "*.gstatic.com", "cdn.jsdelivr.net", "maxcdn.bootstrapcdn.com",
+                   "*.gstatic.com", "cdn.jsdelivr.net", "maxcdn.bootstrapcdn.com", "*.razorpay.com",
                    "*.gravatar.com", "*.googleusercontent.com", "*.githubusercontent.com",
                    "*.licdn.com", "*.discordapp.com", "*.knotters.org"
                    )
