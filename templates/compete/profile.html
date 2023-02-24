@@ -84,7 +84,7 @@
             {% if not request.user.is_authenticated %}
               <div class="w3-col w3-half w3-center w3-padding">
                 <h3>In order to participate</h3>
-                <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="positive big-button" data-icon="person_add">Create an account</button></a>
+                <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="primary border-joy big-button" data-icon="person_add">Create an account</button></a>
               </div>
             {% elif compete.reg_fee %}
               <div class="w3-col w3-half w3-center dead-text w3-padding">
@@ -205,8 +205,8 @@
         <h4>{% trans "Full details will be shown" %} {% trans "and" %} {% trans "you'll be able to participate" %}, <br/>{% trans "once the competition begins." %}</h4>
         <h5>In the meantime, go through <br/>our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">{% trans "competition guidelines" %}<i>open_in_new</i></a>.</h5>
         {% if not request.user.is_authenticated %}
-        <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="positive big-button" data-icon="person_add">Create an account</button></a>
-        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="accent big-button" data-icon="login">Login as existing</button></a>
+        <a href="{{URLS.Auth.SIGNUP}}?next={{request.path}}"><button class="primary border-joy big-button" data-icon="person_add">Create an account</button></a>
+        <a href="{{URLS.Auth.LOGIN}}?next={{request.path}}"><button class="secondary accent-text big-button" data-icon="login">Login as existing</button></a>
         {% endif %}
       </div>
       <br/>
@@ -249,23 +249,14 @@
     <br/>
   </div>
   {% if not compete.isUpcoming %}
-  <div class="w3-row w3-padding text-medium" id="notice">
+  <div class="w3-row w3-padding text-medium dead-text" id="notice">
     <strong>
-      <center>*NOTICE</center>
-      <br/>- All mentioned prizes for rank holders are the sole resposibility of <a href="{{compete.creator.getLink}}" target="_blank">the manager</a>. Under no circumstances {{APPNAME}} and its administrators must be held accountable for any discrepancies. {{APPNAME}} support team however, may try to help you in such cases, but only if you want their help.<br/>
+      <center>NOTICE</center>
       <br/>- If participating in a group, the rank cash prize will be awarded to the group as a unit. No distribution of cash prize among the members of submission will be felicitated by {{APPNAME}}.<br/>
-      <br/>- The chance to level up profile by the mentioned XP amount is totally conditional. Actual XP amount most certainly will vary for every participant, depending upon the points they earn.<br/>
-      <br/>- The submissions made to this competition should follow our <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a>, and the guidelines mentioned above. In case of guideline conflict, the former shall prevail.<br/>
       <br/>- The decision of the jury will be considered final, and the jury, {{APPNAME}} and its administrators shall not be accountable for challenge by any participant under any circumstances regarding the declared results.<br/>
       <br/>- Results for this competition will only be declared & available here. Declaration of results could take time, after the competition ends. Participants are advised to not fall for any fake result announcements, and should check the result status on this page only.<br/>
-      <br/>- Participants, judges, & moderator will be notified via our official channels (email, discord announcement) only, once the results are declared.
-      <br/>- After the declaration of results, the certificate URL will be available alongside the rank of a participant. That URL should be considered of equal weightage as of the e-certificate.<br/>
       <br/>- Issuing of e-certificate by {{APPNAME}} for every participant could take time, after the results declaration. However, the certificate URL will remain valid & available all the time.<br/>
-      <br/>- E-certificate issued by {{APPNAME}}, which will be available on the certificate URL, should only be considered valid. Any certificate issued to participant apart from that via any other source should be considered fraud, and must be reported to us.<br/>
-      <br/>- The XP will be available to claim for every participant. Each participant can claim only their own XP from a competition.<br/>
       <br/>- After claiming XP, the topic(s) of this competition and their individual earned points will not get mentioned on participant's profile automatically. Participants can add topics to their own profiles by themselves, if they want to.<br/>
-      <br/>- Also read the general <a href="{{URLS.Docs.TYPE|params:'competitionguidelines'}}" target="_blank">competition guidelines</a> if you haven't.
-      <br/>- For other doubts or concerns, you may refer our <a href="{{URLS.DOCS}}" target="_blank">legal & moral section</a>.
     </strong>
   </div>
   {% endif %}
