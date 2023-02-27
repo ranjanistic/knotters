@@ -1275,7 +1275,7 @@ def browser(request: WSGIRequest, type: str) -> HttpResponse:
                 if request.user.is_authenticated:
                     excludeUserIDs.append(request.user.profile.getUserID())
                 profile_ids = r.lrange(REDIS_PREFIX+Browse.NEW_PROFILES, 0, limit)
-                queryset = Profile.objects.filter(id__in=profile_ids).exclude(
+                queryset = Profile.objects.filter(id__in=profile_ids,is_zombie=False).exclude(
                     user__id__in=excludeUserIDs)
                 profiles = sorted(queryset, key=lambda x: profile_ids.index(str(x.id)))
                 cache.set(cachekey, profiles, settings.CACHE_MINI)
