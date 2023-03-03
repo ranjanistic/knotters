@@ -20,7 +20,6 @@ static/webpush
 py
 *.apk
 nginx_waitress
-runserver.py
 main/__version__.py
 main/__refresh__.py
 _backup_/

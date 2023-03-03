@@ -19,7 +19,7 @@ on:
 
 jobs:
   testing:
-    runs-on: [self-hosted, testing]
+    runs-on: [self-hosted, testing, knotters, django]
     strategy:
       max-parallel: 1
       matrix:
@@ -30,75 +30,61 @@ jobs:
       uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
+        /home/ubuntu/testing/bin/pip install --upgrade pip
+        /home/ubuntu/testing/bin/pip install -r requirements.txt
     - name: Create Environment
       run: |
         echo "${{ secrets.ENV_TEST }}" > ${{ secrets.ENVPATH }}
         cp ${{ secrets.ENVPATH }} ${{ secrets.ENVPATH }}.testing
     - name: Run migrations
       run: |
-        python3 manage.py makemigrations --noinput
-        python3 manage.py migrate --noinput
+        /home/ubuntu/testing/bin/python3 manage.py makemigrations --noinput
+        /home/ubuntu/testing/bin/python3 manage.py migrate --noinput
     - name: Run tests
       run: |
-        python3 manage.py test --noinput --verbosity=1 --parallel
+        /home/ubuntu/testing/bin/python3 manage.py test --noinput --verbosity=1 --parallel
 
   build:
     needs: [testing]
-    runs-on: [self-hosted, building, production]
+    runs-on: [self-hosted, building, production, knotters, django]
     strategy:
       max-parallel: 1
       matrix:
         python-version: ["3.10"]
 
     steps:
-    - name: Create backup
-      run: |
-        mongodump --forceTableScan --uri="${{ secrets.DBBACKUPLINK }}" -o _backup_
-        tar czf _backup_/${{ secrets.DBNAME }}.tar.gz _backup_/${{ secrets.DBNAME }}
-        rm -f _backup_/${{ secrets.DBNAME }}.tar.gz.gpg
-        gpg -e -r ${{ secrets.MAILUSER }} _backup_/${{ secrets.DBNAME }}.tar.gz
-        rm -f -r _backup_/${{ secrets.DBNAME }}
-        rm -f _backup_/${{ secrets.DBNAME }}.tar.gz
-        drive push -force -no-prompt -destination backups ~/drive/${{ secrets.DBNAME }}.tar.gz.gpg
     - name: Merge changes
-      run: |
-        git pull --depth=100
+      uses: actions/checkout@v2
+      with:
+        clean: false
     - name: Install dependencies
       run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
+        /home/ubuntu/knotters/bin/pip install --upgrade pip
+        /home/ubuntu/knotters/bin/pip install -r requirements.txt
     - name: Setup environment
       run: |
         echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
     - name: Run migrations
       run: |
-        python3 manage.py makemigrations --noinput
-        python3 manage.py migrate --noinput
+        /home/ubuntu/knotters/bin/python3 manage.py makemigrations --noinput
+        /home/ubuntu/knotters/bin/python3 manage.py migrate --noinput
     - name: Synchronise notifications
       run: |
-        python3 manage.py syncnotifications --noinput
+        /home/ubuntu/knotters/bin/python3 manage.py syncnotifications --noinput
 
   deploy:
     needs: [build]
-    runs-on: [self-hosted,deployment,production]
+    runs-on: [self-hosted,deployment,production,knotters,django]
     strategy:
       max-parallel: 1
       matrix:
         python-version: ["3.10"]
 
     steps:
-    - name: Create backup
-      run: |
-        tar czf _backup_/media.tar.gz /var/www/knotters/media
-        rm -f _backup_/media.tar.gz.gpg
-        gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
-        rm -f _backup_/media.tar.gz
-        drive push -force -no-prompt -destination backups ~/drive/media.tar.gz.gpg
     - name: Merge changes
-      run: |
-        git pull origin main --depth=100
+      uses: actions/checkout@v2
+      with:
+        clean: false
     - name: Setup environment
       run: |
         echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
