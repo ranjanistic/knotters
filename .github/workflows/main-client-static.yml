@@ -81,5 +81,5 @@ jobs:
         /home/ubuntu/knotters/bin/python3 manage.py preparestatics /var/www/knotters/errors/
     - name: Restart server
       run: |
-        systemctl --user restart knotters.gunicorn.service
+        sudo systemctl --user --machine=ubuntu@.host restart knotters.gunicorn.service
     
