@@ -14,7 +14,6 @@ environ.setdefault('ENVPATH', 'main/.env')
 wsgi_app = "main.wsgi:application"
 capture_output = True
 pidfile = "/var/www/gunicorn/knotters.pid"
-# daemon = True
 bind = "unix:/var/www/sockets/knotters.gunicorn.sock"
 max_requests = 1000
 accesslog = "/var/log/gunicorn/knotters.access.log"
