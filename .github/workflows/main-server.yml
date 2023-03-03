@@ -90,7 +90,7 @@ jobs:
         echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
     - name: Restart services
       run: |
-        systemctl --user --machine=ubuntu@.host restart knotters.gunicorn.service
-        systemctl --user --machine=ubuntu@.host restart knotters.cluster0
+        sudo systemctl --user --machine=ubuntu@.host restart knotters.gunicorn.service
+        sudo systemctl --user --machine=ubuntu@.host restart knotters.cluster0
 #        systemctl --user restart knotters.cluster1
     
