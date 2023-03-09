@@ -6,7 +6,7 @@ from . import env
 from .strings import AUTH2, DB, DIVISIONS, DOCS, MANAGEMENT, PEOPLE, url
 
 BASE_DIR = env.BASE_DIR
-SECRET_KEY = env.PROJECTKEY
+SECRET_KEY = "y1xv)gmj=8l#zppfbgv)4)ms3%l^h+=bu^h*3_d-szq_$fe%go"
 
 VERSION = env.VERSION
 

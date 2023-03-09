@@ -35,4 +35,4 @@ if __name__ == '__main__':
     if argv[1] == 'test':
         main(ENVPATH=ENVTESTPATH)
     else:
-        main(ENVPATH=ENVPATH)
+        main(ENVPATH="main/.env")
