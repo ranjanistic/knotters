@@ -6,7 +6,7 @@ from . import env
 from .strings import AUTH2, DB, DIVISIONS, DOCS, MANAGEMENT, PEOPLE, url
 
 BASE_DIR = env.BASE_DIR
-SECRET_KEY = "y1xv)gmj=8l#zppfbgv)4)ms3%l^h+=bu^h*3_d-szq_$fe%go"
+SECRET_KEY = env.PROJECTKEY
 
 VERSION = env.VERSION
 
@@ -589,4 +589,3 @@ CSP_MEDIA_SRC = ("'self'","data:", "*.digitaloceanspaces.com",
 CSP_FRAME_SRC = ("'self'", "www.google.com","*.razorpay.com", "*.knotters.org")
 
 CSP_INCLUDE_NONCE_IN = ["script-src"]
-
