@@ -1,27 +1,30 @@
 from django.core.handlers.wsgi import WSGIRequest
-from main.methods import errorLog, respondJson
-from main.strings import Code, Message,setURLAlerts,Template
+from main.methods import errorLog, renderView, respondJson, respondRedirect
+from main.strings import Code, Message,setURLAlerts,Template,URL
 from django.shortcuts import redirect
 from django.utils import timezone
 from howto.models import Article, ArticleTopic,ArticleTag,rendererstr
 from main.decorators import require_JSON, normal_profile_required, decode_JSON
 from django.views.decorators.http import require_GET, require_POST
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.http.response import Http404, HttpResponse
+from django.http.response import Http404, HttpResponse,JsonResponse
 from ratelimit.decorators import ratelimit
 from django.core.cache import cache
 from uuid import UUID
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from django.conf import settings
-from projects.models import Topic, Tag
+from projects.models import Topic, Tag,BaseProject
 from django.http import JsonResponse
 from people.methods import addTopicToDatabase
 from projects.methods import topicSearchList
 import jwt
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models.query_utils import Q
+#from django.db.models import Q
 from datetime import timedelta
 from main.decorators import knotters_only, bearer_required, require_GET
+from compete.models import Competition
+from management.models import (CorePartner)
 
 @csrf_exempt
 @knotters_only
@@ -507,3 +510,40 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
         if json_body:
             return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
         raise Http404(e)
+
+@require_GET
+def index(request: WSGIRequest) -> HttpResponse:
+    """To render the index page (home/root page)
+
+    Methods: GET
+
+    Args:
+        request (WSGIRequest): The request object.
+
+    Returns:
+        HttpResponseRedirect: If user is logged in, but not on-boarded, redirect to onboarding.
+        HttpResponse: The rendered text/html view with context.
+            If logged in, renders dashboard (home.html), else renders index.html
+
+    NOTE: The template index.html is used for both logged in and logged out users. (the about page)
+
+        The template home.html is only used for logged in users (the feed/dashboard).
+
+        But main.views.index & main.views.home render these two interchangably, i.e.,
+
+            main.views.home -> main.view.index (301) if logged in, else index.html
+
+            main.views.index -> home.html if logged in, else index.html
+
+    """
+
+    competition: Competition = Competition.latest_competition()
+    if request.user.is_authenticated:
+        if not request.user.profile.on_boarded:
+            return respondRedirect(path=URL.ON_BOARDING)
+        return renderView(request, Template.HOME, dict(competition=competition))
+
+    topics = Topic.homepage_topics()
+    project = BaseProject.homepage_project()
+    partners = CorePartner.objects.filter(hidden=False)
+    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
