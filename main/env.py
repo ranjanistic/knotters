@@ -117,7 +117,7 @@ ISDEVELOPMENT = ENV == Environment.DEVELOPMENT
 
 ISTESTING = ENV == Environment.TESTING
 
-ISBETA = HOSTS and HOSTS[0].startswith('beta.')
+ISBETA = HOSTS and HOSTS[0].startswith('beta.') or HOSTS[0].startswith('dev.')
 
 STATIC_URL = f"{STATIC_URL}{VERSION}/"
 
