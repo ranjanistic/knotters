@@ -37,6 +37,19 @@ class Lesson(models.Model):
     raters = models.ManyToManyField(Profile, through="LessonUserRating", default=[], related_name='lesson_user_rating')
     """raters (ManyToManyField<Profile>): The raters of the lesson and their rating"""
 
+class LessonTopic(models.Model):
+    """Model for relation between an admirer and an lesson"""
+    class Meta:
+        unique_together = ('topic', 'lesson')
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    topic: Topic = models.ForeignKey(
+        Topic, on_delete=models.CASCADE, related_name='lesson_topic')
+    """topic (ForeignKey<Topic>): topic related to the lesson"""
+    lesson:Lesson=models.ForeignKey(
+        Lesson, on_delete=models.CASCADE, related_name='topic_lesson')
+    """lesson (ForeignKey<Lesson>): lesson related to topic"""
+
 class Article(models.Model):
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)
