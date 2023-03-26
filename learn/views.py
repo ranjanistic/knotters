@@ -458,7 +458,11 @@ def index(request: WSGIRequest) -> HttpResponse:
     partners = CorePartner.objects.filter(hidden=False)
     return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
 
-def addlesson(request:WSGIRequest,courseID:UUID):
+@normal_profile_required
+@require_POST
+@decode_JSON
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+def updatelesson(request:WSGIRequest,courseID:UUID):
     profile=request.user.profile
     json_body = request.POST.get("JSON_BODY", False)
     addtitleIDs = request.POST.get('addtitleIDs', None)
@@ -490,10 +494,10 @@ def addlesson(request:WSGIRequest,courseID:UUID):
             #count = LessonTopic.objects.filter(lesson=lesson).count()
             if not json_body:
                 addtitles = addtitles.strip(',').split(',')
-            articletopics = []
+            LessonTopics = []
             for top in addtitles:
                 topic = addTopicToDatabase(top, request.user.profile, lesson.getTags())
-                articletopics.append(ArticleTopic(topic=topic, lesson=lesson))
+                LessonTopics.append(ArticleTopic(topic=topic, lesson=lesson))
         if json_body:
             return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
         return redirect(lesson.getLink(success=Message.TOPICS_UPDATED))

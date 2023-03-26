@@ -687,6 +687,7 @@ class URL():
         VERIFY_CREDENTIALS = 'verify-credentials/'
         REFRESH_TOKEN = 'refresh-token/'
         USER = 'user/'
+        LESSON_UPDATE='update-lesson/'
     api = Api()
 
     class Auth():
