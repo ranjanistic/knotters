@@ -3,7 +3,7 @@ from main.methods import errorLog, renderView, respondJson, respondRedirect
 from main.strings import Code, Message,setURLAlerts,Template,URL
 from django.shortcuts import redirect
 from django.utils import timezone
-from howto.models import Article, ArticleTopic,ArticleTag,rendererstr
+from howto.models import Article, ArticleTopic,ArticleTag,rendererstr,Lesson,LessonTopic
 from main.decorators import require_JSON, normal_profile_required, decode_JSON
 from django.views.decorators.http import require_GET, require_POST
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -173,95 +173,6 @@ def topicsUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
                     top, request.user.profile, article.getTags())
                 articletopics.append(ArticleTopic(
                     topic=topic, article=article))
-            if len(articletopics) > 0:
-                ArticleTopic.objects.bulk_create(articletopics)
-
-        if json_body:
-            return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
-        return redirect(article.getLink(success=Message.TOPICS_UPDATED))
-    except (ObjectDoesNotExist, ValidationError) as o:
-        if json_body:
-            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        raise Http404(o)
-    except Exception as e:
-        errorLog(e)
-        if json_body:
-            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        raise Http404(e)
-
-
-def topicsUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
-    """To update the topics of a article.
-
-    METHODS: POST
-
-    Args:
-        request (WSGIRequest): The request object
-        articleID (UUID): The id of the article
-        request.POST.addtopicIDs (str): CSV of topic IDs
-        request.POST.removetopicIDs (str): CSV of topic IDs
-        request.POST.addtopics (str,list): CSV of topic names, or list of topic names if json body
-
-    Raises:
-        Http404: If the article does not exist, or invalid request
-
-    Returns:
-        HttpResponseRedirect: The redirect to the article page with relevant message
-        JsonResponse: The response with main.strings.Code.OK if succesfull, otherwise main.strings.Code.NO
-    """
-    json_body = request.POST.get("JSON_BODY", False)
-    try:
-        addtopicIDs = request.POST.get('addtopicIDs', None)
-        removetopicIDs = request.POST.get('removetopicIDs', None)
-        addtopics = request.POST.get('addtopics', None)
-
-        article: Article = Article.objects.get(id=articleID, author=request.user.profile)
-
-        if not (addtopicIDs or removetopicIDs or addtopics):
-            if json_body:
-                return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
-            return redirect(article.getLink(error=Message.NO_TOPICS_SELECTED))
-
-        if removetopicIDs:
-            if not json_body:
-                removetopicIDs = removetopicIDs.strip(',').split(',')
-            ArticleTopic.objects.filter(
-                article=article, topic__id__in=removetopicIDs).delete()
-
-        if addtopicIDs:
-            if not json_body:
-                addtopicIDs = addtopicIDs.strip(',').split(',')
-            if len(addtopicIDs) < 1:
-                raise ObjectDoesNotExist(addtopicIDs, article)
-
-            articletops = ArticleTopic.objects.filter(article=article)
-            currentcount = articletops.count()
-            if currentcount + len(addtopicIDs) > 3:
-                if json_body:
-                    return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
-                return redirect(article.getLink(error=Message.MAX_TOPICS_ACHEIVED))
-            for topic in Topic.objects.filter(id__in=addtopicIDs):
-                article.topics.add(topic)
-                for tag in article.getTags():
-                    topic.tags.add(tag)
-
-        if addtopics and len(addtopics) > 0:
-            count = ArticleTopic.objects.filter(article=article).count()
-            if not json_body:
-                addtopics = addtopics.strip(',').split(',')
-            if count + len(addtopics) > 3:
-                if json_body:
-                    return respondJson(Code.NO, error=Message.MAX_TOPICS_ACHEIVED)
-                return redirect(article.getLink(error=Message.MAX_TOPICS_ACHEIVED))
-
-            articletopics = []
-            for top in addtopics:
-                topic = addTopicToDatabase(
-                    top, request.user.profile, article.getTags())
-                articletopics.append(ArticleTopic(
-                    topic=topic, article=article))
-            if len(articletopics) > 0:
-                ArticleTopic.objects.bulk_create(articletopics)
 
         if json_body:
             return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
@@ -320,7 +231,7 @@ def tagsSearch(request: WSGIRequest, articleID: UUID) -> JsonResponse:
 @require_POST
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
-def tagsUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
+def tagUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
     """To update the tags of a article.
 
     METHODS: POST
@@ -429,8 +340,7 @@ def browseSearch(request: WSGIRequest) -> HttpResponse:
     """
     json_body = request.POST.get(Code.JSON_BODY, False)
     try:
-        query = request.GET.get('query', request.POST.get('query', ""))[
-            :100].strip()
+        query = request.GET.get('query', request.POST.get('query', ""))[:100].strip()
         if not query:
             raise KeyError(query)
         limit = request.GET.get('limit', request.POST.get('limit', 10))
@@ -547,3 +457,56 @@ def index(request: WSGIRequest) -> HttpResponse:
     project = BaseProject.homepage_project()
     partners = CorePartner.objects.filter(hidden=False)
     return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
+
+@normal_profile_required
+@require_POST
+@decode_JSON
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+def updatelesson(request:WSGIRequest,courseID:UUID):
+    profile=request.user.profile
+    json_body = request.POST.get("JSON_BODY", False)
+    addtitleIDs = request.POST.get('addtitleIDs', None)
+    removetitleIDs = request.POST.get('removetitleIDs', None)
+    addtitles = request.POST.get('addtitles', None)
+    lesson: Lesson = Lesson.objects.get(id=courseID, author=request.user.profile)
+    #getcourse=request.get.POST()
+    try:
+        lesson: Lesson = Lesson.objects.get(id=courseID, author=request.user.profile)
+        if not (addtitleIDs or removetitleIDs or addtitles):
+            if json_body:
+                return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
+            return redirect(lesson.getLink(error=Message.NO_TOPICS_SELECTED))
+
+        if removetitleIDs:
+            if not json_body:
+                removetitleIDs = removetitleIDs.strip(',').split(',')
+            LessonTopic.objects.filter(lesson=lesson, topic__id__in=removetitleIDs).delete()
+
+        if addtitleIDs:
+            if not json_body:
+                addtitleIDs = addtitleIDs.strip(',').split(',')
+            for topic in Topic.objects.filter(id__in=addtitleIDs):
+                lesson.topics.add(topic)
+                for tag in lesson.getTags():
+                    topic.tags.add(tag)
+
+        if addtitles and len(addtitles) > 0:
+            #count = LessonTopic.objects.filter(lesson=lesson).count()
+            if not json_body:
+                addtitles = addtitles.strip(',').split(',')
+            LessonTopics = []
+            for top in addtitles:
+                topic = addTopicToDatabase(top, request.user.profile, lesson.getTags())
+                LessonTopics.append(ArticleTopic(topic=topic, lesson=lesson))
+        if json_body:
+            return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
+        return redirect(lesson.getLink(success=Message.TOPICS_UPDATED))
+    except (ObjectDoesNotExist, ValidationError) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(e)
