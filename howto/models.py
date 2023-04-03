@@ -13,42 +13,42 @@ from django.core.cache import cache
 from django.core.validators import MaxValueValidator, MinValueValidator
 import math
 
-class Lesson(models.Model):
-    id:UUID=models.UUIDField(primary_key=True,default=uuid4)
-    heading=models.CharField(max_length=75)
-    subheading=models.Charfield(max_length=250)
-    author = models.ForeignKey(Profile, related_name = "lessons", on_delete=models.CASCADE)
-    is_draft = models.BooleanField(default=True)
-    nickname = models.CharField(max_length=50,null=True, blank=True)
-    preview_image = models.ImageField(null=True, blank=True)
-    preview_video = models.FileField(null=True, blank=True)
-    createdOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
-    """createdOn (DateTimeField): When the lesson was created"""
-    modifiedOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
-    admirers = models.ManyToManyField(Profile, through='LessonAdmirer', default=[
-    ], related_name='lesson_admirers')
-    admire_milestone_count: int = models.IntegerField(
-        default=0, help_text='Admirer milestone count')
-    """admire_milestone_count (IntegerField): Number of admire milestones achieved by the lesson"""
-    topics = models.ManyToManyField(Topic, through='LessonTopic', default=[
-    ], related_name='lesson_topics')
-    tags = models.ManyToManyField(Tag, through='LessonTag', default=[
-    ], related_name='lesson_tags')
-    raters = models.ManyToManyField(Profile, through="LessonUserRating", default=[], related_name='lesson_user_rating')
-    """raters (ManyToManyField<Profile>): The raters of the lesson and their rating"""
+#class Lesson(models.Model):
+#    id:UUID=models.UUIDField(primary_key=True,default=uuid4)
+#    heading=models.CharField(max_length=75)
+#    subheading=models.Charfield(max_length=250)
+#    author = models.ForeignKey(Profile, related_name = "lessons", on_delete=models.CASCADE)
+#    is_draft = models.BooleanField(default=True)
+#    nickname = models.CharField(max_length=50,null=True, blank=True)
+#    preview_image = models.ImageField(null=True, blank=True)
+#    preview_video = models.FileField(null=True, blank=True)
+#    createdOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
+#    """createdOn (DateTimeField): When the lesson was created"""
+#    modifiedOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
+#    admirers = models.ManyToManyField(Profile, through='LessonAdmirer', default=[
+#    ], related_name='lesson_admirers')
+#    admire_milestone_count: int = models.IntegerField(
+#        default=0, help_text='Admirer milestone count')
+#    """admire_milestone_count (IntegerField): Number of admire milestones achieved by the lesson"""
+#    topics = models.ManyToManyField(Topic, through='LessonTopic', default=[
+#    ], related_name='lesson_topics')
+#    tags = models.ManyToManyField(Tag, through='LessonTag', default=[
+#    ], related_name='lesson_tags')
+#    raters = models.ManyToManyField(Profile, through="LessonUserRating", default=[], related_name='lesson_user_rating')
+#    """raters (ManyToManyField<Profile>): The raters of the lesson and their rating"""
 
-class LessonTopic(models.Model):
-    """Model for relation between an admirer and an lesson"""
-    class Meta:
-        unique_together = ('topic', 'lesson')
-    id: UUID = models.UUIDField(
-        primary_key=True, default=uuid4, editable=False)
-    topic: Topic = models.ForeignKey(
-        Topic, on_delete=models.CASCADE, related_name='lesson_topic')
-    """topic (ForeignKey<Topic>): topic related to the lesson"""
-    lesson:Lesson=models.ForeignKey(
-        Lesson, on_delete=models.CASCADE, related_name='topic_lesson')
-    """lesson (ForeignKey<Lesson>): lesson related to topic"""
+#class LessonTopic(models.Model):
+#    """Model for relation between an admirer and an lesson"""
+#    class Meta:
+#        unique_together = ('topic', 'lesson')
+#    id: UUID = models.UUIDField(
+#        primary_key=True, default=uuid4, editable=False)
+#    topic: Topic = models.ForeignKey(
+#        Topic, on_delete=models.CASCADE, related_name='lesson_topic')
+#    """topic (ForeignKey<Topic>): topic related to the lesson"""
+#    lesson:Lesson=models.ForeignKey(
+#        Lesson, on_delete=models.CASCADE, related_name='topic_lesson')
+#    """lesson (ForeignKey<Lesson>): lesson related to topic"""
 
 class Article(models.Model):
     id: UUID = models.UUIDField(
@@ -69,10 +69,10 @@ class Article(models.Model):
         default=0, help_text='Admire milestone count')
     """admire_milestone_count (IntegerField): Number of admire milestones achieved by the article"""
     topics = models.ManyToManyField(Topic, through='ArticleTopic', default=[
-    ], related_name='article_topics')
-    tags = models.ManyToManyField(Tag, through='ArticleTag', default=[
-    ], related_name='article_tags')
-    raters = models.ManyToManyField(Profile, through="ArticleUserRating", default=[], related_name='article_user_rating')
+   ], related_name='article_topics')
+   tags = models.ManyToManyField(Tag, through='ArticleTag', default=[
+   ], related_name='article_tags')
+   raters = models.ManyToManyField(Profile, through="ArticleUserRating", default=[], related_name='article_user_rating')
     """raters (ManyToManyField<Profile>): The raters of the article and their rating"""
     
     def __str__(self):
