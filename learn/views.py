@@ -462,7 +462,7 @@ def index(request: WSGIRequest) -> HttpResponse:
 @require_POST
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
-def updatelesson(request:WSGIRequest,courseID:UUID):
+def lessonupdate(request:WSGIRequest,courseID:UUID):
     profile=request.user.profile
     json_body = request.POST.get("JSON_BODY", False)
     addtitleIDs = request.POST.get('addtitleIDs', None)
