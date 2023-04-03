@@ -64,16 +64,12 @@ class Article(models.Model):
     createdOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): When the article was created"""
     modifiedOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
-    admirers = models.ManyToManyField(Profile, through='ArticleAdmirer', default=[
-    ], related_name='article_admirers')
-    admire_milestone_count: int = models.IntegerField(
-        default=0, help_text='Admire milestone count')
+    admirers = models.ManyToManyField(Profile, through='ArticleAdmirer', default=[], related_name='article_admirers')
+    admire_milestone_count: int = models.IntegerField(default=0, help_text='Admire milestone count')
     """admire_milestone_count (IntegerField): Number of admire milestones achieved by the article"""
-    topics = models.ManyToManyField(Topic, through='ArticleTopic', default=[
-   ], related_name='article_topics')
-   tags = models.ManyToManyField(Tag, through='ArticleTag', default=[
-   ], related_name='article_tags')
-   raters = models.ManyToManyField(Profile, through="ArticleUserRating", default=[], related_name='article_user_rating')
+    topics = models.ManyToManyField(Topic, through='ArticleTopic', default=[], related_name='article_topics')
+    tags = models.ManyToManyField(Tag, through='ArticleTag', default=[], related_name='article_tags')
+    raters = models.ManyToManyField(Profile, through="ArticleUserRating", default=[], related_name='article_user_rating')
     """raters (ManyToManyField<Profile>): The raters of the article and their rating"""
     
     def __str__(self):
