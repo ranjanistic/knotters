@@ -1,6 +1,6 @@
 from django.urls import path
 from main.strings import URL
-from learn.views import *
+from learn.views import lessonupdate
 from .views import *
 
 urlpatterns = [
@@ -8,5 +8,4 @@ urlpatterns = [
     path(URL.Api.REFRESH_TOKEN, refreshToken),
     path(URL.Api.USER, tokenUser),
     path(URL.Api.LESSON_UPDATE,lessonupdate),
-
 ]
