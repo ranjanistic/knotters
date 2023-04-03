@@ -6,7 +6,7 @@
 {% load cache %}
 {% load custom_tags %}
 
-{% block meta_description %}{{member.getName }}'s certificate of participation in {{result.competition.title}}.{% endblock %}
+{% block meta_description %}Participate in {{APPNAME}} competitions to earn certificates and showcase your skills to potential employers and collaborators.{% endblock %}
 {% block og_url %}{{result.getCertLink|params:member.getUserID}}{% endblock %}
 {% block og_title %}{{member.getFName}}'s Certificate{% endblock %}
 {% block og_description %}{{member.getName }}'s certificate of participation in {{result.competition.title}}.{% endblock %}
