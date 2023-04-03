@@ -16,7 +16,7 @@ import math
 #class Lesson(models.Model):
 #    id:UUID=models.UUIDField(primary_key=True,default=uuid4)
 #    heading=models.CharField(max_length=75)
-#    subheading=models.Charfield(max_length=250)
+#    subheading=models.CharField(max_length=250)
 #    author = models.ForeignKey(Profile, related_name = "lessons", on_delete=models.CASCADE)
 #    is_draft = models.BooleanField(default=True)
 #    nickname = models.CharField(max_length=50,null=True, blank=True)
