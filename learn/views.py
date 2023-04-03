@@ -3,7 +3,7 @@ from main.methods import errorLog, renderView, respondJson, respondRedirect
 from main.strings import Code, Message,setURLAlerts,Template,URL
 from django.shortcuts import redirect
 from django.utils import timezone
-from howto.models import Article, ArticleTopic,ArticleTag,Lesson,LessonTopic
+from howto.models import Article, ArticleTopic,ArticleTag #Lesson,LessonTopic
 from main.decorators import require_JSON, normal_profile_required, decode_JSON
 from django.views.decorators.http import require_GET, require_POST
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -358,55 +358,55 @@ def index(request: WSGIRequest) -> HttpResponse:
     partners = CorePartner.objects.filter(hidden=False)
     return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
 
-@normal_profile_required
-@require_POST
-@decode_JSON
-@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
-def lessonupdate(request:WSGIRequest,courseID:UUID):
-    profile=request.user.profile
-    json_body = request.POST.get("JSON_BODY", False)
-    addtitleIDs = request.POST.get('addtitleIDs', None)
-    removetitleIDs = request.POST.get('removetitleIDs', None)
-    addtitles = request.POST.get('addtitles', None)
-    lesson: Lesson = Lesson.objects.get(id=courseID, author=request.user.profile)
+#@normal_profile_required
+#@require_POST
+#@decode_JSON
+#@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+#def lessonupdate(request:WSGIRequest,courseID:UUID):
+#    profile=request.user.profile
+#    json_body = request.POST.get("JSON_BODY", False)
+#    addtitleIDs = request.POST.get('addtitleIDs', None)
+#    removetitleIDs = request.POST.get('removetitleIDs', None)
+#    addtitles = request.POST.get('addtitles', None)
+#    lesson: Lesson = Lesson.objects.get(id=courseID, author=request.user.profile)
     #getcourse=request.get.POST()
-    try:
-        lesson: Lesson = Lesson.objects.get(id=courseID, author=request.user.profile)
-        if not (addtitleIDs or removetitleIDs or addtitles):
-            if json_body:
-                return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
-            return redirect(lesson.getLink(error=Message.NO_TOPICS_SELECTED))
+#    try:
+#        lesson: Lesson = Lesson.objects.get(id=courseID, author=request.user.profile)
+#        if not (addtitleIDs or removetitleIDs or addtitles):
+#            if json_body:
+#                return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
+#            return redirect(lesson.getLink(error=Message.NO_TOPICS_SELECTED))
 
-        if removetitleIDs:
-            if not json_body:
-                removetitleIDs = removetitleIDs.strip(',').split(',')
-            LessonTopic.objects.filter(lesson=lesson, topic__id__in=removetitleIDs).delete()
+#        if removetitleIDs:
+#            if not json_body:
+#                removetitleIDs = removetitleIDs.strip(',').split(',')
+#            LessonTopic.objects.filter(lesson=lesson, topic__id__in=removetitleIDs).delete()
 
-        if addtitleIDs:
-            if not json_body:
-                addtitleIDs = addtitleIDs.strip(',').split(',')
-            for topic in Topic.objects.filter(id__in=addtitleIDs):
-                lesson.topics.add(topic)
-                for tag in lesson.getTags():
-                    topic.tags.add(tag)
+#        if addtitleIDs:
+#            if not json_body:
+#                addtitleIDs = addtitleIDs.strip(',').split(',')
+#            for topic in Topic.objects.filter(id__in=addtitleIDs):
+#                lesson.topics.add(topic)
+#                for tag in lesson.getTags():
+#                    topic.tags.add(tag)
 
-        if addtitles and len(addtitles) > 0:
-            #count = LessonTopic.objects.filter(lesson=lesson).count()
-            if not json_body:
-                addtitles = addtitles.strip(',').split(',')
-            LessonTopics = []
-            for top in addtitles:
-                topic = addTopicToDatabase(top, request.user.profile, lesson.getTags())
-                LessonTopics.append(ArticleTopic(topic=topic, lesson=lesson))
-        if json_body:
-            return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
-        return redirect(lesson.getLink(success=Message.TOPICS_UPDATED))
-    except (ObjectDoesNotExist, ValidationError) as o:
-        if json_body:
-            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-        raise Http404(o)
-    except Exception as e:
-        errorLog(e)
-        if json_body:
-            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-        raise Http404(e)
+#        if addtitles and len(addtitles) > 0:
+#            #count = LessonTopic.objects.filter(lesson=lesson).count()
+#            if not json_body:
+#               addtitles = addtitles.strip(',').split(',')
+#            LessonTopics = []
+#            for top in addtitles:
+#                topic = addTopicToDatabase(top, request.user.profile, lesson.getTags())
+#                LessonTopics.append(ArticleTopic(topic=topic, lesson=lesson))
+#        if json_body:
+#            return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
+#        return redirect(lesson.getLink(success=Message.TOPICS_UPDATED))
+#    except (ObjectDoesNotExist, ValidationError) as o:
+#        if json_body:
+#            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+#        raise Http404(o)
+#    except Exception as e:
+#        errorLog(e)
+#       if json_body:
+#            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+#        raise Http404(e)
