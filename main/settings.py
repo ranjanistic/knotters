@@ -69,7 +69,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "main.middleware.ExtendedSessionMiddleware",
-"corsheaders.middleware.CorsMiddleware",
+#"corsheaders.middleware.CorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
