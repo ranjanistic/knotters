@@ -50,6 +50,7 @@ import math
 #        Lesson, on_delete=models.CASCADE, related_name='topic_lesson')
 #    """lesson (ForeignKey<Lesson>): lesson related to topic"""
 
+
 class Article(models.Model):
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)

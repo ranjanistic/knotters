@@ -7,6 +7,6 @@ urlpatterns = [
     path(URL.Api.VERIFY_CREDENTIALS, verifyCredentials),
     path(URL.Api.REFRESH_TOKEN, refreshToken),
     path(URL.Api.USER, tokenUser),
-    path(URL.Api.LESSON_UPDATE,updatelesson),
+    path(URL.Api.LESSON_UPDATE,lessonupdate),
 
 ]
