@@ -39,7 +39,10 @@ class Command(BaseCommand):
                 return exit(0)
             self.stdout.write(self.style.WARNING(
                 'Setting up initial state (does not delete any existing data, intentionally at least)'))
-        bot = Profile.KNOTBOT()
+        try:
+            bot = Profile.KNOTBOT()
+        except:
+            bot=False
         if not bot:
             ubot = User.objects.create_user(email=BOTMAIL,password="1@#2QWqw", first_name="Knotbot")
             bot = Profile.KNOTBOT()

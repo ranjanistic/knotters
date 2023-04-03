@@ -2,7 +2,7 @@ name: Beta CD
 
 on:
   push:
-    branches: [beta]
+    branches: [beta,dev]
     paths-ignore:
       - "**/*.md"
       - "**.md"
@@ -12,8 +12,8 @@ on:
       - "LICENSE"
 
 jobs:
-  build:
-    runs-on: [self-hosted, beta, building,knotters]
+  build_deploy:
+    runs-on: [self-hosted, dev, knotters, deployment, django]
     strategy:
       max-parallel: 1
       matrix:
@@ -21,50 +21,29 @@ jobs:
 
     steps:
       - name: Merge changes
-        run: |
-          git pull origin beta
+        uses: actions/checkout@v2
+        with:
+          clean: false
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+         /home/ubuntu/dev/bin/pip install --upgrade pip
+         /home/ubuntu/dev/bin/pip install -r requirements.txt
       - name: Setup environment
         run:
-          echo "${{ secrets.ENV_DEV }}" > ${{ secrets.ENVPATH }}
+          echo "${{ secrets.ENV_DEV }}" > main/.env
       - name: Run migrations
         run: |
-          python3 manage.py makemigrations --noinput
-          python3 manage.py migrate --noinput
+          /home/ubuntu/dev/bin/python3 manage.py makemigrations --noinput
+          /home/ubuntu/dev/bin/python3 manage.py migrate --noinput
       - name: Synchronise notifications
         run: |
-          python3 manage.py syncnotifications --noinput
-
-  deploy:
-    needs: [build]
-    runs-on: [self-hosted, beta, deployment]
-    strategy:
-      max-parallel: 1
-      matrix:
-        python-version: ["3.10"]
-
-    steps:
-      - name: Create backup
-        run: |
-          tar czf _backup_/media.tar.gz media
-          rm -f _backup_/media.tar.gz.gpg
-          gpg -e -r ${{ secrets.MAILUSER }} _backup_/media.tar.gz
-          rm -f _backup_/media.tar.gz
-      - name: Merge changes
-        run: |
-          git pull origin beta
-      - name: Setup environment
-        run:
-          echo "${{ secrets.ENV_DEV }}" > ${{ secrets.ENVPATH  }}
+          /home/ubuntu/dev/bin/python3 manage.py syncnotifications --noinput
       - name: Release new version
         run: |
-          ~/Env/beta_knotters/bin/python3 genversion.py
-          ~/Env/beta_knotters/bin/python3 manage.py collectstatic --noinput
-          ~/Env/beta_knotters/bin/python3 manage.py preparestatics /var/www/beta/knotters/errors/
+          /home/ubuntu/dev/bin/python3 genversion.py
+          /home/ubuntu/dev/bin/python3 manage.py collectstatic --noinput
+          /home/ubuntu/dev/bin/python3 manage.py preparestatics /var/www/dev/knotters/errors/
       - name: Restart services
         run: |
-          systemctl --user restart beta.gunicorn.service
-          systemctl --user restart beta.cluster0.service
+          sudo systemctl --user --machine=ubuntu@.host restart dev.gunicorn.service
+          sudo systemctl --user --machine=ubuntu@.host restart dev.cluster0.service
