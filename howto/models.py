@@ -14,7 +14,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 import math
 
 class Course(models.Model):
-    id:UUID=models.UUIDField(primary_key=True,default=uuid4)
+    courseid:UUID=models.UUIDField(primary_key=True,default=uuid4)
     title=models.CharField(max_length=75)
     short_desc=models.CharField(max_length=250)
     long_desc=models.CharField(max_length=500)
