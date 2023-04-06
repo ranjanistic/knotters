@@ -25,27 +25,18 @@ class Course(models.Model):
     lessonCount=models.IntegerField(default=0)
     #likes = models.ManyToManyField(Profile, through='CourseLikes', default=[], related_name='course_likes')
     creator = models.ForeignKey(Profile, related_name = "course", on_delete=models.CASCADE)
-    class Meta(object):
-       fields=('courseID','title','short_desc','long_desc','lessons','raters','lessonCount','likes','creator')
-       extra_kwargs={}
 
 class Lesson(models.Model):
     id:UUID=models.UUIDField(primary_key=True,default=uuid4)
     name=models.CharField(max_length=75)
     #lessontype=models.ForeignKey(Course,on_delete=models.CASCADE)
     courseid=models.ForeignKey(Course,on_delete=models.CASCADE)
-    class Meta(object):
-        fields=('id','name','lessontype','course')
-        extra_kwargs={}
 
 class rating(models.Model):
     rating=models.PositiveIntegerField(primary_key=True,default=0,blank=True)
     review_text=models.CharField(max_length=500)
     creator=models.ForeignKey(Profile,related_name="rating",on_delete=models.CASCADE)
     courseid=models.ForeignKey(Course,on_delete=models.CASCADE)
-    class Meta(object):
-        fields=('rating','review','creator','courseID')
-        extra_kwargs={}
 
 class profiletoken():
     id=Profile.id
@@ -53,3 +44,9 @@ class profiletoken():
     is_active = Profile.is_active
     date_joined = Profile.createdOn
     USERNAME_FIELD = 'email'
+
+class coursereview(models.Model):
+    id:UUID=models.UUIDField(primary_key=True,default=uuid4)
+    courseid=models.ForeignKey(Course,on_delete=models.CASCADE)
+    review=models.CharField(max_length=500)
+    givenby=models.ForeignKey(Profile,on_delete=models.CASCADE)
