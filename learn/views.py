@@ -12,7 +12,6 @@ from django.http.response import Http404, HttpResponse,JsonResponse
 from ratelimit.decorators import ratelimit
 from django.core.cache import cache
 from uuid import UUID
-from .serializers import UserSerializer
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from django.conf import settings
 from projects.models import Topic, Tag,BaseProject
@@ -331,7 +330,6 @@ def addcoursereview(request:WSGIRequest):
 def lessonactions(request:WSGIRequest,lessonID:UUID)->JsonResponse:
     profile=request.user.profile
     lesson:Lesson=Lesson.object.get(id=lessonID,creator=profile)
-
 
 #class usertokenapi(APIView):
 #    permission_classes = (AllowAny)
