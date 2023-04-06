@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'allauth_2fa',
     "webpush",
     "mfa",
-    "corsheaders"
+    "corsheaders",
+    "learn"
 ] + DIVISIONS
 
 if not env.ISTESTING:
@@ -181,6 +182,13 @@ else:
 
 DATABASES = {
     DB.DEFAULT: DEFAULT_DB_CONFIG
+}
+
+JWT_AUTH = {
+    'JWT_VERIFY': True,
+    'JWT_VERIFY_EXPIRATION': True,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=3000),
+    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }
 
 DEFAULT_CACHE_CONFIG = {}
