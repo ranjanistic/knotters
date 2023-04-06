@@ -3,7 +3,8 @@ from main.methods import errorLog, renderView, respondJson, respondRedirect
 from main.strings import Code, Message,setURLAlerts,Template,URL
 from django.shortcuts import redirect
 from django.utils import timezone
-from howto.models import Article, ArticleTopic,ArticleTag #Lesson,LessonTopic
+from howto.models import Article, ArticleTopic,ArticleTag
+from .models import Course,Lesson
 from main.decorators import require_JSON, normal_profile_required, decode_JSON
 from django.views.decorators.http import require_GET, require_POST
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
@@ -11,16 +12,17 @@ from django.http.response import Http404, HttpResponse,JsonResponse
 from ratelimit.decorators import ratelimit
 from django.core.cache import cache
 from uuid import UUID
+from .serializers import UserSerializer
 from projects.methods import addTagToDatabase, topicSearchList, tagSearchList
 from django.conf import settings
 from projects.models import Topic, Tag,BaseProject
 from django.http import JsonResponse
 from people.methods import addTopicToDatabase
 from projects.methods import topicSearchList
+from people.models import User
 import jwt
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models.query_utils import Q
-#from django.db.models import Q
 from datetime import timedelta
 from main.decorators import knotters_only, bearer_required, require_GET
 from compete.models import Competition
@@ -31,7 +33,7 @@ from management.models import (CorePartner)
 @bearer_required
 @require_GET
 def logintoken(request: WSGIRequest):
-    if WSGIRequest.user.is_authenticated:
+    if request.user.is_authenticated:
         try:
             token = jwt.encode(dict(id=request.user.profile.get_userid, exp=timezone.now()+timedelta(days=7)), settings.SECRET_KEY, algorithm="HS256")
             return respondJson(Code.OK, data=dict(token=token))
@@ -62,28 +64,13 @@ def mytoken(request: WSGIRequest):
 @normal_profile_required
 @require_JSON
 def topicsSearch(request: WSGIRequest, articleID: UUID) -> JsonResponse:
-    """To search for topics for an article.
-
-    METHODS: POST
-
-    Args:
-        request (WSGIRequest): The request object
-        articleID (UUID): The id of the article
-        request.POST.query (str): The query to search for
-
-    Returns:
-        JsonResponse: The json response with main.strings.Code.OK and topics found, otherwise main.strings.Code.NO
-    """
     try:
         query = str(request.POST['query'][:100]).strip()
         if not query:
             raise KeyError(query)
-
         limit = int(request.POST.get('limit', 3))
         article: Article = Article.objects.get(id=articleID, author=request.user.profile)
-
         cacheKey = f"article_topics_search_{query}"
-
         excluding = []
         if article:
             excluding = list(
@@ -104,24 +91,6 @@ def topicsSearch(request: WSGIRequest, articleID: UUID) -> JsonResponse:
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def topicsUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
-    """To update the topics of a article.
-
-    METHODS: POST
-
-    Args:
-        request (WSGIRequest): The request object
-        articleID (UUID): The id of the article
-        request.POST.addtopicIDs (str): CSV of topic IDs
-        request.POST.removetopicIDs (str): CSV of topic IDs
-        request.POST.addtopics (str,list): CSV of topic names, or list of topic names if json body
-
-    Raises:
-        Http404: If the article does not exist, or invalid request
-
-    Returns:
-        HttpResponseRedirect: The redirect to the article page with relevant message
-        JsonResponse: The response with main.strings.Code.OK if succesfull, otherwise main.strings.Code.NO
-    """
     json_body = request.POST.get("JSON_BODY", False)
     try:
         addtopicIDs = request.POST.get('addtopicIDs', None)
@@ -191,18 +160,6 @@ def topicsUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
 @normal_profile_required
 @require_JSON
 def tagsSearch(request: WSGIRequest, articleID: UUID) -> JsonResponse:
-    """To search for tags for a article.
-
-    METHODS: POST
-
-    Args:
-        request (WSGIRequest): The request object
-        articleID (UUID): The id of the article
-        request.POST.query (str): The query to search for
-
-    Returns:
-        JsonResponse: The json response with main.strings.Code.OK and tags found, otherwise main.strings.Code.NO
-    """
     try:
         query = str(request.POST["query"][:100]).strip()
         if not query:
@@ -232,24 +189,6 @@ def tagsSearch(request: WSGIRequest, articleID: UUID) -> JsonResponse:
 @decode_JSON
 @ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 def tagUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
-    """To update the tags of a article.
-
-    METHODS: POST
-
-    Args:
-        request (WSGIRequest): The request object
-        articleID (UUID): The id of the article
-        request.POST.addtagIDs (str): CSV of tag IDs
-        request.POST.removetagIDs (str): CSV of tag IDs
-        request.POST.addtags (str,list): CSV of tag names, or list of topic names if json body
-
-    Raises:
-        Http404: If the article does not exist, or invalid request
-
-    Returns:
-        HttpResponseRedirect: The redirect to the article page with relevant message
-        JsonResponse: The response with main.strings.Code.OK if succesfull, otherwise main.strings.Code.NO
-    """
     json_body = request.POST.get(Code.JSON_BODY, False)
     next = None
     article = None
@@ -323,30 +262,6 @@ def tagUpdate(request: WSGIRequest, articleID: UUID) -> HttpResponse:
 
 @require_GET
 def index(request: WSGIRequest) -> HttpResponse:
-    """To render the index page (home/root page)
-
-    Methods: GET
-
-    Args:
-        request (WSGIRequest): The request object.
-
-    Returns:
-        HttpResponseRedirect: If user is logged in, but not on-boarded, redirect to onboarding.
-        HttpResponse: The rendered text/html view with context.
-            If logged in, renders dashboard (home.html), else renders index.html
-
-    NOTE: The template index.html is used for both logged in and logged out users. (the about page)
-
-        The template home.html is only used for logged in users (the feed/dashboard).
-
-        But main.views.index & main.views.home render these two interchangably, i.e.,
-
-            main.views.home -> main.view.index (301) if logged in, else index.html
-
-            main.views.index -> home.html if logged in, else index.html
-
-    """
-
     competition: Competition = Competition.latest_competition()
     if request.user.is_authenticated:
         if not request.user.profile.on_boarded:
@@ -358,55 +273,109 @@ def index(request: WSGIRequest) -> HttpResponse:
     partners = CorePartner.objects.filter(hidden=False)
     return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
 
-#@normal_profile_required
-#@require_POST
-#@decode_JSON
-#@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
-#def lessonupdate(request:WSGIRequest,courseID:UUID):
-#    profile=request.user.profile
-#    json_body = request.POST.get("JSON_BODY", False)
-#    addtitleIDs = request.POST.get('addtitleIDs', None)
-#    removetitleIDs = request.POST.get('removetitleIDs', None)
-#    addtitles = request.POST.get('addtitles', None)
-#    lesson: Lesson = Lesson.objects.get(id=courseID, author=request.user.profile)
-    #getcourse=request.get.POST()
+@normal_profile_required
+@require_POST
+@decode_JSON
+@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
+
+def courseactions(request:WSGIRequest,courseID:UUID)->JsonResponse:
+    profile=request.user.profile
+    json_body=request.POST.get(Code.JSON_BODY)
+    addcourse=request.POST.get('addcourse',None)
+    removecourse=request.POST.get('removecourse',None)
+    course:Course=Course.object.get(id=courseID,creator=profile)
+    try:
+        course1:Course=Course.objects.get(id='CourseID',creator=profile)
+        if not (addcourse or removecourse or addtitles):
+            if json_body:
+                return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
+            return redirect(course1.getLink(error=Message.NO_TOPICS_SELECTED))
+
+        if removecourse:
+            if not json_body:
+                removecourse = removecourse.strip(',').split(',')
+            #LessonTopic.objects.filter(lesson=course1, topic__id__in=removecourse).delete()
+
+        if addcourse:
+            if not json_body:
+                addcourse = addcourse.strip(',').split(',')
+            for topic in Topic.objects.filter(id__in=addcourse):
+                course1.topics.add(topic)
+                for tag in course1.getTags():
+                    topic.tags.add(tag)
+
+        if addtitles and len(addtitles) > 0:
+            #count = LessonTopic.objects.filter(lesson=lesson).count()
+            if not json_body:
+                addtitles = addtitles.strip(',').split(',')
+            #LessonTopics = []
+            for top in addtitles:
+                topic = addTopicToDatabase(top, request.user.profile, course1.getTags())
+                #LessonTopics.append(ArticleTopic(topic=topic, lesson=course1))
+        if json_body:
+            return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
+        return redirect(course1.getLink(success=Message.TOPICS_UPDATED))
+    except (ObjectDoesNotExist, ValidationError) as o:
+        if json_body:
+            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
+        raise Http404(o)
+    except Exception as e:
+        errorLog(e)
+        if json_body:
+            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
+        raise Http404(e)
+    
+def addcoursereview(request:WSGIRequest):
+    profile=request.user.profile
+
+def lessonactions(request:WSGIRequest,lessonID:UUID)->JsonResponse:
+    profile=request.user.profile
+    lesson:Lesson=Lesson.object.get(id=lessonID,creator=profile)
+
+
+#class usertokenapi(APIView):
+#    permission_classes = (AllowAny)
+#    def post(self, request):
+#        user = request.data
+#        serializer = UserSerializer(data=user)
+#        serializer.is_valid(raise_exception=True)
+#        serializer.save()
+#        return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+
+#class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
+#    permission_classes = (User.IsAuthenticated,)
+#    serializer_class = UserSerializer
+#    def get(self, request, *args, **kwargs):
+#        serializer = self.serializer_class(request.user)
+#        return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+#    def put(self, request, *args, **kwargs):
+#        serializer_data = request.data.get('user', {})
+#        serializer = UserSerializer(request.user, data=serializer_data, partial=True)
+#        serializer.is_valid(raise_exception=True)
+#        serializer.save()
+#        return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+    
+#def authenticate_user(request):
 #    try:
-#        lesson: Lesson = Lesson.objects.get(id=courseID, author=request.user.profile)
-#        if not (addtitleIDs or removetitleIDs or addtitles):
-#            if json_body:
-#                return respondJson(Code.NO, error=Message.NO_TOPICS_SELECTED)
-#            return redirect(lesson.getLink(error=Message.NO_TOPICS_SELECTED))
-
-#        if removetitleIDs:
-#            if not json_body:
-#                removetitleIDs = removetitleIDs.strip(',').split(',')
-#            LessonTopic.objects.filter(lesson=lesson, topic__id__in=removetitleIDs).delete()
-
-#        if addtitleIDs:
-#            if not json_body:
-#                addtitleIDs = addtitleIDs.strip(',').split(',')
-#            for topic in Topic.objects.filter(id__in=addtitleIDs):
-#                lesson.topics.add(topic)
-#                for tag in lesson.getTags():
-#                    topic.tags.add(tag)
-
-#        if addtitles and len(addtitles) > 0:
-#            #count = LessonTopic.objects.filter(lesson=lesson).count()
-#            if not json_body:
-#               addtitles = addtitles.strip(',').split(',')
-#            LessonTopics = []
-#            for top in addtitles:
-#                topic = addTopicToDatabase(top, request.user.profile, lesson.getTags())
-#                LessonTopics.append(ArticleTopic(topic=topic, lesson=lesson))
-#        if json_body:
-#            return respondJson(Code.OK, message=Message.TOPICS_UPDATED)
-#        return redirect(lesson.getLink(success=Message.TOPICS_UPDATED))
-#    except (ObjectDoesNotExist, ValidationError) as o:
-#        if json_body:
-#            return respondJson(Code.NO, error=Message.INVALID_REQUEST)
-#        raise Http404(o)
-#    except Exception as e:
-#        errorLog(e)
-#       if json_body:
-#            return respondJson(Code.NO, error=Message.ERROR_OCCURRED)
-#        raise Http404(e)
+#        email = request.data['email']
+#        password = request.data['password']
+#        user = User.objects.get(email=email, password=password)
+#        if user:
+#            try:
+#                payload = jwt_payload_handler(user)
+#                token = jwt.encode(payload, settings.SECRET_KEY)
+#                user_details = {}
+#                user_details['name'] = "%s %s" % (
+#                    user.first_name, user.last_name)
+#                user_details['token'] = token
+#                user_logged_in.send(sender=user.__class__,request=request, user=user)
+#                return JsonResponse(user_details, status=status.HTTP_200_OK)
+#            except Exception as e:
+#                raise e
+#        else:
+#            res = {
+#                'error': 'can not authenticate with the given credentials or the account has been deactivated'}
+#            return JsonResponse(res, status=status.HTTP_403_FORBIDDEN)
+#    except KeyError:
+#        res = {'error': 'please provide a email and a password'}
+#        return JsonResponse(res)
