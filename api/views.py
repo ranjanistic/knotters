@@ -14,7 +14,10 @@ from django.utils import timezone
 from datetime import timedelta
 
 @csrf_exempt
-@knotters_only
+def status(request):
+    return respondJson(Code.OK)
+
+@csrf_exempt
 @require_POST
 def verifyCredentials(request: WSGIRequest):
     try:

@@ -1,7 +1,7 @@
 from os import environ as os_environ
 from os import path as os_path
 from pathlib import Path
-
+from sys import argv
 from . import env
 from .strings import AUTH2, DB, DIVISIONS, DOCS, MANAGEMENT, PEOPLE, url
 
@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "corsheaders"
 ] + DIVISIONS
 
-if not env.ISTESTING:
+if not env.ISTESTING and argv[1] != 'migrate':
     INSTALLED_APPS.append("django_q")
 
 AUTH_USER_MODEL = f'{PEOPLE}.User'
@@ -67,9 +67,9 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "main.middleware.ExtendedSessionMiddleware",
-#"corsheaders.middleware.CorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
