@@ -203,7 +203,7 @@ class ExtendedSessionMiddleware(SessionMiddleware):
                         request.session.save()
                     except UpdateError:
                         return response
-
+                    response['Access-control-allow-credentials'] = True
                     response.set_cookie(
                         settings.SESSION_COOKIE_NAME,
                         request.session.session_key, max_age=max_age,
