@@ -224,6 +224,8 @@ def moderator_only(function: callable) -> callable:
         if request.user.profile.is_moderator and not request.user.profile.is_mod_paused:
             return function(request, *args, **kwargs)
         else:
+            if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+                return respondJson(Code.NO, error='Unauthorized moderator access')
             if request.method == Code.GET:
                 raise Http404('Unauthorized moderator access', request.user)
             return HttpResponseForbidden('Unauthorized moderator access', request.user)
@@ -249,6 +251,8 @@ def mentor_only(function: callable) -> callable:
         if request.user.profile.is_mentor:
             return function(request, *args, **kwargs)
         else:
+            if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+                return respondJson(Code.NO, error='Unauthorized mentor access')
             if request.method == Code.GET:
                 raise Http404('Unauthorized mentor access', request.user)
             return HttpResponseForbidden('Unauthorized mentor access', request.user)
@@ -274,6 +278,8 @@ def manager_only(function: callable) -> callable:
         if request.user.profile.is_manager():
             return function(request, *args, **kwargs)
         else:
+            if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+                return respondJson(Code.NO, error='Unauthorized manager access')
             if request.method == Code.GET:
                 raise Http404('Unauthorized manager access', request.user)
             return HttpResponseForbidden('Unauthorized management access', request.user)
