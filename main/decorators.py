@@ -149,7 +149,7 @@ def verified_email_required(
             ).exists() and not ISTESTING:
                 # addMethodToAsyncQueue(f"{AUTH2}.mailers.{send_account_verification_email}", request)
                 send_account_verification_email(request)
-                if request.headers.get('X-KNOT-REQ-SCRIPT', False):
+                if request.headers.get('X-KNOT-REQ-SCRIPT', False) or request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
                     return respondJson(Code.NO, error=Message.EMAIL_NOT_VERIFIED)
                 return render(request, "account/verified_email_required.html")
             return view_func(request, *args, **kwargs)
@@ -180,6 +180,8 @@ def normal_profile_required(function: callable) -> callable:
         if request.user.profile.is_normal:
             return function(request, *args, **kwargs)
         else:
+            if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+                return respondJson(Code.NO, error='Session invalid.')
             if request.method == Code.GET:
                 raise Http404('abnormal user', request.user)
             return HttpResponseForbidden('Abnormal user access', request.user)

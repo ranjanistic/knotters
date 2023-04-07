@@ -5,7 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from auth2.models import APIKey
 
-from main.decorators import knotters_only, require_POST, bearer_required, require_GET
+from main.decorators import knotters_only, require_POST, bearer_required, require_GET, normal_profile_required
 from main.methods import errorLog, respondJson
 from main.strings import COMPETE, URL, Action, Code, Message
 import jwt
@@ -51,8 +51,7 @@ def verifyCredentials(request: WSGIRequest):
 
 
 @csrf_exempt
-@knotters_only
-@bearer_required
+@normal_profile_required
 @require_GET
 def refreshToken(request: WSGIRequest):
     try:
@@ -70,8 +69,7 @@ def refreshToken(request: WSGIRequest):
 
 
 @csrf_exempt
-@knotters_only
-@bearer_required
+@normal_profile_required
 @require_GET
 def tokenUser(request: WSGIRequest):
     try:
