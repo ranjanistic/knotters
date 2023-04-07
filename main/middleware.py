@@ -177,6 +177,7 @@ class ExtendedSessionMiddleware(SessionMiddleware):
         the session cookie if the session has been emptied.
         """
         response['Access-control-allow-credentials'] = 'true'
+        response['Access-control-allow-headers'] = 'Content-Type'
         try:
             accessed = request.session.accessed
             empty = request.session.is_empty()
