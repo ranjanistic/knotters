@@ -176,6 +176,7 @@ class ExtendedSessionMiddleware(SessionMiddleware):
         session every time, save the changes and set a session cookie or delete
         the session cookie if the session has been emptied.
         """
+        response['Access-control-allow-credentials'] = True
         try:
             accessed = request.session.accessed
             empty = request.session.is_empty()
@@ -203,7 +204,6 @@ class ExtendedSessionMiddleware(SessionMiddleware):
                         request.session.save()
                     except UpdateError:
                         return response
-                    response['Access-control-allow-credentials'] = True
                     response.set_cookie(
                         settings.SESSION_COOKIE_NAME,
                         request.session.session_key, max_age=max_age,
