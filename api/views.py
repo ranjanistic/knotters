@@ -12,6 +12,7 @@ import jwt
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+from people.models import Profile
 
 @csrf_exempt
 def status(request):
@@ -73,9 +74,12 @@ def refreshToken(request: WSGIRequest):
 @require_GET
 def tokenUser(request: WSGIRequest):
     try:
-        profile = request.user.profile
+        profile:Profile = request.user.profile
         return respondJson(Code.OK, data=dict(user=dict(
-                   id=profile.get_userid, name=profile.get_name, email=profile.get_email,is_moderator=profile.is_moderator, is_mentor=profile.is_mentor, is_verified=profile.is_verified, is_manager=profile.is_manager(), nickname=profile.nickname, picture=profile.get_abs_dp)))
+                   id=profile.get_userid, name=profile.get_name, email=profile.get_email,is_moderator=profile.is_moderator, 
+                   is_mentor=profile.is_mentor, is_verified=profile.is_verified, is_manager=profile.is_manager(), 
+                   nickname=profile.nickname, picture=profile.get_abs_dp, profile=profile.get_abs_link
+                )))
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED, status=500)
