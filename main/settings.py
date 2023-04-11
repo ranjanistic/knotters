@@ -63,9 +63,14 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
 
+CORS_ALLOWED_ORIGIN_REGEXES = [
+  r"^https://\w+\.knotters\.org$"
+]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "main.middleware.ExtendedSessionMiddleware",
+#"corsheaders.middleware.CorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -279,10 +284,6 @@ if not env.STATIC_ROOT in STATICFILES_DIRS:
 elif DEBUG:
     STATIC_ROOT = env.STATIC_ROOT
 
-
-CORS_ALLOWED_ORIGIN_REGEXES = [
-  r"^https://\w+\.knotters\.org$"
-]
 
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False

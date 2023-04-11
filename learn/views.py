@@ -330,4 +330,3 @@ def addcoursereview(request:WSGIRequest):
 def lessonactions(request:WSGIRequest,lessonID:UUID)->JsonResponse:
     profile=request.user.profile
     lesson:Lesson=Lesson.object.get(id=lessonID,creator=profile)
-    

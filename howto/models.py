@@ -31,10 +31,8 @@ class Article(models.Model):
     admire_milestone_count: int = models.IntegerField(
         default=0, help_text='Admire milestone count')
     """admire_milestone_count (IntegerField): Number of admire milestones achieved by the article"""
-    topics = models.ManyToManyField(Topic, through='ArticleTopic', default=[
-    ], related_name='article_topics')
-    tags = models.ManyToManyField(Tag, through='ArticleTag', default=[
-    ], related_name='article_tags')
+    topics = models.ManyToManyField(Topic, through='ArticleTopic', default=[], related_name='article_topics')
+    tags = models.ManyToManyField(Tag, through='ArticleTag', default=[], related_name='article_tags')
     raters = models.ManyToManyField(Profile, through="ArticleUserRating", default=[], related_name='article_user_rating')
     """raters (ManyToManyField<Profile>): The raters of the article and their rating"""
     
