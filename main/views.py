@@ -50,7 +50,7 @@ from projects.models import (BaseProject, CoreProject, FreeProject, LegalDoc,
                              Project, Snapshot)
 from ratelimit.decorators import ratelimit
 from rjsmin import jsmin
-
+from urllib.parse import urlparse
 from .bots import Github
 from .decorators import (decode_JSON, dev_only, github_only,
                          normal_profile_required, require_JSON)
@@ -344,7 +344,13 @@ def redirector(request: WSGIRequest) -> HttpResponse:
         if next.startswith("/"):
             return redirect(next)
         else:
-            return renderView(request, Template.FORWARD, dict(next=next))
+            parsed_uri = urlparse(next)
+            scheme = '{uri.scheme}'.format(uri=parsed_uri)
+            if scheme in ['http', 'https']:
+                domain = '{uri.netloc}'.format(uri=parsed_uri)
+            if domain.endswith('knotters.org'):
+                return redirect(next)
+        return renderView(request, Template.FORWARD, dict(next=next))
     except:
         return redirect(URL.INDEX)
 

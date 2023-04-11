@@ -5,16 +5,20 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from auth2.models import APIKey
 
-from main.decorators import knotters_only, require_POST, bearer_required, require_GET
+from main.decorators import knotters_only, require_POST, bearer_required, require_GET, normal_profile_required
 from main.methods import errorLog, respondJson
 from main.strings import COMPETE, URL, Action, Code, Message
 import jwt
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+from people.models import Profile
 
 @csrf_exempt
-@knotters_only
+def status(request):
+    return respondJson(Code.OK)
+
+@csrf_exempt
 @require_POST
 def verifyCredentials(request: WSGIRequest):
     try:
@@ -48,8 +52,7 @@ def verifyCredentials(request: WSGIRequest):
 
 
 @csrf_exempt
-@knotters_only
-@bearer_required
+@normal_profile_required
 @require_GET
 def refreshToken(request: WSGIRequest):
     try:
@@ -67,14 +70,16 @@ def refreshToken(request: WSGIRequest):
 
 
 @csrf_exempt
-@knotters_only
-@bearer_required
+@normal_profile_required
 @require_GET
 def tokenUser(request: WSGIRequest):
     try:
-        profile = request.user.profile
+        profile:Profile = request.user.profile
         return respondJson(Code.OK, data=dict(user=dict(
-                   id=profile.get_userid, name=profile.get_name, email=profile.get_email,is_moderator=profile.is_moderator, is_mentor=profile.is_mentor, is_verified=profile.is_verified, is_manager=profile.is_manager(), nickname=profile.nickname, picture=profile.get_abs_dp)))
+                   id=profile.get_userid, name=profile.get_name, email=profile.get_email,is_moderator=profile.is_moderator, 
+                   is_mentor=profile.is_mentor, is_verified=profile.is_verified, is_manager=profile.is_manager(), 
+                   nickname=profile.nickname, picture=profile.get_abs_dp, profile=profile.get_abs_link
+                )))
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED, status=500)
