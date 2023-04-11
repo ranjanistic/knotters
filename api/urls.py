@@ -8,5 +8,4 @@ urlpatterns = [
     path(URL.Api.REFRESH_TOKEN, refreshToken),
     path(URL.Api.USER, tokenUser),
     path('update-course/',courseactions),
-
 ]

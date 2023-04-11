@@ -16,37 +16,55 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin,BaseUs
 import math
 
 class Course(models.Model):
-    courseid:UUID=models.UUIDField(primary_key=True,default=uuid4)
+    id:UUID=models.UUIDField(primary_key=True,default=uuid4,editable=False)
     title=models.CharField(max_length=75)
     short_desc=models.CharField(max_length=250)
     long_desc=models.CharField(max_length=500)
-    #lessons=models.ForeignKey(Lesson,on_delete=models.CASCADE)
-    #raters = models.ManyToManyField(Profile, through="LessonUserRating", default=[], related_name='lesson_user_rating')
-    lessonCount=models.IntegerField(default=0)
-    #likes = models.ManyToManyField(Profile, through='CourseLikes', default=[], related_name='course_likes')
-    creator = models.ForeignKey(Profile, related_name = "course", on_delete=models.CASCADE)
+    raters = models.ManyToManyField(Profile, through="CourseUserRating", default=[], related_name='course_user_rating')
+    likes = models.ManyToManyField(Profile, through='CourseUserLikes', default=[], related_name='course_likes')
+    creator = models.ForeignKey(Profile, related_name = "course_creator", on_delete=models.CASCADE)
+
+class CourseUserRating(models.Model):
+    class Meta:
+        unique_together = ('profile', 'course')
+
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='course_rater_profile')
+    """profile (ForeignKey<Profile>): profile who rated the course"""
+    course: Course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name='rated_course')
+    """course (ForeignKey<Course>): course which was rated"""
+    score: float = models.FloatField(default=0, validators=[MinValueValidator(0.0), MaxValueValidator(10.0)])
+    text=models.TextField(max_length=150)
+
+class CourseUserLikes(models.Model):
+    class Meta:
+        unique_together = ('profile', 'course')
+
+    id: UUID = models.UUIDField(
+        primary_key=True, default=uuid4, editable=False)
+    profile: Profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name='course_like_profile')
+    """profile (ForeignKey<Profile>): profile who rated the course"""
+    course: Course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name='liked_course')
+    """course (ForeignKey<Course>): course which was rated"""
+
 
 class Lesson(models.Model):
     id:UUID=models.UUIDField(primary_key=True,default=uuid4)
     name=models.CharField(max_length=75)
-    #lessontype=models.ForeignKey(Course,on_delete=models.CASCADE)
-    courseid=models.ForeignKey(Course,on_delete=models.CASCADE)
+    type=models.CharField(choices=(('video','video'),('image','image'),('text','text'),('document','document')),max_length=10)
+    course=models.ForeignKey(Course,on_delete=models.CASCADE)
+    data=models.TextField(max_length=200)
 
-class rating(models.Model):
-    rating=models.PositiveIntegerField(primary_key=True,default=0,blank=True)
-    review_text=models.CharField(max_length=500)
-    creator=models.ForeignKey(Profile,related_name="rating",on_delete=models.CASCADE)
-    courseid=models.ForeignKey(Course,on_delete=models.CASCADE)
-
-class profiletoken():
-    id=Profile.id
-    name=Profile.user
-    is_active = Profile.is_active
-    date_joined = Profile.createdOn
-    USERNAME_FIELD = 'email'
-
-class coursereview(models.Model):
+class CourseReview(models.Model):
     id:UUID=models.UUIDField(primary_key=True,default=uuid4)
-    courseid=models.ForeignKey(Course,on_delete=models.CASCADE)
+    course=models.ForeignKey(Course,on_delete=models.CASCADE)
     review=models.CharField(max_length=500)
     givenby=models.ForeignKey(Profile,on_delete=models.CASCADE)
+    rating=models.PositiveIntegerField()
+
+#courseuserenrollment model to be created
