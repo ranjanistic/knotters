@@ -5,6 +5,10 @@ from learn.views import *
 
 urlpatterns = [
     path(URL.INDEX, index),
-    path('',courseactions),
-    path('',lessonactions),
+    path('courses/',getallcourses),
+    path('course/<str:courseID>',getCoursebyID),
+    path('lesson/<str:lessonID>',lessoninfo),
+    path('review/<str:review>',coursereview),
+    path('lessonslist/',lessonlist),
+    #path('history',deletereview)
 ]
