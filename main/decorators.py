@@ -126,6 +126,9 @@ def dev_only(function: callable) -> callable:
 
     return wrap
 
+from django.shortcuts import resolve_url
+from urllib.parse import urlparse
+from django.contrib.auth.views import redirect_to_login
 
 def verified_email_required(
     function: callable = None, login_url: str = None, redirect_field_name: str = REDIRECT_FIELD_NAME
@@ -142,14 +145,28 @@ def verified_email_required(
         callable: The decorated function.
     """
     def decorator(view_func):
-        @login_required(redirect_field_name=redirect_field_name, login_url=login_url)
+     #   @login_required(redirect_field_name=redirect_field_name, login_url=login_url)
         def _wrapped_view(request: WSGIRequest, *args, **kwargs):
+            if not request.user.is_authenticated:
+                if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+                    return respondJson(Code.NO, error='Session expired.', status=401)
+                path = request.build_absolute_uri()
+                resolved_login_url = resolve_url(login_url or settings.LOGIN_URL)
+                # If the login url is the same scheme and net location then just
+                # use the path as the "next" url.
+                login_scheme, login_netloc = urlparse(resolved_login_url)[:2]
+                current_scheme, current_netloc = urlparse(path)[:2]
+                if (not login_scheme or login_scheme == current_scheme) and (
+                    not login_netloc or login_netloc == current_netloc
+                ):
+                    path = request.get_full_path()
+                return redirect_to_login(path, resolved_login_url, redirect_field_name)
             if not EmailAddress.objects.filter(
                 user=request.user, verified=True
             ).exists() and not ISTESTING:
                 # addMethodToAsyncQueue(f"{AUTH2}.mailers.{send_account_verification_email}", request)
                 send_account_verification_email(request)
-                if request.headers.get('X-KNOT-REQ-SCRIPT', False):
+                if request.headers.get('X-KNOT-REQ-SCRIPT', False) or request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
                     return respondJson(Code.NO, error=Message.EMAIL_NOT_VERIFIED)
                 return render(request, "account/verified_email_required.html")
             return view_func(request, *args, **kwargs)
@@ -180,6 +197,8 @@ def normal_profile_required(function: callable) -> callable:
         if request.user.profile.is_normal:
             return function(request, *args, **kwargs)
         else:
+            if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+                return respondJson(Code.NO, error='Session invalid.')
             if request.method == Code.GET:
                 raise Http404('abnormal user', request.user)
             return HttpResponseForbidden('Abnormal user access', request.user)
@@ -205,6 +224,8 @@ def moderator_only(function: callable) -> callable:
         if request.user.profile.is_moderator and not request.user.profile.is_mod_paused:
             return function(request, *args, **kwargs)
         else:
+            if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+                return respondJson(Code.NO, error='Unauthorized moderator access')
             if request.method == Code.GET:
                 raise Http404('Unauthorized moderator access', request.user)
             return HttpResponseForbidden('Unauthorized moderator access', request.user)
@@ -230,6 +251,8 @@ def mentor_only(function: callable) -> callable:
         if request.user.profile.is_mentor:
             return function(request, *args, **kwargs)
         else:
+            if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+                return respondJson(Code.NO, error='Unauthorized mentor access')
             if request.method == Code.GET:
                 raise Http404('Unauthorized mentor access', request.user)
             return HttpResponseForbidden('Unauthorized mentor access', request.user)
@@ -255,6 +278,8 @@ def manager_only(function: callable) -> callable:
         if request.user.profile.is_manager():
             return function(request, *args, **kwargs)
         else:
+            if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+                return respondJson(Code.NO, error='Unauthorized manager access')
             if request.method == Code.GET:
                 raise Http404('Unauthorized manager access', request.user)
             return HttpResponseForbidden('Unauthorized management access', request.user)

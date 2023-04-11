@@ -129,15 +129,6 @@ python3 manage.py makemigrations
 python3 manage.py migrate
 ```
 
-These will create collections in your `DB_NAME` named value in .env, as database of your MongoDB server.
-
-If the above commands are failing for you due to some kind of database error, then you can follow the steps below to fix the issue.
-
-```bash
-python3 manage.py makemigrations
-python3 manage.py migrate --fake
-```
-
 ### Initial setup
 
 Create default necessary records
