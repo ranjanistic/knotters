@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     "webpush",
     "mfa",
     "corsheaders",
-    "learn"
+    "learn",
+    "rest_framework"
 ] + DIVISIONS
 
 if not env.ISTESTING:
