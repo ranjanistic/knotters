@@ -13,29 +13,6 @@ from django.core.cache import cache
 from django.core.validators import MaxValueValidator, MinValueValidator
 import math
 
-class Course(models.Model):
-    courseid:UUID=models.UUIDField(primary_key=True,default=uuid4)
-    title=models.CharField(max_length=75)
-    short_desc=models.CharField(max_length=250)
-    long_desc=models.CharField(max_length=500)
-    #lessons=models.ForeignKey(Lesson,on_delete=models.CASCADE)
-    #raters = models.ManyToManyField(Profile, through="LessonUserRating", default=[], related_name='lesson_user_rating')
-    lessonCount=models.IntegerField(default=0)
-    #likes = models.ManyToManyField(Profile, through='CourseLikes', default=[], related_name='course_likes')
-    creator = models.ForeignKey(Profile, related_name = "course", on_delete=models.CASCADE)
-
-class Lesson(models.Model):
-    id:UUID=models.UUIDField(primary_key=True,default=uuid4)
-    name=models.CharField(max_length=75)
-    #lessontype=models.ForeignKey(Course,on_delete=models.CASCADE)
-    courseid=models.ForeignKey(Course,on_delete=models.CASCADE)
-
-class rating(models.Model):
-    rating=models.IntegerField(primary_key=True,default=0)
-    review_text=models.CharField(max_length=500)
-    creator=models.ForeignKey(Profile,related_name="rating",on_delete=models.CASCADE)
-    courseid=models.ForeignKey(Course,on_delete=models.CASCADE)
-
 class Article(models.Model):
     id: UUID = models.UUIDField(
         primary_key=True, default=uuid4, editable=False)

@@ -11,7 +11,7 @@ from ratelimit.decorators import ratelimit
 
 from .env import ADMINPATH, ISPRODUCTION
 from .strings import (AUTH2, COMPETE, MANAGEMENT, MODERATION, PEOPLE, PROJECTS, HOWTO,
-                      URL)
+                      URL,LEARN)
 from .views import *
 
 views.signup = ratelimit(key='user_or_ip', rate='10/m',
@@ -58,6 +58,7 @@ urlpatterns = [
     path(URL.HOWTO, include(f'{HOWTO}.urls')),
     path(URL.WEBPUSH, include('webpush.urls')),
     path(URL.API, include('api.urls')),
+    path(URL.API, include(f'{LEARN}.urls')),
     
     
     # redirects

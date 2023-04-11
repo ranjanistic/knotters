@@ -1,6 +1,6 @@
 from re import sub as re_sub
 from uuid import UUID
-
+from learn.apps import APPNAME as LEARN
 from auth2.apps import APPNAME as AUTH2
 from compete.apps import APPNAME as COMPETE
 from deprecated import deprecated
@@ -601,6 +601,7 @@ class URL():
     PEOPLE = f'{PEOPLE}/'
     MODERATION = f'{MODERATION}/'
     MANAGEMENT = f'{MANAGEMENT}/'
+    LEARN= f'{LEARN}/'
     FAME_WALL = 'wall-of-fame/'
     REDIRECTOR = 'redirector/'
     HOWTO = f'{HOWTO}/'
@@ -687,7 +688,7 @@ class URL():
         VERIFY_CREDENTIALS = 'verify-credentials/'
         REFRESH_TOKEN = 'refresh-token/'
         USER = 'user/'
-        LESSON_UPDATE='update-lesson/'
+        COURSE_REVIEWS='course-reviews/'
     api = Api()
 
     class Auth():

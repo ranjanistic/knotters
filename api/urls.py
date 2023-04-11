@@ -1,12 +1,12 @@
 from django.urls import path
 from main.strings import URL
-#from learn.views import updatelesson
+from learn.views import courseactions
 from .views import *
 
 urlpatterns = [
     path(URL.Api.VERIFY_CREDENTIALS, verifyCredentials),
     path(URL.Api.REFRESH_TOKEN, refreshToken),
     path(URL.Api.USER, tokenUser),
-    #path(URL.Api.LESSON_UPDATE,updatelesson),
+    path('update-course/',courseactions),
 
 ]
