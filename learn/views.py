@@ -423,7 +423,7 @@ def lessoninfo(request: WSGIRequest, lessonID):
 @csrf_exempt
 @normal_profile_required
 @require_GET
-def coursereview(request: WSGIRequest, review):
+def coursereview(request:WSGIRequest, review):
     course_review = CourseReview.objects.get(id=review)
     return respondJson(Code.OK, dict(
         course_review=dict(
@@ -439,7 +439,7 @@ def coursereview(request: WSGIRequest, review):
 def allreviews(request: WSGIRequest):
     reviews = CourseReview.objects.filter()
     return respondJson(Code.OK, dict(
-        _reviews=list(
+        reviews=list(
             map(
                 lambda reviewlist: dict(
                     id=reviewlist.id,
@@ -452,19 +452,29 @@ def allreviews(request: WSGIRequest):
         )
     ))
 
-# def deletereview(request:WSGIRequest,review):
-#    course_review = CourseReview.objects.get(id=review)
-#    if
+def deletereview(request:WSGIRequest,review):
+    delete_review=CourseReview.objects.get(id=review)
+    delete_review.delete()
+    return respondJson(Code.OK,dict(
+        delete_review=dict(
+            id=delete_review.id,
+            coursename=delete_review.course,
+            _review=delete_review.review,
+            reviewer=delete_review.givenby,
+            rating=delete_review.rating,
+        )
+    ))
 
-# def removelessonhistory():
-#    history=history.objects.get()
-
+def removelessonhistory(request:WSGIRequest,lesson):
+   history=UserHistory.objects.get(lesson=lesson)
+   history.delete()
+   return respondJson(Code.OK,dict())
 
 @csrf_exempt
-# @normal_profile_required
+@normal_profile_required
 @require_GET
-def lessonlist(request: WSGIRequest, listlessons):
-    lesson = Course.objects.get(listlessons=Course.total_lessons)
+def lessonlist(request:WSGIRequest,listlessons):
+    lesson = Lesson.objects.get(id=listlessons)
     return respondJson(Code.OK, dict(
         lessons=list(
             map(
@@ -475,5 +485,20 @@ def lessonlist(request: WSGIRequest, listlessons):
                     course=lessn.course,
                     data=lessn.data(),
                 )), lesson
+        )
+    ))
+
+
+@csrf_exempt
+@normal_profile_required
+@require_GET
+def recordhistory(request:WSGIRequest,addrecord):
+    history=UserHistory.objects.get(id=addrecord)
+    return respondJson(Code.OK,dict(
+        history=dict(
+            id=history.id,
+            profile=history.profile,
+            course=history.course,
+            lesson=history.lesson,
         )
     ))
