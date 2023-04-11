@@ -9,8 +9,10 @@ urlpatterns = [
     path('course/<str:courseID>',getCoursebyID),
     path('lesson/<str:lessonID>',lessoninfo),
     path('review/<str:review>',coursereview),
+    path('reviews',allreviews),
+    path('deletereview/<str:review>',deletereview),
+    path('deletelessonhistory/<str:lesson>',removelessonhistory),
     path('lessonslist/<str:listlessons>',lessonlist),
     path('userhistory/<str:addrecord>',recordhistory),
-    path('deletereview/<str:review>',deletereview),
-    path('deletelesson/<str:lesson>',removelessonhistory),
+    path('addreview',addcoursereview),
 ]

@@ -435,7 +435,9 @@ def coursereview(request:WSGIRequest, review):
         )
     ))
 
-
+@csrf_exempt
+@normal_profile_required
+@require_GET
 def allreviews(request: WSGIRequest):
     reviews = CourseReview.objects.filter()
     return respondJson(Code.OK, dict(
@@ -452,6 +454,9 @@ def allreviews(request: WSGIRequest):
         )
     ))
 
+@csrf_exempt
+@normal_profile_required
+@require_GET
 def deletereview(request:WSGIRequest,review):
     delete_review=CourseReview.objects.get(id=review)
     delete_review.delete()
@@ -465,6 +470,9 @@ def deletereview(request:WSGIRequest,review):
         )
     ))
 
+@csrf_exempt
+@normal_profile_required
+@require_GET
 def removelessonhistory(request:WSGIRequest,lesson):
    history=UserHistory.objects.get(lesson=lesson)
    history.delete()
@@ -485,6 +493,29 @@ def lessonlist(request:WSGIRequest,listlessons):
                     course=lessn.course,
                     data=lessn.data(),
                 )), lesson
+        )
+    ))
+
+@csrf_exempt
+@normal_profile_required
+@require_GET
+def addcoursereview(request):
+    if request.method=='POST':
+        id=request.POST['id']
+        course=request.POST['course']
+        review=request.POST['review']
+        givenby=request.POST['givenby']
+        rating=request.POST['rating']
+    addreview=CourseReview.objects.create(id=id,course=course,review=review,givenby=givenby,rating=rating)
+    return respondJson(Code.OK,dict(
+        addreview=dict(
+            addreview=dict(
+                id=addreview.id,
+                course=addreview.course,
+                review=addreview.review,
+                givenby=addreview.givenby,
+                rating=addreview.rating,
+            )
         )
     ))
 
