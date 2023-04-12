@@ -415,8 +415,7 @@ def lessoninfo(request: WSGIRequest, lessonID):
             id=lesson.id,
             name=lesson.name,
             type=lesson.type,
-            course=lesson.course,
-            data=lesson.data(),)
+            course=lesson.course,)
     ))
 
 
@@ -498,14 +497,13 @@ def lessonlist(request:WSGIRequest,listlessons):
 
 @csrf_exempt
 @normal_profile_required
-@require_GET
+@require_POST
 def addcoursereview(request):
-    if request.method=='POST':
-        id=request.POST['id']
-        course=request.POST['course']
-        review=request.POST['review']
-        givenby=request.POST['givenby']
-        rating=request.POST['rating']
+    id=request.POST['id']
+    course=request.POST['course']
+    review=request.POST['review']
+    givenby=request.user.profile
+    rating=request.POST['rating']
     addreview=CourseReview.objects.create(id=id,course=course,review=review,givenby=givenby,rating=rating)
     return respondJson(Code.OK,dict(
         addreview=dict(

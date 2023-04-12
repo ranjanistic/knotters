@@ -83,9 +83,3 @@ class UserHistory(models.Model):
     profile=models.ForeignKey(Profile, on_delete=models.CASCADE)
     course=models.ForeignKey(Course,on_delete=models.CASCADE)
     lesson=models.ForeignKey(Lesson,on_delete=models.CASCADE)
-
-
-class LessonList(models.Model):
-    id:UUID=models.UUIDField(primary_key=True,default=uuid4,editable=False)
-    course=models.ForeignKey(Course,on_delete=models.CASCADE)
-    lessons=models.ForeignKey(Lesson,on_delete=models.CASCADE)
