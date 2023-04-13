@@ -16,7 +16,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin,BaseUs
 import math
 
 class Course(models.Model):
-    id:UUID=models.UUIDField(primary_key=True,default=uuid4,editable=False)
+    id:UUID=models.UUIDField(primary_key=True,default=uuid4,editable=True)
     title=models.CharField(max_length=75)
     short_desc=models.CharField(max_length=250)
     long_desc=models.CharField(max_length=500)
@@ -73,6 +73,7 @@ class CourseReview(models.Model):
 
 class CourseUserEnrollment(models.Model):
     id:UUID=models.UUIDField(primary_key=True,default=uuid4,editable=False)
+    enrolled=models.BooleanField(default=False)
     course=models.ForeignKey(Course,on_delete=models.CASCADE)
     profile=models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='enrolled_user_profile')
     enrolledAt=models.DateField(auto_now_add=True)
