@@ -63,9 +63,12 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
 
-CORS_ALLOWED_ORIGIN_REGEXES = [
-  r"^https://\w+\.knotters\.org$"
-]
+if not env.ISBETA:
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+      r"^https://\w+\.knotters\.org$"
+    ]
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
