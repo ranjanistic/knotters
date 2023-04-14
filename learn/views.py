@@ -7,6 +7,7 @@ from django.http.response import HttpResponse
 from ratelimit.decorators import ratelimit
 from projects.models import Topic, BaseProject
 from .models import *
+from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 #from django.db.models import Q
 from main.decorators import require_GET
@@ -70,7 +71,7 @@ def getCoursebyID(request: WSGIRequest, courseID):
 
 
 @csrf_exempt
-@normal_profile_required
+# @normal_profile_required
 @require_GET
 def getallcourses(request: WSGIRequest):
     courselist = Course.objects.filter()
@@ -108,7 +109,7 @@ def lessoninfo(request: WSGIRequest, lessonID):
 @normal_profile_required
 @require_GET
 def coursereview(request: WSGIRequest, review):
-    course_review = CourseReview.objects.get(id=review)
+    course_review = CourseReview.objects.filter(course=review)
     return respondJson(Code.OK, dict(
         course_review=dict(
             id=course_review.id,
@@ -118,6 +119,7 @@ def coursereview(request: WSGIRequest, review):
             rating=course_review.rating,
         )
     ))
+
 
 @csrf_exempt
 @normal_profile_required
@@ -138,13 +140,14 @@ def allreviews(request: WSGIRequest):
         )
     ))
 
+
 @csrf_exempt
 @normal_profile_required
 @require_GET
-def deletereview(request:WSGIRequest,review):
-    delete_review=CourseReview.objects.get(id=review)
+def deletereview(request: WSGIRequest, review):
+    delete_review = CourseReview.objects.get(id=review)
     delete_review.delete()
-    return respondJson(Code.OK,dict(
+    return respondJson(Code.OK, dict(
         delete_review=dict(
             id=delete_review.id,
             coursename=delete_review.course,
@@ -154,44 +157,47 @@ def deletereview(request:WSGIRequest,review):
         )
     ))
 
-@csrf_exempt
-@normal_profile_required
-@require_GET
-def removelessonhistory(request:WSGIRequest,lesson):
-   history=UserHistory.objects.get(lesson=lesson)
-   history.delete()
-   return respondJson(Code.OK,dict())
-
-@csrf_exempt
-@normal_profile_required
-@require_GET
-def lessonlist(request: WSGIRequest, listlessons):
-    lesson = Course.objects.get(listlessons=Course.total_lessons)
-    return respondJson(Code.OK, dict(
-        lessons=list(
-            map(
-                lambda lessn: dict(
-                    id=lessn.id,
-                    name=lessn.name,
-                    type=lessn.type,
-                    course=lessn.course,
-                    data=lessn.data(),
-                )), lesson
-        )
-    ))
 
 @csrf_exempt
 @normal_profile_required
 @require_POST
-def addcoursereview(request,courseid):
-    get_courseid=Course.objects.get(id=courseid)
-    id=request.POST['id']
-    course=request.POST['course']
-    review=request.POST['review']
-    givenby=request.user.profile
-    rating=request.POST['rating']
-    addreview=CourseReview.objects.create(id=id,course=course,review=review,givenby=givenby,rating=rating)
-    return respondJson(Code.OK,dict(
+def removelessonhistory(request: WSGIRequest, lesson):
+    history = CourseUserHistory.objects.get(lesson=lesson)
+    history.delete()
+    return respondJson(Code.OK, dict())
+
+
+@csrf_exempt
+@require_GET
+def lessonlist(request: WSGIRequest, courseID):
+    lesson = Lesson.objects.filter(course=courseID)
+    return respondJson(Code.OK, dict(
+        lessons=list(
+            map(
+                lambda lesson: dict(
+                    id=lesson.id,
+                    name=lesson.name,
+                    type=lesson.type,
+                    courseID=lesson.course.id,
+                    data=lesson.data,
+                )), lesson
+        )
+    ))
+
+
+@csrf_exempt
+@normal_profile_required
+@require_POST
+def addcoursereview(request, courseid):
+    get_courseid = Course.objects.get(id=courseid)
+    id = request.POST['id']
+    course = request.POST['course']
+    review = request.POST['review']
+    givenby = request.user.profile
+    rating = request.POST['rating']
+    addreview = CourseReview.objects.create(
+        id=id, course=course, review=review, givenby=givenby, rating=rating)
+    return respondJson(Code.OK, dict(
         addreview=dict(
             addreview=dict(
                 id=addreview.id,
@@ -207,9 +213,9 @@ def addcoursereview(request,courseid):
 @csrf_exempt
 @normal_profile_required
 @require_GET
-def seehistory(request:WSGIRequest,addrecord):
-    history=UserHistory.objects.get(id=addrecord)
-    return respondJson(Code.OK,dict(
+def seehistory(request: WSGIRequest):
+    history = CourseUserHistory.objects.filter(profile=request.user.profile)
+    return respondJson(Code.OK, dict(
         history=dict(
             id=history.id,
             profile=history.profile,
@@ -223,12 +229,13 @@ def seehistory(request:WSGIRequest,addrecord):
 @normal_profile_required
 @require_POST
 def add_to_history(request):
-    id=request.POST['id']
-    profile=request.POST['profile']
-    course=request.POST['course']
-    lesson=request.POST['lesson']
-    history=UserHistory.objects.create(id=id,profile=profile,course=course,lesson=lesson)
-    return respondJson(Code.OK,dict(
+    id = request.POST['id']
+    profile = request.POST['profile']
+    course = request.POST['course']
+    lesson = request.POST['lesson']
+    history = CourseUserHistory.objects.create(
+        id=id, profile=profile, course=course, lesson=lesson)
+    return respondJson(Code.OK, dict(
         history=dict(
             history=dict(
                 id=history.id,
@@ -239,36 +246,42 @@ def add_to_history(request):
         )
     ))
 
-@csrf_exempt
-@normal_profile_required
-@require_POST
-def course_enroll(request):
-    courseID=request.POST['id']
-    enroll=request.POST['enrolled']
-    coursename=request.POST['course']
-    profile=request.POST['profile']
-    enrolldate=request.POST['enrolledAt']
-    add_data=CourseUserEnrollment.objects.create(id=courseID,enrolled=enroll,course=coursename,profile=profile,enrolledAt=enrolldate)
-    return respondJson(Code.OK,dict(
-        add_data=dict(
-            add_data=dict(
-                id=add_data.id,
-                enrolled=add_data.enrolled,
-                course=add_data.course,
-                profile=add_data.profile,
-                enrolledAt=add_data.enrolledAt,
-            )
-        )
-    ))
 
 @csrf_exempt
 @normal_profile_required
-@require_GET
-def enrollstatus(request,status):
-    enrolled=CourseUserEnrollment.objects.get(id=status)
-    return respondJson(Code.OK,dict(
-        enrolled=dict(
-            courseid=enrolled.id,
-            coursestatus=enrolled.enrolled,
-        )
-    ))
+def enrollment(request: WSGIRequest, courseID):
+    profile = request.user.profile
+    course = Course.objects.get(id=courseID)
+    enrollment = CourseUserEnrollment.objects.filter(course=course, profile=profile).first()
+    if request.method == Code.POST:
+        if not enrollment:
+            enrollment = CourseUserEnrollment.objects.create(
+                course=course,
+                profile=profile,
+                enrolledAt=timezone.now(),
+                expireAt=timezone.now()+timedelta(seconds=10)
+            )
+        return respondJson(Code.OK, dict(
+            enrollment=dict(
+                id=enrollment.id,
+                course=enrollment.course.id,
+                enrolledAt=enrollment.enrolledAt,
+                expireAt=enrollment.expireAt,
+                isActive=enrollment.isActive(),
+            )
+        ))
+    elif request.method == Code.GET:
+        if enrollment:
+            return respondJson(Code.OK, dict(
+                enrollment=dict(
+                    id=enrollment.id,
+                    course=enrollment.course.id,
+                    enrolledAt=enrollment.enrolledAt,
+                    expireAt=enrollment.expireAt,
+                    isActive=enrollment.isActive(),
+                )
+            ))
+        else:
+            return respondJson(Code.NO, dict(
+                enrollment=False
+            ), status=404)
