@@ -51,7 +51,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name")}),
-        ("Account state", {"fields": ("is_active",)}),
+        ("Account state", {"fields": ("is_active","is_admin","is_staff")}),
     )
     add_fieldsets = (
         (None, {
