@@ -73,8 +73,8 @@ def getCoursebyID(request: WSGIRequest, courseID):
 @csrf_exempt
 # @normal_profile_required
 @require_GET
-def getallcourses(request: WSGIRequest):
-    courselist = Course.objects.filter()
+def getallcourses(request: WSGIRequest,courseID):
+    courselist = Course.objects.filter(id=courseID)
     return respondJson(Code.OK, dict(
         courses=list(
             map(
