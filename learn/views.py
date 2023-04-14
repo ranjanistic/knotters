@@ -161,11 +161,10 @@ def deletereview(request: WSGIRequest, review):
 @csrf_exempt
 @normal_profile_required
 @require_POST
-def removelessonhistory(request: WSGIRequest, lesson):
-    history = CourseUserHistory.objects.get(lesson=lesson)
+def removelessonhistory(request: WSGIRequest, lessonID):
+    history = Lesson.objects.get(id=lessonID)
     history.delete()
     return respondJson(Code.OK, dict())
-
 
 @csrf_exempt
 @require_GET
@@ -188,9 +187,8 @@ def lessonlist(request: WSGIRequest, courseID):
 @csrf_exempt
 @normal_profile_required
 @require_POST
-def addcoursereview(request, courseid):
-    get_courseid = Course.objects.get(id=courseid)
-    id = request.POST['id']
+def addcoursereview(request,courseID):
+    id=Course.object.get(id=courseID)
     course = request.POST['course']
     review = request.POST['review']
     givenby = request.user.profile
@@ -228,8 +226,8 @@ def seehistory(request: WSGIRequest):
 @csrf_exempt
 @normal_profile_required
 @require_POST
-def add_to_history(request):
-    id = request.POST['id']
+def add_to_history(request,lessonID):
+    id = Lesson.objects.get(id=lessonID)
     profile = request.POST['profile']
     course = request.POST['course']
     lesson = request.POST['lesson']
