@@ -26,8 +26,8 @@ jobs:
         /home/ubuntu/testing/bin/pip install -r requirements.txt
     - name: Create Environment
       run: |
-        echo "${{ secrets.ENV_TEST }}" > ${{ secrets.ENVPATH }}
-        cp ${{ secrets.ENVPATH }} ${{ secrets.ENVPATH }}.testing
+        echo "${{ secrets.ENV_TEST }}" > main/.env
+        cp main/.env main/.env.testing
     - name: Run migrations
       run: |
         /home/ubuntu/testing/bin/python3 manage.py makemigrations --noinput
