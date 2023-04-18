@@ -61,6 +61,7 @@ class UserAdmin(BaseUserAdmin):
     )
     search_fields = ("email", "first_name", "last_name")
     ordering = ("-date_joined", "last_login")
+    search_fields = ['first_name', 'last_name']
     filter_horizontal = ()
 
 
@@ -72,6 +73,8 @@ admin.site.unregister(Group)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ["getName", "user", "githubID", "picture"]
     list_filter = ["is_moderator", "to_be_zombie", "is_zombie", "is_active"]
+    ordering = ['-createdOn']
+    search_fields = ['nickname', 'githubID']
 
     def get_queryset(self, request):
         query_set = super(ProfileAdmin, self).get_queryset(request)

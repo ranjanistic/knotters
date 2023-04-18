@@ -68,9 +68,9 @@ jobs:
       run: |
         /home/ubuntu/knotters/bin/python3 manage.py makemigrations --noinput
         /home/ubuntu/knotters/bin/python3 manage.py migrate --noinput
-    - name: Synchronise notifications
-      run: |
-        /home/ubuntu/knotters/bin/python3 manage.py syncnotifications --noinput
+   # - name: Synchronise notifications
+   #   run: |
+   #     /home/ubuntu/knotters/bin/python3 manage.py syncnotifications --noinput
 
   deploy:
     needs: [build]

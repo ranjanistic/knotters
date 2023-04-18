@@ -1,7 +1,10 @@
 from django.contrib import admin
 from learn.models import *
 
-admin.site.register(Course)
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['creator']
+
 admin.site.register(Lesson)
 admin.site.register(CourseReview)
 admin.site.register(CourseUserLikes)

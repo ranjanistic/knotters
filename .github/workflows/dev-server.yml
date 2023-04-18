@@ -35,9 +35,9 @@ jobs:
         run: |
           /home/ubuntu/dev/bin/python3 manage.py makemigrations --noinput
           /home/ubuntu/dev/bin/python3 manage.py migrate --noinput
-      - name: Synchronise notifications
-        run: |
-          /home/ubuntu/dev/bin/python3 manage.py syncnotifications --noinput
+ #     - name: Synchronise notifications
+  #      run: |
+   #       /home/ubuntu/dev/bin/python3 manage.py syncnotifications --noinput
       - name: Release new version
         run: |
           /home/ubuntu/dev/bin/python3 genversion.py
