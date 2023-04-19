@@ -2,7 +2,7 @@ from datetime import datetime
 from operator import truediv
 from re import sub as re_sub
 from time import time
-from uuid import UUID,uuid4
+from uuid import UUID, uuid4
 import math
 
 from allauth.account.models import EmailAddress
@@ -34,6 +34,7 @@ from management.models import (GhMarketPlan, Invitation, Management,
 from .apps import APPNAME
 
 from random import randint
+
 
 def isPictureDeletable(picture: str) -> bool:
     """
@@ -158,7 +159,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         Returns:
             string: primary phone of the user.
         """
-        ph = PhoneNumber.objects.filter(user=self,primary=True).values_list('number', flat=True)
+        ph = PhoneNumber.objects.filter(
+            user=self, primary=True).values_list('number', flat=True)
         if not len(ph):
             return None
         return ph[0]
@@ -376,6 +378,7 @@ def profileImagePath(instance: "Profile", filename: str) -> str:
     fileparts = filename.split('.')
     return f"{APPNAME}/avatars/{str(instance.get_userid)}_{str(uuid4().hex)}.{fileparts[-1]}"
 
+
 def defaultImagePath() -> str:
     return f"{APPNAME}/avatars/defaults/{randint(0,12)}.png"
 
@@ -497,15 +500,15 @@ class Profile(models.Model):
         """
         return None if self.is_zombie else self.user.get_id
 
-    def KNOTBOT(ignoreCache =False) -> "Profile":
+    def KNOTBOT(ignoreCache=False) -> "Profile":
         """Returns the profile of the knottersbot.
         This is not specific to a user, but is a global profile.
         """
-        knotbot=None
+        knotbot = None
         cacheKey = 'profile_knottersbot'
         if not ignoreCache:
             knotbot = cache.get(cacheKey)
-        
+
         if not knotbot:
             knotbot = Profile.objects.get(user__email=BOTMAIL)
             cache.set(cacheKey, knotbot, settings.CACHE_MAX)
@@ -561,10 +564,24 @@ class Profile(models.Model):
             cache.set(cacheKey, exists,
                       settings.CACHE_MAX if exists else settings.CACHE_SHORT)
         return exists
-    
+
+    def get_private_dict(self) -> dict:
+        return dict(
+            id=self.get_userid, name=self.get_name, email=self.get_email, is_moderator=self.is_moderator,
+            is_mentor=self.is_mentor, is_verified=self.is_verified, is_manager=self.is_manager(),
+            nickname=self.nickname, picture=self.get_abs_dp, profile=self.get_abs_link
+        )
+
+    def get_dict(self) -> dict:
+        return dict(
+            id=self.get_userid, name=self.get_name, is_moderator=self.is_moderator,
+            is_mentor=self.is_mentor, is_verified=self.is_verified, is_manager=self.is_manager(),
+            nickname=self.nickname, picture=self.get_abs_dp, profile=self.get_abs_link
+        )
+
     def canCreateArticle(self) -> bool:
         """Returns True if profile can create article"""
-        return True # self.is_manager() or Profile.KNOTBOT().management() and Profile.KNOTBOT().management().has_member(self)
+        return True  # self.is_manager() or Profile.KNOTBOT().management() and Profile.KNOTBOT().management().has_member(self)
 
     def phone_number(self) -> "PhoneNumber":
         """Returns the primary & verified phone number instance of the user.
@@ -724,7 +741,7 @@ class Profile(models.Model):
             errorLog(e)
             return False
 
-    def managements(self) -> models.QuerySet:
+    def managements(self, profiles=False) -> models.QuerySet:
         """Returns all management instances of which this user is a member.
 
         Returns:
@@ -734,7 +751,9 @@ class Profile(models.Model):
         data = cache.get(cacheKey, None)
         if data is None:
             data = Management.objects.filter(people=self)
-            cache.set(cacheKey, data, settings.CACHE_MINI)
+            if profiles:
+                data = list(map(lambda mgm: mgm.profile, data))
+            # cache.set(cacheKey, data, settings.CACHE_MINI)
         return data
 
     def addToManagement(self, mgmID: UUID) -> bool:
@@ -847,7 +866,7 @@ class Profile(models.Model):
         """Returns True if moderator has pending modeartions"""
         from moderation.models import Moderation
         return Moderation.objects.filter(moderator=self, resolved=False).exists()
-    
+
     def mod_isApproved(self):
         """Returns True if moderator has approved modeartions"""
         from moderation.models import Moderation
@@ -1412,15 +1431,16 @@ class Profile(models.Model):
         Returns:
             ProfileBulkTopicXPRecord: The user's bulk xp record instance
         """
-        proftops = list(ProfileTopic.objects.filter(profile=self, topic__in=topics))
-        existing_topics = list(map(lambda x:x.topic, proftops))
-        proftops.extend(list(map(lambda t : ProfileTopic(
-                    topic=t,
-                    profile=self,
-                    trashed=True,
-                    points=0
-                ), filter(lambda t: t not in existing_topics, topics))))
-        
+        proftops = list(ProfileTopic.objects.filter(
+            profile=self, topic__in=topics))
+        existing_topics = list(map(lambda x: x.topic, proftops))
+        proftops.extend(list(map(lambda t: ProfileTopic(
+            topic=t,
+            profile=self,
+            trashed=True,
+            points=0
+        ), filter(lambda t: t not in existing_topics, topics))))
+
         for proftop in proftops:
             proftop.increasePoints(by, notify=False, record=False)
 
@@ -1466,14 +1486,15 @@ class Profile(models.Model):
         Returns:
             ProfileBulkTopicXPRecord: The user's bulk xp record instance
         """
-        proftops = list(ProfileTopic.objects.filter(profile=self, topic__in=topics))
-        existing_topics = list(map(lambda x:x.topic, proftops))
-        proftops.extend(list(map(lambda t : ProfileTopic(
-                    topic=t,
-                    profile=self,
-                    trashed=True,
-                    points=0
-                ), filter(lambda t: t not in existing_topics, topics))))
+        proftops = list(ProfileTopic.objects.filter(
+            profile=self, topic__in=topics))
+        existing_topics = list(map(lambda x: x.topic, proftops))
+        proftops.extend(list(map(lambda t: ProfileTopic(
+            topic=t,
+            profile=self,
+            trashed=True,
+            points=0
+        ), filter(lambda t: t not in existing_topics, topics))))
 
         for proftop in proftops:
             proftop.decreasePoints(by, notify=False, record=False)
@@ -1758,7 +1779,6 @@ class Profile(models.Model):
             errorLog(e)
             return []
 
-
     def recommended_topics(self, atleast: int = 1, atmost: int = 5) -> models.QuerySet:
         """Returns the user's recommended topics instances
 
@@ -1807,18 +1827,19 @@ class Profile(models.Model):
         return profile_url
 
     def clearCache(self):
-        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}", 
+        cache.delete_many([f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}",
                            f"{Profile.MODEL_CACHE_KEY}_{self.nickname}",
                            f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{True}", f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{False}",
-                           f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{True}",f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{False}",
-                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{False}", 
+                           f"{Profile.MODEL_CACHE_KEY}_{self.nickname}_{True}", f"{Profile.MODEL_CACHE_KEY}_{self.get_userid}_{False}",
+                           f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{False}",
                            f"{Profile.MODEL_CACHE_KEY}_{self.user.id}_{True}"
-                          ])
+                           ])
         return cache.delete_many(classAttrsToDict(self.CACHE_KEYS.__class__).values())
 
     def getApprovedModerations(self):
         from moderation.models import Moderation
-        approved_moderations = Moderation.objects.filter(moderator=self, status=Code.APPROVED, resolved=True, type=PROJECTS)
+        approved_moderations = Moderation.objects.filter(
+            moderator=self, status=Code.APPROVED, resolved=True, type=PROJECTS)
         return approved_moderations
 
     def getModProjects(self) -> models.QuerySet:
@@ -1830,7 +1851,8 @@ class Profile(models.Model):
         cacheKey = f"moderated_projects_{self.id}"
         moderatedprojects = cache.get(cacheKey, None)
         if moderatedprojects is None:
-            moderatedprojects = list(map(lambda x: x.project, self.getApprovedModerations()))
+            moderatedprojects = list(
+                map(lambda x: x.project, self.getApprovedModerations()))
         return moderatedprojects
 
 

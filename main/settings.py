@@ -94,6 +94,7 @@ MIDDLEWARE = [
     "main.middleware.MinifyMiddleware",
     "main.middleware.MessageFilterMiddleware",
     "main.middleware.ProfileActivationMiddleware",
+    "main.middleware.DecodeJSONBody",
 ]
 
 ROOT_URLCONF = "main.urls"

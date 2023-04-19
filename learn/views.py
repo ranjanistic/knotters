@@ -1,86 +1,86 @@
 from django.core.handlers.wsgi import WSGIRequest
-from main.methods import renderView, respondJson, respondRedirect
-from main.strings import Code, Template, URL
-from main.decorators import normal_profile_required, decode_JSON
+from main.methods import respondJson
+from main.strings import Code
+from main.decorators import normal_profile_required
 from django.views.decorators.http import require_GET, require_POST
-from django.http.response import HttpResponse
-from ratelimit.decorators import ratelimit
-from projects.models import Topic, BaseProject
 from .models import *
-from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
-#from django.db.models import Q
 from main.decorators import require_GET
-from compete.models import Competition
-from management.models import (CorePartner)
+
+
 
 @csrf_exempt
 @require_GET
 def getallcourses(request: WSGIRequest):
-    courselist = Course.objects.all()
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 10))
+    lfrom = (page-1)*size
+    lto = lfrom + size
+    courses = Course.objects.filter(draft=False, trashed=False)[lfrom:lto]
     return respondJson(Code.OK, dict(
         courses=list(
             map(
                 lambda course: dict(
-                    id=course.id,
+                    id=course.get_id,
                     name=course.title,
                     short_desc=course.short_desc,
                     long_desc=course.long_desc,
                     picture=course.get_abs_dp,
+                    creator=course.creator.get_dict(),
                     total_lessons=course.total_lessons(),
-                ), courselist
+                    rating=course.get_avg_rating(),
+                    topics=course.get_topics_dict(),
+                    total_admirers=course.total_admirers()
+                ), courses
             )
         )
     ))
 
 
-
 @csrf_exempt
-@normal_profile_required
-@decode_JSON
-@ratelimit(key='user', rate='1/s', block=True, method=(Code.POST))
 @require_GET
 def getCoursebyID(request: WSGIRequest, courseID):
-    course = Course.objects.get(id=courseID)
+    try:
+        UUID(courseID)
+    except:
+        return respondJson(Code.NO, status=400)
+    course = Course.objects.filter(
+        id=courseID, draft=False, trashed=False).first()
+    if not course:
+        return respondJson(Code.NO, error='Course not found', status=404)
     return respondJson(Code.OK, dict(
         course=dict(
-            id=course.id,
+            id=course.get_id,
             name=course.title,
             short_desc=course.short_desc,
             long_desc=course.long_desc,
-            total_lessons=course.total_lessons(),)
-    ),)
-
-
-
-
-@csrf_exempt
-@normal_profile_required
-@require_GET
-def lessoninfo(request: WSGIRequest, lessonID):
-    lesson = Lesson.objects.get(id=lessonID)
-    return respondJson(Code.OK, dict(
-        lesson=dict(
-            id=lesson.id,
-            name=lesson.name,
-            type=lesson.type,
-            course=lesson.course,
-            data=lesson.data(),)
+            picture=course.get_abs_dp,
+            creator=course.creator.get_dict(),
+            total_lessons=course.total_lessons(),
+            rating=course.get_avg_rating(),
+            topics=course.get_topics_dict(),
+            tags=course.get_tags_dict()
+        )
     ))
 
 
 @csrf_exempt
-@normal_profile_required
 @require_GET
-def coursereview(request: WSGIRequest, review):
-    course_review = CourseReview.objects.filter(course=review)
+def getLessonsByCourse(request: WSGIRequest, courseID):
+    try:
+        UUID(courseID)
+    except:
+        return respondJson(Code.NO, status=400)
+    lessons = Lesson.objects.filter(course=courseID, trashed=False)
     return respondJson(Code.OK, dict(
-        course_review=dict(
-            id=course_review.id,
-            coursename=course_review.course,
-            _review=course_review.review,
-            reviewer=course_review.givenby,
-            rating=course_review.rating,
+        lessons=list(
+            map(
+                lambda lesson: dict(
+                    id=lesson.get_id,
+                    name=lesson.name,
+                    type=lesson.type,
+                    courseId=lesson.course.id,
+                )), lessons
         )
     ))
 
@@ -88,17 +88,51 @@ def coursereview(request: WSGIRequest, review):
 @csrf_exempt
 @normal_profile_required
 @require_GET
-def allreviews(request: WSGIRequest):
-    reviews = CourseReview.objects.filter()
+def getLessonById(request: WSGIRequest, lessonID):
+    try:
+        UUID(lessonID)
+    except:
+        return respondJson(Code.NO, status=400)
+    lesson = Lesson.objects.filter(id=lessonID, trashed=False).first()
+    if not lesson or lesson.is_draft() or lesson.is_trashed():
+        return respondJson(Code.NO, error='Lesson not found', status=404)
+    if not UserCourseEnrollment.objects.filter(profile=request.user.profile, course=lesson.course).exists():
+        return respondJson(Code.NO, error='Enrollment not active', status=403)
     return respondJson(Code.OK, dict(
-        _reviews=list(
+        lesson=dict(
+            id=lesson.get_id,
+            name=lesson.name,
+            type=lesson.type,
+            course=lesson.course,
+            data=lesson.data,
+        )
+    ))
+
+
+@csrf_exempt
+@require_GET
+def getReviewsByCourse(request: WSGIRequest, courseID: UUID):
+    try:
+        UUID(courseID)
+    except:
+        return respondJson(Code.NO, status=400)
+    course = Course.objects.filter(
+        id=courseID, draft=False, trashed=False).first()
+    if not course:
+        return respondJson(Code.NO, error='Course not found', status=404)
+    reviews = CourseUserReview.objects.filter(
+        course=course, draft=False, trashed=False, suspended=False)
+    return respondJson(Code.OK, dict(
+        reviews=list(
             map(
-                lambda reviewlist: dict(
-                    id=reviewlist.id,
-                    coursename=reviewlist.course,
-                    _review=reviewlist.review,
-                    reviewer=reviewlist.givenby,
-                    rating=reviewlist.rating,
+                lambda review: dict(
+                    id=review.id,
+                    courseId=review.course.id,
+                    review=review.review,
+                    reviewer=review.creator.get_dict(),
+                    rating=review.rating,
+                    canBeDeleted=(
+                        request.user.is_authenticated and review.creator == request.user.profile)
                 ), reviews
             )
         )
@@ -107,82 +141,84 @@ def allreviews(request: WSGIRequest):
 
 @csrf_exempt
 @normal_profile_required
-@require_GET
-def deletereview(request: WSGIRequest, review):
-    delete_review = CourseReview.objects.get(id=review)
-    delete_review.delete()
+@require_POST
+def addReviewByCourse(request, courseID):
+    try:
+        UUID(courseID)
+    except:
+        return respondJson(Code.NO, status=400)
+    course = Course.object.filter(id=courseID).first()
+    if not course:
+        return respondJson(Code.NO, error='Course not found', status=404)
+    review = request.POST.get('review',)
+    rating = int(request.POST.get('rating', 0))
+    review = CourseUserReview.objects.create(
+        course=course, review=review, creator=request.user.profile, rating=rating)
     return respondJson(Code.OK, dict(
-        delete_review=dict(
-            id=delete_review.id,
-            coursename=delete_review.course,
-            _review=delete_review.review,
-            reviewer=delete_review.givenby,
-            rating=delete_review.rating,
+        review=dict(
+            id=review.id,
+            courseId=review.course.get_id,
+            review=review.review,
+            reviewer=review.creator.get_dict(),
+            rating=review.rating,
+            canBeDeleted=True
         )
     ))
+
+
+@csrf_exempt
+@normal_profile_required
+@require_GET
+def deleteReviewById(request: WSGIRequest, reviewID):
+    try:
+        UUID(reviewID)
+    except:
+        return respondJson(Code.NO, status=400)
+    deleted = CourseUserReview.objects.filter(
+        id=reviewID, creator=request.user.profile).delete()
+    if not deleted:
+        return respondJson(Code.NO, error='Review not found', status=404)
+    return respondJson(Code.OK)
 
 
 @csrf_exempt
 @normal_profile_required
 @require_POST
-def removelessonhistory(request: WSGIRequest, lessonID):
-    history = Lesson.objects.get(id=lessonID)
-    history.delete()
-    return respondJson(Code.OK, dict())
-
-@csrf_exempt
-@require_GET
-def lessonlist(request: WSGIRequest, courseID):
-    lesson = Lesson.objects.filter(course=courseID)
-    return respondJson(Code.OK, dict(
-        lessons=list(
-            map(
-                lambda lesson: dict(
-                    id=lesson.id,
-                    name=lesson.name,
-                    type=lesson.type,
-                    courseID=lesson.course.id,
-                    data=lesson.data,
-                )), lesson
-        )
-    ))
-
-
-@csrf_exempt
-@normal_profile_required
-@require_POST
-def addcoursereview(request,courseID):
-    id=Course.object.get(id=courseID)
-    course = request.POST['course']
-    review = request.POST['review']
-    givenby = request.user.profile
-    rating = request.POST['rating']
-    addreview = CourseReview.objects.create(
-        id=id, course=course, review=review, givenby=givenby, rating=rating)
-    return respondJson(Code.OK, dict(
-        addreview=dict(
-            addreview=dict(
-                id=addreview.id,
-                course=addreview.course,
-                review=addreview.review,
-                givenby=addreview.givenby,
-                rating=addreview.rating,
-            )
-        )
-    ))
-
-
-@csrf_exempt
-@normal_profile_required
-@require_GET
-def seehistory(request: WSGIRequest):
-    history = CourseUserHistory.objects.filter(profile=request.user.profile)
+def addLessonToUserHistory(request: WSGIRequest, lessonID):
+    try:
+        UUID(lessonID)
+    except:
+        return respondJson(Code.NO, status=400)
+    lesson = Lesson.objects.filter(id=lessonID).first()
+    if not lesson:
+        return respondJson(Code.NO, error='Lesson not found', status=404)
+    if not UserCourseEnrollment.objects.filter(profile=request.user.profile, course=lesson.course, expireAt__lt=timezone.now()).exists():
+        return respondJson(Code.NO, error='Enrollment not active', status=403)
+    history: UserLessonHistory = UserLessonHistory.objects.get_or_create(
+        profile=request.user.profile, lesson=lesson)
     return respondJson(Code.OK, dict(
         history=dict(
             id=history.id,
-            profile=history.profile,
-            course=history.course,
-            lesson=history.lesson,
+            courseId=history.course().id,
+            lesson=history.lesson.get_dict(),
+        )
+    ))
+
+
+@csrf_exempt
+@normal_profile_required
+@require_GET
+def getUserLessonHistory(request: WSGIRequest):
+    histories = UserLessonHistory.objects.filter(profile=request.user.profile)
+    return respondJson(Code.OK, dict(
+        histories=list(
+            map(
+                lambda history: dict(
+                    id=history.id,
+                    courseId=history.course().id,
+                    lesson=history.lesson.get_dict(),
+                ), histories
+            )
         )
     ))
 
@@ -190,60 +226,146 @@ def seehistory(request: WSGIRequest):
 @csrf_exempt
 @normal_profile_required
 @require_POST
-def add_to_history(request,lessonID):
-    id = Lesson.objects.get(id=lessonID)
-    profile = request.POST['profile']
-    course = request.POST['course']
-    lesson = request.POST['lesson']
-    history = CourseUserHistory.objects.create(
-        id=id, profile=profile, course=course, lesson=lesson)
-    return respondJson(Code.OK, dict(
-        history=dict(
-            history=dict(
-                id=history.id,
-                profile=history.profile,
-                course=history.course,
-                lesson=history.lesson,
-            )
-        )
-    ))
+def removeLessonFromUserHistory(request: WSGIRequest, lessonID):
+    try:
+        UUID(lessonID)
+    except:
+        return respondJson(Code.NO, status=400)
+    lesson = Lesson.objects.filter(id=lessonID).first()
+    if not lesson:
+        return respondJson(Code.NO, error='Lesson not found', status=404)
+    UserLessonHistory.objects.filter(
+        profile=request.user.profile, lesson=lesson).delete()
+    return respondJson(Code.OK)
 
 
 @csrf_exempt
 @normal_profile_required
-def enrollment(request: WSGIRequest, courseID):
+def handleCourseEnrollment(request: WSGIRequest, courseID):
+    try:
+        UUID(courseID)
+    except:
+        return respondJson(Code.NO, status=400)
     profile = request.user.profile
     course = Course.objects.get(id=courseID)
-    enrollment = CourseUserEnrollment.objects.filter(course=course, profile=profile).first()
+
+    enrollment: UserCourseEnrollment = UserCourseEnrollment.get_profile_course_valid_enrollement(
+        profile, course)
     if request.method == Code.POST:
-        if not enrollment:
-            enrollment = CourseUserEnrollment.objects.create(
-                course=course,
-                profile=profile,
-                enrolledAt=timezone.now(),
-                expireAt=timezone.now()+timedelta(seconds=10)
-            )
-        return respondJson(Code.OK, dict(
-            enrollment=dict(
-                id=enrollment.id,
-                course=enrollment.course.id,
-                enrolledAt=enrollment.enrolledAt,
-                expireAt=enrollment.expireAt,
-                isActive=enrollment.isActive(),
-            )
-        ))
+        coupon = request.POST.get('coupon', '').strip()
+        payment = None
+        if coupon:
+            coupon = EnrollmentCouponCode.objects.filter(
+                coupon=coupon, expireAt__gt=timezone.now(), valid_till__gt=timezone.now()).first()
+            if not coupon:
+                return respondJson(Code.NO, error="Invalid coupon code", status=400)
+        else:
+            payment = UserCoursePayment.objects.filter(
+                profile=request.user.profile, course=course, expireAt__gt=timezone.now()).first()
+            if not payment or not payment.is_successful():
+                return respondJson(Code.NO, error="Payment not recieved, or is still pending.", status=400)
+        if enrollment:
+            expireAt = enrollment.expireAt
+            isActive = enrollment.isActive()
+            if coupon and coupon.expireAt > enrollment.expireAt:
+                expireAt = coupon.expireAt
+                isActive = coupon.isActive()
+                UserCourseEnrollment.objects.filter(
+                    id=enrollment.id
+                ).update(payment=None, expireAt=expireAt)
+            elif payment and payment.expireAt > enrollment.expireAt:
+                expireAt = payment.expireAt
+                isActive = payment.isActive()
+                UserCourseEnrollment.objects.filter(
+                    id=enrollment.id
+                ).update(coupon=None, expireAt=expireAt)
+            return respondJson(Code.OK, dict(
+                enrollment=dict(
+                    id=enrollment.id,
+                    courseId=enrollment.course.id,
+                    enrolledAt=enrollment.enrolledAt,
+                    expireAt=expireAt,
+                    isActive=isActive
+                )
+            ))
+        else:
+            if coupon and coupon.isActive():
+                enrollment = UserCourseEnrollment.objects.create(
+                    course=course,
+                    profile=profile,
+                    enrolledAt=timezone.now(),
+                    expireAt=coupon.expireAt,
+                    coupon=coupon,
+                    payment=None
+                )
+            elif payment and payment.isActive():
+                enrollment = UserCourseEnrollment.objects.create(
+                    course=course,
+                    profile=profile,
+                    enrolledAt=timezone.now(),
+                    expireAt=payment.expireAt,
+                    payment=payment,
+                    coupon=None
+                )
+            else:
+                return respondJson(Code.NO, error='Invalid enrollment request.', status=400)
+            return respondJson(Code.OK, dict(
+                enrollment=dict(
+                    id=enrollment.id,
+                    courseId=enrollment.course.id,
+                    enrolledAt=enrollment.enrolledAt,
+                    expireAt=enrollment.expireAt,
+                    isActive=enrollment.isActive(),
+                )
+            ))
+
     elif request.method == Code.GET:
         if enrollment:
             return respondJson(Code.OK, dict(
                 enrollment=dict(
                     id=enrollment.id,
-                    course=enrollment.course.id,
+                    courseId=enrollment.course.id,
                     enrolledAt=enrollment.enrolledAt,
                     expireAt=enrollment.expireAt,
                     isActive=enrollment.isActive(),
                 )
             ))
         else:
-            return respondJson(Code.NO, dict(
-                enrollment=False
-            ), status=404)
+            return respondJson(Code.NO, error="Enrollment not valid", status=404)
+
+
+@csrf_exempt
+@normal_profile_required
+@require_GET
+def toggleCourseAdmiration(request, courseID):
+    try:
+        UUID(courseID)
+    except:
+        return respondJson(Code.NO, status=400)
+    course = Course.objects.filter(
+        id=courseID, trashed=False, draft=False).first()
+    if not course:
+        return respondJson(Code.NO, error='Course not found', status=404)
+    CourseUserLikes.objects.get_or_create(
+        course=course, profile=request.user.profile)
+    return respondJson(Code.OK)
+
+
+@csrf_exempt
+@require_GET
+def getCourseAdmirers(request, courseID):
+    try:
+        UUID(courseID)
+    except:
+        return respondJson(Code.NO, status=400)
+    course = Course.objects.filter(
+        id=courseID, trashed=False, draft=False).first()
+    if not course:
+        return respondJson(Code.NO, error='Course not found', status=404)
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 10))
+    lfrom = (page-1)*size
+    lto = lfrom + size
+    likes = CourseUserLikes.objects.filter(course=course)[lfrom:lto]
+    admirers = list(map(lambda like: like.profile, likes))
+    return respondJson(Code.OK, dict(admirers=admirers))

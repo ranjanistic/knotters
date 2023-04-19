@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.sessions.backends.base import UpdateError
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.handlers.wsgi import WSGIRequest
-from django.http.response import HttpResponseForbidden
+from django.http.response import HttpResponseForbidden, HttpResponse
 from django.shortcuts import redirect
 from django.urls import resolve
 from django.utils.cache import patch_vary_headers
@@ -133,6 +133,25 @@ class ProfileActivationMiddleware(object):
                     return redirect(request.user.profile.getLink())
         return self.get_response(request)
 
+import json
+
+class DecodeJSONBody(object):
+
+    def __init__(self, get_response) -> None:
+        self.get_response = get_response
+        super().__init__()
+
+    def __call__(self, request: WSGIRequest):
+        return self.get_response(request)
+
+    def process_request(self, request: WSGIRequest):
+        print('yoooo!')
+        if request.headers.get('Content-Type', None) == Code.APPLICATION_JS:
+            try:
+                loadedbody = json.loads(request.body.decode(Code.UTF_8))
+                request.POST = dict(**loadedbody, **request.POST)
+            except json.JSONDecodeError:
+                raise HttpResponse(status=422)
 
 class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
     """

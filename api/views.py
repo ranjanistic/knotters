@@ -75,11 +75,7 @@ def refreshToken(request: WSGIRequest):
 def getSessionUser(request: WSGIRequest):
     try:
         profile:Profile = request.user.profile
-        return respondJson(Code.OK, data=dict(user=dict(
-                   id=profile.get_userid, name=profile.get_name, email=profile.get_email,is_moderator=profile.is_moderator, 
-                   is_mentor=profile.is_mentor, is_verified=profile.is_verified, is_manager=profile.is_manager(), 
-                   nickname=profile.nickname, picture=profile.get_abs_dp, profile=profile.get_abs_link
-                )))
+        return respondJson(Code.OK, data=dict(user=profile.get_private_dict()))
     except Exception as e:
         errorLog(e)
         return respondJson(Code.NO, error=Message.ERROR_OCCURRED, status=500)
