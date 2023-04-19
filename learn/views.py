@@ -71,7 +71,11 @@ def getLessonsByCourse(request: WSGIRequest, courseID):
         UUID(courseID)
     except:
         return respondJson(Code.NO, status=400)
-    lessons = Lesson.objects.filter(course=courseID, trashed=False)
+    course = Course.objects.filter(
+        id=courseID, draft=False, trashed=False).first()
+    if not course:
+        return respondJson(Code.NO, error='Course not found', status=404)
+    lessons = Lesson.objects.filter(course=course, trashed=False)
     return respondJson(Code.OK, dict(
         lessons=list(
             map(
@@ -79,7 +83,7 @@ def getLessonsByCourse(request: WSGIRequest, courseID):
                     id=lesson.get_id,
                     name=lesson.name,
                     type=lesson.type,
-                    courseId=lesson.course.id,
+                    courseId=lesson.course.get_id,
                 )), lessons
         )
     ))
@@ -130,7 +134,7 @@ def getReviewsByCourse(request: WSGIRequest, courseID: UUID):
                     courseId=review.course.id,
                     review=review.review,
                     reviewer=review.creator.get_dict(),
-                    rating=review.rating,
+                    score=review.score,
                     canBeDeleted=(
                         request.user.is_authenticated and review.creator == request.user.profile)
                 ), reviews
@@ -153,7 +157,7 @@ def addReviewByCourse(request, courseID):
     review = request.POST.get('review','')
     score = int(request.POST.get('score', 1))
     review = CourseUserReview.objects.create(
-        course=course, review=review, creator=request.user.profile, score=score)
+        course=course, review=review,draft=False, creator=request.user.profile, score=score)
     return respondJson(Code.OK, dict(
         review=dict(
             id=review.id,
