@@ -84,7 +84,7 @@ def getLessonsByCourse(request: WSGIRequest, courseID):
                     name=lesson.name,
                     type=lesson.type,
                     courseId=lesson.course.get_id,
-                )), lessons
+                ), lessons),
         )
     ))
 
