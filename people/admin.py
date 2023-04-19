@@ -61,17 +61,20 @@ class UserAdmin(BaseUserAdmin):
     )
     search_fields = ("email", "first_name", "last_name")
     ordering = ("-date_joined", "last_login")
+    search_fields = ['email','first_name', 'last_name']
     filter_horizontal = ()
 
 
 admin.site.register(User, UserAdmin)
 admin.site.unregister(Group)
 
-
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ["getName", "user", "githubID", "picture"]
     list_filter = ["is_moderator", "to_be_zombie", "is_zombie", "is_active"]
+    ordering = ['-createdOn']
+    search_fields = ['nickname', 'githubID']
+    autocomplete_fields = ['user', 'successor']
 
     def get_queryset(self, request):
         query_set = super(ProfileAdmin, self).get_queryset(request)
@@ -82,9 +85,10 @@ class ProfileAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProfileTopic)
-class RelationAdmin(admin.ModelAdmin):
+class PTAdmin(admin.ModelAdmin):
     list_display = ["topic", "profile"]
     list_filter = ["topic"]
+    autocomplete_fields = ['profile', 'topic']
 
     def get_queryset(self, request):
         query_set = super(RelationAdmin, self).get_queryset(request)
@@ -95,10 +99,25 @@ class RelationAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ProfileSetting)
-admin.site.register(Topic)
+
+@admin.register(Topic)
+class TopicAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
 admin.site.register(BlockedUser)
 admin.site.register(ReportedUser)
-admin.site.register(DisplayMentor)
-admin.site.register(CoreContributor)
+
+@admin.register(DisplayMentor)
+class DisplayMentorAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['profile']
+
+@admin.register(CoreContributor)
+class CoreContributorAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['profile']
+
+
+@admin.register(CoreMember)
+class CoreMemberAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['profile']
+
 admin.site.register(GHMarketPurchase)
-admin.site.register(CoreMember)

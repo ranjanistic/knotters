@@ -17,7 +17,6 @@ from management.models import Management
 
 from .apps import APPNAME
 
-
 def renderer(request: WSGIRequest, file: str, data: dict = dict()) -> HttpResponse:
     """Renderer for management views
 

@@ -34,8 +34,8 @@ jobs:
         /home/ubuntu/testing/bin/pip install -r requirements.txt
     - name: Create Environment
       run: |
-        echo "${{ secrets.ENV_TEST }}" > ${{ secrets.ENVPATH }}
-        cp ${{ secrets.ENVPATH }} ${{ secrets.ENVPATH }}.testing
+        echo "${{ secrets.ENV_TEST }}" > main/.env
+        cp main/.env main/.env.testing
     - name: Run migrations
       run: |
         /home/ubuntu/testing/bin/python3 manage.py makemigrations --noinput
@@ -63,14 +63,14 @@ jobs:
         /home/ubuntu/knotters/bin/pip install -r requirements.txt
     - name: Setup environment
       run: |
-        echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
+        echo "${{ secrets.ENV_PROD }}" > main/.env
     - name: Run migrations
       run: |
         /home/ubuntu/knotters/bin/python3 manage.py makemigrations --noinput
         /home/ubuntu/knotters/bin/python3 manage.py migrate --noinput
-    - name: Synchronise notifications
-      run: |
-        /home/ubuntu/knotters/bin/python3 manage.py syncnotifications --noinput
+   # - name: Synchronise notifications
+   #   run: |
+   #     /home/ubuntu/knotters/bin/python3 manage.py syncnotifications --noinput
 
   deploy:
     needs: [build]
@@ -87,7 +87,7 @@ jobs:
         clean: false
     - name: Setup environment
       run: |
-        echo "${{ secrets.ENV_PROD }}" > ${{ secrets.ENVPATH }}
+        echo "${{ secrets.ENV_PROD }}" > main/.env
     - name: Restart services
       run: |
         sudo systemctl --user --machine=ubuntu@.host restart knotters.gunicorn.service

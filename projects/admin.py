@@ -8,6 +8,8 @@ from .models import *
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ["name", "reponame", "status", 'trashed']
     list_filter = ["status", "category", 'trashed']
+    search_fields = ['name']
+    autocomplete_fields = ['creator','category']
 
     def get_queryset(self, request):
         query_set = super(ProjectAdmin, self).get_queryset(request)
@@ -21,6 +23,8 @@ class ProjectAdmin(admin.ModelAdmin):
 class FProjectAdmin(admin.ModelAdmin):
     list_display = ["name"]
     list_filter = ["category"]
+    search_fields = ['name']
+    autocomplete_fields = ['creator','category']
 
     def get_queryset(self, request):
         query_set = super(FProjectAdmin, self).get_queryset(request)
@@ -34,6 +38,8 @@ class FProjectAdmin(admin.ModelAdmin):
 class CProjectAdmin(admin.ModelAdmin):
     list_display = ["name"]
     list_filter = ["category"]
+    search_fields = ['name']
+    autocomplete_fields = ['creator','category']
 
     def get_queryset(self, request):
         query_set = super(CProjectAdmin, self).get_queryset(request)
@@ -46,6 +52,7 @@ class CProjectAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ["name"]
+    search_fields = ['name']
 
     def get_queryset(self, request):
         query_set = super(TagAdmin, self).get_queryset(request)
@@ -58,6 +65,7 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ["name"]
+    search_fields = ['name']
 
     def get_queryset(self, request):
         query_set = super(CategoryAdmin, self).get_queryset(request)
@@ -71,6 +79,7 @@ class CategoryAdmin(admin.ModelAdmin):
 class CategoryTagAdmin(admin.ModelAdmin):
     list_display = ["category", "tag"]
     list_filter = ["category"]
+    autocomplete_fields = ['category', 'tag']
 
     def get_queryset(self, request):
         query_set = super(CategoryTagAdmin, self).get_queryset(request)
@@ -84,6 +93,7 @@ class CategoryTagAdmin(admin.ModelAdmin):
 class ProjectTagAdmin(admin.ModelAdmin):
     list_display = ["project", "tag"]
     list_filter = ["project"]
+    autocomplete_fields = ['project','tag']
 
     def get_queryset(self, request):
         query_set = super(ProjectTagAdmin, self).get_queryset(request)
@@ -97,6 +107,7 @@ class ProjectTagAdmin(admin.ModelAdmin):
 class ProjectTopicAdmin(admin.ModelAdmin):
     list_display = ["project", "topic"]
     list_filter = ["project", "topic"]
+    autocomplete_fields = ['project','topic']
 
     def get_queryset(self, request):
         query_set = super(ProjectTopicAdmin, self).get_queryset(request)
@@ -112,6 +123,10 @@ class LegalDocAdmin(admin.ModelAdmin):
 
     form = LegalDocForm
 
+@admin.register(BaseProject)
+class BaseProjectAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    autocomplete_fields = ['creator','category']
 
 admin.site.register(License)
 admin.site.register(ProjectSocial)
