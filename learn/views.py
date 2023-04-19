@@ -96,7 +96,7 @@ def getLessonById(request: WSGIRequest, lessonID):
     lesson = Lesson.objects.filter(id=lessonID, trashed=False).first()
     if not lesson or lesson.is_draft() or lesson.is_trashed():
         return respondJson(Code.NO, error='Lesson not found', status=404)
-    if not UserCourseEnrollment.get_profile_course_valid_enrollement(profile, course):
+    if not UserCourseEnrollment.get_profile_course_valid_enrollement(request.user.profile, course):
         return respondJson(Code.NO, error='Enrollment not active', status=403)
     return respondJson(Code.OK, dict(
         lesson=dict(
@@ -192,7 +192,7 @@ def addLessonToUserHistory(request: WSGIRequest, lessonID):
     lesson = Lesson.objects.filter(id=lessonID).first()
     if not lesson:
         return respondJson(Code.NO, error='Lesson not found', status=404)
-    if not UserCourseEnrollment.get_profile_course_valid_enrollement(profile,course):
+    if not UserCourseEnrollment.get_profile_course_valid_enrollement(request.user.profile,course):
         return respondJson(Code.NO, error='Enrollment not active', status=403)
     history: UserLessonHistory = UserLessonHistory.objects.get_or_create(
         profile=request.user.profile, lesson=lesson)
