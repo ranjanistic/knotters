@@ -150,17 +150,17 @@ def addReviewByCourse(request, courseID):
     course = Course.object.filter(id=courseID).first()
     if not course:
         return respondJson(Code.NO, error='Course not found', status=404)
-    review = request.POST.get('review',)
-    rating = int(request.POST.get('rating', 0))
+    review = request.POST.get('review','')
+    score = int(request.POST.get('score', 1))
     review = CourseUserReview.objects.create(
-        course=course, review=review, creator=request.user.profile, rating=rating)
+        course=course, review=review, creator=request.user.profile, score=score)
     return respondJson(Code.OK, dict(
         review=dict(
             id=review.id,
             courseId=review.course.get_id,
             review=review.review,
             reviewer=review.creator.get_dict(),
-            rating=review.rating,
+            score=review.score,
             canBeDeleted=True
         )
     ))
@@ -225,7 +225,7 @@ def getUserLessonHistory(request: WSGIRequest):
 
 @csrf_exempt
 @normal_profile_required
-@require_POST
+@require_GET
 def removeLessonFromUserHistory(request: WSGIRequest, lessonID):
     try:
         UUID(lessonID)

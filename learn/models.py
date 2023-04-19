@@ -186,9 +186,9 @@ class Lesson(models.Model):
 class CourseUserReview(models.Model):
     id: UUID = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    review = models.CharField(max_length=500)
+    review = models.CharField(max_length=500, null=True, blank=True)
     creator: Profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    score = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)])
+    score = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
     createdOn: datetime = models.DateTimeField(
         auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): When the course was created"""

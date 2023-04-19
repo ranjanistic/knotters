@@ -7,7 +7,7 @@ urlpatterns = [
     path('courses',getallcourses),
     path('courses/<str:courseID>',getCoursebyID),
     path('courses/<str:courseID>/lessons',getLessonsByCourse),
-    path('courses/<str:courseID>/enroll',handleCourseEnrollment),
+    path('courses/<str:courseID>/enrollment',handleCourseEnrollment),
     path('courses/<str:courseID>/admire', toggleCourseAdmiration),
     path('courses/<str:courseID>/admirers', getCourseAdmirers),
     path('lessons/<str:lessonID>',getLessonById),
