@@ -14,43 +14,25 @@ from main.decorators import require_GET
 from compete.models import Competition
 from management.models import (CorePartner)
 
-
+@csrf_exempt
 @require_GET
-def index(request: WSGIRequest) -> HttpResponse:
-    """To render the index page (home/root page)
+def getallcourses(request: WSGIRequest):
+    courselist = Course.objects.all()
+    return respondJson(Code.OK, dict(
+        courses=list(
+            map(
+                lambda course: dict(
+                    id=course.id,
+                    name=course.title,
+                    short_desc=course.short_desc,
+                    long_desc=course.long_desc,
+                    picture=course.get_abs_dp,
+                    total_lessons=course.total_lessons(),
+                ), courselist
+            )
+        )
+    ))
 
-    Methods: GET
-
-    Args:
-        request (WSGIRequest): The request object.
-
-    Returns:
-        HttpResponseRedirect: If user is logged in, but not on-boarded, redirect to onboarding.
-        HttpResponse: The rendered text/html view with context.
-            If logged in, renders dashboard (home.html), else renders index.html
-
-    NOTE: The template index.html is used for both logged in and logged out users. (the about page)
-
-        The template home.html is only used for logged in users (the feed/dashboard).
-
-        But main.views.index & main.views.home render these two interchangably, i.e.,
-
-            main.views.home -> main.view.index (301) if logged in, else index.html
-
-            main.views.index -> home.html if logged in, else index.html
-
-    """
-
-    competition: Competition = Competition.latest_competition()
-    if request.user.is_authenticated:
-        if not request.user.profile.on_boarded:
-            return respondRedirect(path=URL.ON_BOARDING)
-        return renderView(request, Template.HOME, dict(competition=competition))
-
-    topics = Topic.homepage_topics()
-    project = BaseProject.homepage_project()
-    partners = CorePartner.objects.filter(hidden=False)
-    return renderView(request, Template.INDEX, dict(topics=topics, project=project, competition=competition, partners=partners))
 
 
 @csrf_exempt
@@ -70,24 +52,6 @@ def getCoursebyID(request: WSGIRequest, courseID):
     ),)
 
 
-@csrf_exempt
-# @normal_profile_required
-@require_GET
-def getallcourses(request: WSGIRequest,courseID):
-    courselist = Course.objects.filter(id=courseID)
-    return respondJson(Code.OK, dict(
-        courses=list(
-            map(
-                lambda course: dict(
-                    id=course.id,
-                    name=course.title,
-                    short_desc=course.short_desc,
-                    long_desc=course.long_desc,
-                    total_lessons=course.total_lessons(),
-                ), courselist
-            )
-        )
-    ))
 
 
 @csrf_exempt

@@ -8,6 +8,7 @@ from projects.models import License, Category
 from django.contrib.sites.models import Site
 from people.models import Profile, User
 from django.conf import settings
+from allauth.account.models import EmailAddress
 
 class Command(BaseCommand):
 
@@ -40,14 +41,15 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(
                 'Setting up initial state (does not delete any existing data, intentionally at least)'))
         try:
-            bot = Profile.KNOTBOT()
+            bot = Profile.KNOTBOT(True)
         except:
             bot=False
         if not bot:
             ubot = User.objects.create_user(email=BOTMAIL,password="1@#2QWqw", first_name="Knotbot")
-            bot = Profile.KNOTBOT()
+            bot = Profile.KNOTBOT(True)
             if not bot:
                 bot = Profile.objects.create(user=ubot,nickname="knotboty")
+            emailAddr=EmailAddress.objects.get_or_create(user=ubot, email=BOTMAIL, verified=True, primary=True)
         License.objects.create(name="GNU", keyword="gnuy", description="GNU GPL VN", content="This is a test license, not an original one.", public=True,default=True,creator=bot)
         Category.objects.create(name="Websitey", creator=bot)
         if not Site.objects.filter(id=settings.SITE_ID).exists():

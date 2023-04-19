@@ -4,7 +4,6 @@ from learn.views import *
   
 
 urlpatterns = [
-    path(URL.INDEX, index),
     path('courses',getallcourses),
     path('courses/<str:courseID>',getCoursebyID),
     path('courses/<str:courseID>/lessons',lessonlist),

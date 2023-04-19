@@ -14,12 +14,25 @@ from django.core.cache import cache
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin,BaseUserManager
 import math
+from django.core.files.base import File
+from random import randint
+
+def courseImagePath(instance: "Profile", filename: str) -> str:
+    fileparts = filename.split('.')
+    return f"{APPNAME}/{str(instance.id)}_{str(uuid4().hex)}.{fileparts[-1]}"
+
+def defaultImagePath() -> str:
+    return f"{APPNAME}/default.png"
+
 
 class Course(models.Model):
-    id:UUID=models.UUIDField(primary_key=True,default=uuid4,editable=True)
+    id:UUID=models.UUIDField(primary_key=True,default=uuid4, editable=False)
     title=models.CharField(max_length=75)
     short_desc=models.CharField(max_length=250)
     long_desc=models.CharField(max_length=500)
+    picture: File = models.ImageField(
+        upload_to=courseImagePath, default=defaultImagePath)
+    # tag= models.ArrayField(models.CharField(max_length=10), default=[])
     topics = models.ManyToManyField(Topic, through='CourseTopic', default=[], related_name='course_topics')
     tags = models.ManyToManyField(Tag, through='CourseTag', default=[], related_name='course_tags')
     raters = models.ManyToManyField(Profile, through="CourseUserRating", default=[], related_name='course_user_rating')
@@ -28,6 +41,26 @@ class Course(models.Model):
     createdOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
     """createdOn (DateTimeField): When the course was created"""
     modifiedOn: datetime = models.DateTimeField(auto_now=False, default=timezone.now)
+    def total_lessons(self):
+        return Lesson.objects.filter(course= self).count()
+    
+    def isRemoteDp(self) -> bool:
+        """Checks if the user has a third party dp"""
+        return str(self.picture).startswith("http") and not str(self.picture).startswith(settings.SITE)
+    @property
+    def get_dp(self) -> str:
+        """Returns the user's dp URL"""
+        dp = str(self.picture)
+        return dp if self.isRemoteDp() else f"{settings.MEDIA_URL}{dp}" if not dp.startswith('/') else f"{settings.MEDIA_URL}{dp.removeprefix('/')}"
+    @property
+    def get_abs_dp(self) -> str:
+        """Returns the user's dp absolute URL"""
+        if self.get_dp.startswith('http:'):
+            return self.get_dp
+        return f"{settings.SITE}{self.get_dp}"
+        
+        
+
 
 class CourseTag(models.Model):
     """Model for relation between a tag and an course"""
@@ -69,7 +102,7 @@ class CourseUserRating(models.Model):
     course: Course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name='rated_course')
     """course (ForeignKey<Course>): course which was rated"""
-    score: float = models.FloatField(default=0, validators=[MinValueValidator(0.0), MaxValueValidator(10.0)])
+    score: float = models.FloatField(default=0, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)])
     text=models.TextField(max_length=150)
 
 

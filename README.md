@@ -174,6 +174,8 @@ source ~/Knotters/knottersenv/bin/activate
 
 Then run the main server process (assuming port 8000 is free)
 
+<!-- sudo apt-get install redis-server -->
+<!-- sudo service redis-server start -->
 ```bash
 python3 manage.py runserver
 ```

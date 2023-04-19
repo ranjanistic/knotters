@@ -72,7 +72,7 @@ def refreshToken(request: WSGIRequest):
 @csrf_exempt
 @normal_profile_required
 @require_GET
-def tokenUser(request: WSGIRequest):
+def getSessionUser(request: WSGIRequest):
     try:
         profile:Profile = request.user.profile
         return respondJson(Code.OK, data=dict(user=dict(

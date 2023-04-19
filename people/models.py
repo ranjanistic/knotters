@@ -497,12 +497,15 @@ class Profile(models.Model):
         """
         return None if self.is_zombie else self.user.get_id
 
-    def KNOTBOT() -> "Profile":
+    def KNOTBOT(ignoreCache =False) -> "Profile":
         """Returns the profile of the knottersbot.
         This is not specific to a user, but is a global profile.
         """
+        knotbot=None
         cacheKey = 'profile_knottersbot'
-        knotbot = cache.get(cacheKey)
+        if not ignoreCache:
+            knotbot = cache.get(cacheKey)
+        
         if not knotbot:
             knotbot = Profile.objects.get(user__email=BOTMAIL)
             cache.set(cacheKey, knotbot, settings.CACHE_MAX)

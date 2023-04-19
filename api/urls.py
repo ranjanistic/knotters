@@ -10,5 +10,5 @@ urlpatterns = [
     path(URL.LEARN, include('learn.urls')),
     path(URL.Api.VERIFY_CREDENTIALS, verifyCredentials),
     path(URL.Api.REFRESH_TOKEN, refreshToken),
-    path(URL.Api.USER, tokenUser),
+    path(URL.Api.USER, getSessionUser),
 ]
