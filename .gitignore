@@ -63,3 +63,4 @@ lib/
 lib64
 *.cfg
 share/
+knottersenv/
