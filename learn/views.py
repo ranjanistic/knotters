@@ -188,7 +188,8 @@ def deleteReviewById(request: WSGIRequest, reviewID):
 @csrf_exempt
 @normal_profile_required
 @require_POST
-def addLessonToUserHistory(request: WSGIRequest, lessonID):
+def addLessonToUserHistory(request: WSGIRequest):
+    lessonID = request.POST.get('lessonId', None)
     try:
         UUID(lessonID)
     except:
@@ -198,7 +199,7 @@ def addLessonToUserHistory(request: WSGIRequest, lessonID):
         return respondJson(Code.NO, error='Lesson not found', status=404)
     if not UserCourseEnrollment.get_profile_course_valid_enrollement(request.user.profile,lesson.course):
         return respondJson(Code.NO, error='Enrollment not active', status=403)
-    history: UserLessonHistory = UserLessonHistory.objects.get_or_create(
+    history, _ = UserLessonHistory.objects.get_or_create(
         profile=request.user.profile, lesson=lesson)
     return respondJson(Code.OK, dict(
         history=dict(
@@ -229,8 +230,9 @@ def getUserLessonHistory(request: WSGIRequest):
 
 @csrf_exempt
 @normal_profile_required
-@require_GET
-def removeLessonFromUserHistory(request: WSGIRequest, lessonID):
+@require_POST
+def removeLessonFromUserHistory(request: WSGIRequest):
+    lessonID = request.POST.get('lessonId', None)
     try:
         UUID(lessonID)
     except:
@@ -251,7 +253,6 @@ def handleCourseEnrollment(request: WSGIRequest, courseID):
         return respondJson(Code.NO, status=400)
     profile = request.user.profile
     course = Course.objects.get(id=courseID)
-    print(request.POST)
     enrollment: UserCourseEnrollment = UserCourseEnrollment.get_profile_course_valid_enrollement(
         profile, course)
     if request.method == Code.POST:
@@ -292,7 +293,6 @@ def handleCourseEnrollment(request: WSGIRequest, courseID):
                 )
             ))
         else:
-            print(coupon.isActive())
             if coupon and coupon.isActive():
                 enrollment = UserCourseEnrollment.objects.create(
                     course=course,
