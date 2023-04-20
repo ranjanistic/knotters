@@ -136,22 +136,21 @@ class ProfileActivationMiddleware(object):
 import json
 
 class DecodeJSONBody(object):
-
     def __init__(self, get_response) -> None:
         self.get_response = get_response
         super().__init__()
 
     def __call__(self, request: WSGIRequest):
-        return self.get_response(request)
-
-    def process_request(self, request: WSGIRequest):
-        print('yoooo!')
-        if request.headers.get('Content-Type', None) == Code.APPLICATION_JS:
+        if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
             try:
                 loadedbody = json.loads(request.body.decode(Code.UTF_8))
                 request.POST = dict(**loadedbody, **request.POST)
+                print(request.POST)
             except json.JSONDecodeError:
                 raise HttpResponse(status=422)
+        return self.get_response(request)
+
+
 
 class TwoFactorMiddleware(AllauthTwoFactorMiddleware):
     """
@@ -235,7 +234,7 @@ class ExtendedSessionMiddleware(SessionMiddleware):
 
 
 class XForwardedForMiddleware(MiddlewareMixin):
-    """To support rate-limiter which relies on HTTP_X_PROXY_REMOTE_ADDR header, 
+    """To support rate-limiter which relies on HTTP_X_PROXY_REMOTE_ADDR header,
     by setting it to REMOTE_ADDR header, and setting REMOTE_ADDR header to HTTP_X_FORWARDED_FOR.
 
     This was done to fix the exception raised by rate-limiter in production behind a reverse proxy server

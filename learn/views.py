@@ -107,7 +107,7 @@ def getLessonById(request: WSGIRequest, lessonID):
             id=lesson.get_id,
             name=lesson.name,
             type=lesson.type,
-            course=lesson.course,
+            course=lesson.course.get_id,
             data=lesson.data,
         )
     ))
@@ -151,7 +151,7 @@ def addReviewByCourse(request, courseID):
         UUID(courseID)
     except:
         return respondJson(Code.NO, status=400)
-    course = Course.object.filter(id=courseID).first()
+    course = Course.objects.filter(id=courseID).first()
     if not course:
         return respondJson(Code.NO, error='Course not found', status=404)
     review = request.POST.get('review','')
@@ -242,7 +242,6 @@ def removeLessonFromUserHistory(request: WSGIRequest, lessonID):
         profile=request.user.profile, lesson=lesson).delete()
     return respondJson(Code.OK)
 
-
 @csrf_exempt
 @normal_profile_required
 def handleCourseEnrollment(request: WSGIRequest, courseID):
@@ -252,11 +251,11 @@ def handleCourseEnrollment(request: WSGIRequest, courseID):
         return respondJson(Code.NO, status=400)
     profile = request.user.profile
     course = Course.objects.get(id=courseID)
-
+    print(request.POST)
     enrollment: UserCourseEnrollment = UserCourseEnrollment.get_profile_course_valid_enrollement(
         profile, course)
     if request.method == Code.POST:
-        coupon = request.POST.get('coupon', '').strip()
+        coupon = str(request.POST.get('coupon', '')).strip()
         payment = None
         if coupon:
             coupon = EnrollmentCouponCode.objects.filter(
@@ -293,6 +292,7 @@ def handleCourseEnrollment(request: WSGIRequest, courseID):
                 )
             ))
         else:
+            print(coupon.isActive())
             if coupon and coupon.isActive():
                 enrollment = UserCourseEnrollment.objects.create(
                     course=course,
@@ -371,5 +371,5 @@ def getCourseAdmirers(request, courseID):
     lfrom = (page-1)*size
     lto = lfrom + size
     likes = CourseUserLikes.objects.filter(course=course)[lfrom:lto]
-    admirers = list(map(lambda like: like.profile, likes))
+    admirers = list(map(lambda like: like.profile.get_dict(), likes))
     return respondJson(Code.OK, dict(admirers=admirers))

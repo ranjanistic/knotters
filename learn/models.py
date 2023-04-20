@@ -211,10 +211,10 @@ class EnrollmentCouponCode(models.Model):
         return self.coupon
 
     def isActive(self):
-        self.expireAt > timezone.now()
+        return self.expireAt > timezone.now()
 
     def isValid(self):
-        self.valid_till > timezone.now()
+        return self.valid_till > timezone.now()
 
 class UserCoursePayment(models.Model):
     id: UUID = models.UUIDField(
@@ -236,10 +236,10 @@ class UserCoursePayment(models.Model):
         return self.is_successful() and self.expireAt > timezone.now()
 
     def is_successful(self):
-        self.status == 'success'
+        return self.status == 'success'
 
     def is_failure(self):
-        self.status == 'failure'
+        return self.status == 'failure'
 
     def is_pending(self):
         return not self.is_successful() and not self.is_failure()
