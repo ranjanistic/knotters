@@ -130,8 +130,8 @@ def getReviewsByCourse(request: WSGIRequest, courseID: UUID):
         reviews=list(
             map(
                 lambda review: dict(
-                    id=review.id,
-                    courseId=review.course.id,
+                    id=review.id.hex,
+                    courseId=review.course.get_id,
                     review=review.review,
                     reviewer=review.creator.get_dict(),
                     score=review.score,
@@ -160,7 +160,7 @@ def addReviewByCourse(request, courseID):
         course=course, review=review,draft=False, creator=request.user.profile, score=score)
     return respondJson(Code.OK, dict(
         review=dict(
-            id=review.id,
+            id=review.id.hex,
             courseId=review.course.get_id,
             review=review.review,
             reviewer=review.creator.get_dict(),
@@ -203,8 +203,8 @@ def addLessonToUserHistory(request: WSGIRequest):
         profile=request.user.profile, lesson=lesson)
     return respondJson(Code.OK, dict(
         history=dict(
-            id=history.id,
-            courseId=history.course().id,
+            id=history.id.hex,
+            courseId=history.course().get_id,
             lesson=history.lesson.get_dict(),
         )
     ))
@@ -219,8 +219,8 @@ def getUserLessonHistory(request: WSGIRequest):
         histories=list(
             map(
                 lambda history: dict(
-                    id=history.id,
-                    courseId=history.course().id,
+                    id=history.id.hex,
+                    courseId=history.course().get_id,
                     lesson=history.lesson.get_dict(),
                 ), histories
             )
@@ -285,8 +285,8 @@ def handleCourseEnrollment(request: WSGIRequest, courseID):
                 ).update(coupon=None, expireAt=expireAt)
             return respondJson(Code.OK, dict(
                 enrollment=dict(
-                    id=enrollment.id,
-                    courseId=enrollment.course.id,
+                    id=enrollment.id.hex,
+                    courseId=enrollment.course.get_id,
                     enrolledAt=enrollment.enrolledAt,
                     expireAt=expireAt,
                     isActive=isActive
@@ -315,8 +315,8 @@ def handleCourseEnrollment(request: WSGIRequest, courseID):
                 return respondJson(Code.NO, error='Invalid enrollment request.', status=400)
             return respondJson(Code.OK, dict(
                 enrollment=dict(
-                    id=enrollment.id,
-                    courseId=enrollment.course.id,
+                    id=enrollment.id.hex,
+                    courseId=enrollment.course.get_id,
                     enrolledAt=enrollment.enrolledAt,
                     expireAt=enrollment.expireAt,
                     isActive=enrollment.isActive(),
@@ -327,8 +327,8 @@ def handleCourseEnrollment(request: WSGIRequest, courseID):
         if enrollment:
             return respondJson(Code.OK, dict(
                 enrollment=dict(
-                    id=enrollment.id,
-                    courseId=enrollment.course.id,
+                    id=enrollment.id.hex,
+                    courseId=enrollment.course.get_id,
                     enrolledAt=enrollment.enrolledAt,
                     expireAt=enrollment.expireAt,
                     isActive=enrollment.isActive(),
