@@ -141,13 +141,12 @@ class DecodeJSONBody(object):
         super().__init__()
 
     def __call__(self, request: WSGIRequest):
-        if request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
+        if request.method == Code.POST and request.headers.get('Content-Type', None) == Code.APPLICATION_JSON:
             try:
                 loadedbody = json.loads(request.body.decode(Code.UTF_8))
                 request.POST = dict(**loadedbody, **request.POST)
-                print(request.POST)
             except json.JSONDecodeError:
-                raise HttpResponse(status=422)
+                return HttpResponse(status=422)
         return self.get_response(request)
 
 
