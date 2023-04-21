@@ -144,7 +144,7 @@ class DecodeJSONBody(object):
         if request.method == Code.POST and request.headers.get('Content-Type', None) == Code.APPLICATION_JSON and request.body:
             try:
                 loadedbody = json.loads(request.body.decode(Code.UTF_8))
-                request.POST = dict(**loadedbody, **request.POST)
+                request.POST = dict(**loadedbody, **request.POST, JSON_BODY=True)
             except json.JSONDecodeError:
                 return HttpResponse(status=422)
         return self.get_response(request)

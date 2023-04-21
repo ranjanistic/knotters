@@ -203,7 +203,7 @@ class TestViews(TestCase):
             resp.content.decode(Code.UTF_8)), dict(code=Code.OK))
         self.assertFalse(Article.objects.filter(id=article.get_id).exists())
 
-
+    @tag('howsec')
     def test_section(self):
         client = Client()
         article: Article = Article.objects.create(heading=getArticleHeading(
