@@ -62,7 +62,7 @@ h11==0.13.0
 html5lib==1.1
 http-ece==1.1.0
 httplib2==0.20.4
-idna==3.3
+idna==3.7
 importlib-metadata==4.11.3
 ipaddress==1.0.23
 jinxed==1.1.0
